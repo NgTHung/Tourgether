@@ -5,10 +5,12 @@ import { httpBatchStreamLink, loggerLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
-import SuperJSON from "superjson";
+import { transformer } from "./utils";
 
 import { type AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
+
+
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
@@ -50,7 +52,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
             (op.direction === "down" && op.result instanceof Error),
         }),
         httpBatchStreamLink({
-          transformer: SuperJSON,
+          transformer: transformer,
           url: getBaseUrl() + "/api/trpc",
           headers: () => {
             const headers = new Headers();
