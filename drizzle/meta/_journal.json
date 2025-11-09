@@ -8,6 +8,27 @@
       "when": 1762510670368,
       "tag": "0000_magenta_moonstone",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1762703056245,
+      "tag": "0001_petite_the_hood",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762704782421,
+      "tag": "0002_cool_puma",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1762707834811,
+      "tag": "0003_stormy_sandman",
+      "breakpoints": true
     }
   ]
 }

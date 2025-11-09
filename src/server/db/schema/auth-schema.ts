@@ -1,4 +1,10 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -11,6 +17,14 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+  role: text("role").default("USER").notNull(),
+  phonenumber: text("phonenumber").default("").notNull(),
+  address: text("address").default("").notNull(),
+  gender: text("gender").default("").notNull(),
+  birthday: text("birthday").default("").notNull(),
+  verificationID: text("verification_id").default("").notNull(),
+  rating: integer("rating").default(0).notNull(),
+  mediapage: text("mediapage").default("").notNull(),
 });
 
 export const session = pgTable("session", {
