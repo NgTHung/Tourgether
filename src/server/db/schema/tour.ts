@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, timestamp, integer, PgTable, uuid, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, uuid, primaryKey } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
 export const itinerary = pgTable("itinerary", {
@@ -23,9 +23,9 @@ export const itineraryRelations = relations(itinerary, ({ one }) => ({
 export const userRelations = relations(user, ({ many }) => ({
     tours: many(tours),
     joinedTours: many(userToTours),
-    givenRatings: many(rating, { relationName: "rater" }),
-    receivedRatings: many(rating, { relationName: "ratee" }),
-    tripReviews: many(tripReviews),
+    givenRatings: many(review, { relationName: "rater" }),
+    receivedRatings: many(review, { relationName: "ratee" }),
+    tourReviews: many(tourReviews),
 }));
 
 export const tours = pgTable("tours", {
@@ -49,7 +49,7 @@ export const toursRelations = relations(tours, ({ one, many }) => ({
     joiners: many(userToTours),
     guide: one(tourGuide, { fields: [tours.guideID], references: [tourGuide.userID] }),
     tags: many(tourToTags),
-    reviews: many(tripReviews),
+    reviews: many(tourReviews),
 }));
 
 export const organizations = pgTable("organizations", {
@@ -59,6 +59,10 @@ export const organizations = pgTable("organizations", {
     slogan: text("slogan").notNull()
 });
 
+export const organizationRelations = relations(organizations, ({ one }) => ({
+    user: one(user, { fields: [organizations.userID], references: [user.id] }),
+}));
+
 export const tourGuide = pgTable("tour_guide", {
     userID: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
     school: text("school").notNull(),
@@ -67,43 +71,44 @@ export const tourGuide = pgTable("tour_guide", {
     description: text("description").notNull()
 });
 
-export const tourGuideRelations = relations(tourGuide, ({ many }) => ({
+export const tourGuideRelations = relations(tourGuide, ({ many, one }) => ({
     tags: many(guideToTags),
     tours: many(tours),
+    user: one(user, { fields: [tourGuide.userID], references: [user.id] }),
 }));
 
-export const guideTags = pgTable("guide_tags", {
+export const tags = pgTable("tags", {
     id: uuid("id").primaryKey().defaultRandom(),
-    tags: text("tags").array().default(sql`'{}'::text[]`),
+    tags: text("tags").notNull(),
 })
 
-export const guideTagsRelations = relations(guideTags, ({ many }) => ({
+export const guideTagsRelations = relations(tags, ({ many }) => ({
    guide: many(guideToTags),
    tours: many(tourToTags),
 }));
 
 export const guideToTags = pgTable("guide_to_tags", {
     guideID: text("guide_id").references(() => tourGuide.userID, { onDelete: "cascade" }),
-    tagID: uuid("tag_id").references(() => guideTags.id, { onDelete: "cascade" }),
+    tagID: uuid("tag_id").references(() => tags.id, { onDelete: "cascade" }),
 }, (table) => [
     primaryKey({ columns: [table.guideID, table.tagID] })
 ])
 
 export const guideToTagsRelations = relations(guideToTags, ({ one }) => ({
     guide: one(tourGuide, { fields: [guideToTags.guideID], references: [tourGuide.userID] }),
-    tag: one(guideTags, { fields: [guideToTags.tagID], references: [guideTags.id] }),
+    tag: one(tags, { fields: [guideToTags.tagID], references: [tags.id] }),
 }))
 
 export const tourToTags = pgTable("tour_to_tags", {
     tourID: uuid("tour_id").references(() => tours.id, { onDelete: "cascade" }),
-    tagID: uuid("tag_id").references(() => guideTags.id, { onDelete: "cascade" }),
+    tagID: uuid("tag_id").references(() => tags.id, { onDelete: "cascade" }),
 }, (table) => [
     primaryKey({ columns: [table.tourID, table.tagID] })
 ])
 
 export const tourToTagsRelations = relations(tourToTags, ({ one }) => ({
     tour: one(tours, { fields: [tourToTags.tourID], references: [tours.id] }),
-    tag: one(guideTags, { fields: [tourToTags.tagID], references: [guideTags.id] }),
+    tag: one(tags, { fields: [tourToTags.tagID], references: [tags.id] }),
 }))
 
 export const userToTours = pgTable("user_to_tours", {
@@ -119,7 +124,7 @@ export const userToToursRelations = relations(userToTours, ({ one }) => ({
     tour: one(tours, { fields: [userToTours.tourID], references: [tours.id] }),
 }))
 
-export const rating = pgTable("rating", {
+export const review = pgTable("reviews", {
     id: uuid("id").primaryKey().defaultRandom(),
     points: integer("points").notNull(),
     review: text("review").notNull(),
@@ -131,20 +136,20 @@ export const rating = pgTable("rating", {
         .notNull()
 })
 
-export const ratingRelations = relations(rating, ({ one }) => ({
+export const reviewRelations = relations(review, ({ one }) => ({
     from: one(user, { 
-        fields: [rating.fromUserID], 
+        fields: [review.fromUserID], 
         references: [user.id],
         relationName: "rater"
     }),
     to: one(user, { 
-        fields: [rating.toUserID], 
+        fields: [review.toUserID], 
         references: [user.id],
         relationName: "ratee"
     }),
 }));
 
-export const tripReviews = pgTable("trip_reviews", {
+export const tourReviews = pgTable("tour_reviews", {
     id: uuid("id").primaryKey().defaultRandom(),
     tourID: uuid("tour_id").references(() => tours.id, { onDelete: "cascade" }),
     userID: text("user_id").references(() => user.id, { onDelete: "cascade" }),
@@ -155,7 +160,7 @@ export const tripReviews = pgTable("trip_reviews", {
         .$onUpdate(() => /* @__PURE__ */ new Date())
         .notNull()
 });
-export const tripReviewsRelations = relations(tripReviews, ({ one }) => ({
-    tour: one(tours, { fields: [tripReviews.tourID], references: [tours.id] }),
-    user: one(user, { fields: [tripReviews.userID], references: [user.id] }),
+export const tourReviewsRelations = relations(tourReviews, ({ one }) => ({
+    tour: one(tours, { fields: [tourReviews.tourID], references: [tours.id] }),
+    user: one(user, { fields: [tourReviews.userID], references: [user.id] }),
 }));
