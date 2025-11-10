@@ -1,4 +1,9 @@
-/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
-export default {
-  plugins: ["prettier-plugin-tailwindcss"],
+import { type Config } from "prettier";
+
+const config: Config = {
+	trailingComma: "none",
+	tabWidth: 4,
+	useTabs: true,
 };
+
+module.exports = config;
