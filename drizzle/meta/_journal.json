@@ -36,6 +36,20 @@
       "when": 1762764338592,
       "tag": "0004_flat_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1762841931696,
+      "tag": "0005_bright_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762846940044,
+      "tag": "0006_brainy_infant_terrible",
+      "breakpoints": true
     }
   ]
 }

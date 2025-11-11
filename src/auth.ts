@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { username } from "better-auth/plugins";
 import z from "zod";
 
 import { env } from "~/env";
@@ -14,6 +15,9 @@ export const auth = betterAuth({
   },
   socialProviders: {
   },
+  plugins: [
+    username()
+  ],
   user:{
     additionalFields: {
       role:{

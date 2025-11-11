@@ -37,8 +37,8 @@ export const reviewRouter = createTRPCRouter({
 		.input(
 			z.object({
 				toUserID: z.string(),
-				points: z.number().int().min(1).max(100),
-				reviewText: z.string().min(1).max(1000),
+				points: z.number().min(0).max(5),
+				reviewText: z.string(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -66,7 +66,7 @@ export const reviewRouter = createTRPCRouter({
 				.values({
 					fromUserID: ctx.session.user.id,
 					toUserID: input.toUserID,
-					points: input.points,
+					points: input.points.toFixed(2),
 					review: input.reviewText,
 				})
 				.returning();
@@ -78,15 +78,15 @@ export const reviewRouter = createTRPCRouter({
 		.input(
 			z.object({
 				reviewID: z.string(),
-				points: z.number().int().min(1).max(100).optional(),
-				reviewText: z.string().min(1).max(1000).optional(),
+				points: z.number().min(0).max(5).optional(),
+				reviewText: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
 			const updatedReview = await ctx.db
 				.update(review)
 				.set({
-					points: input.points,
+					points: input.points ? input.points.toFixed(2) : undefined,
 					review: input.reviewText,
 				})
 				.where(
@@ -153,7 +153,7 @@ export const reviewRouter = createTRPCRouter({
 			z.object({
 				tourID: z.string(),
 				rating: z.number().int().min(1).max(100),
-				reviewText: z.string().min(1).max(1000),
+				reviewText: z.string(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -216,7 +216,7 @@ export const reviewRouter = createTRPCRouter({
 			z.object({
 				reviewID: z.string(),
 				rating: z.number().int().min(1).max(100).optional(),
-				reviewText: z.string().min(1).max(1000).optional(),
+				reviewText: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {

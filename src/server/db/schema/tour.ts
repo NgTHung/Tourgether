@@ -6,6 +6,7 @@ import {
 	integer,
 	uuid,
 	primaryKey,
+	decimal,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
@@ -174,7 +175,7 @@ export const userToToursRelations = relations(userToTours, ({ one }) => ({
 
 export const review = pgTable("reviews", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	points: integer("points").notNull(),
+	points: decimal("points", { precision: 3, scale: 2 }).notNull(),
 	review: text("review").notNull(),
 	fromUserID: text("from_user_id").references(() => user.id, {
 		onDelete: "cascade",
