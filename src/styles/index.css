@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Light Theme - Clean white base with vibrant azure blue accent */
+    --background: 0 0% 100%;
+    --foreground: 210 20% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 20% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 20% 15%;
+
+    /* Vibrant Azure Blue Primary */
+    --primary: 207 90% 54%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 207 30% 96%;
+    --secondary-foreground: 207 90% 25%;
+
+    --muted: 207 15% 95%;
+    --muted-foreground: 207 15% 40%;
+
+    /* Keep accent as complementary orange */
+    --accent: 25 95% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 207 25% 90%;
+    --input: 207 25% 90%;
+    --ring: 207 90% 54%;
+
+    --radius: 0.75rem;
+    
+    /* Solid Azure Blue Colors for Light Theme */
+    --azure-blue: 207 90% 54%;
+    --azure-blue-hover: 207 90% 48%;
+    --azure-blue-light: 207 60% 96%;
+    
+    --shadow-soft: 0 2px 8px hsl(207 20% 15% / 0.08);
+    --shadow-card: 0 4px 16px hsl(207 20% 15% / 0.1);
+    --shadow-elevated: 0 8px 24px hsl(207 20% 15% / 0.15);
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 207 90% 54%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 207 90% 54%;
+  }
+
+  .dark {
+    /* Dark Theme - Dark charcoal base with same vibrant azure blue accent */
+    --background: 210 30% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 210 25% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 210 25% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Same Vibrant Azure Blue Primary */
+    --primary: 207 90% 54%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 25% 18%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 210 25% 15%;
+    --muted-foreground: 207 15% 60%;
+
+    /* Same accent as light theme */
+    --accent: 25 95% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 25% 20%;
+    --input: 210 25% 20%;
+    --ring: 207 90% 54%;
+    
+    /* Solid Azure Blue Colors for Dark Theme */
+    --azure-blue: 207 90% 54%;
+    --azure-blue-hover: 207 90% 60%;
+    --azure-blue-light: 207 40% 15%;
+    
+    --sidebar-background: 210 30% 8%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 207 90% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 25% 15%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 210 25% 20%;
+    --sidebar-ring: 207 90% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
