@@ -1,9 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
 import { Compass, Users, Briefcase, Plane, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-beach.jpg";
-
+import heroImage from "~/assets/hero-beach.jpg";
+// /
 const Index = () => {
   const navigate = useNavigate();
 
