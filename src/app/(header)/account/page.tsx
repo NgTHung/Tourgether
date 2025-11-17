@@ -207,9 +207,7 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header userRole={userRole} />
-      
+      <>
       <div className="container max-w-4xl mx-auto px-4 py-8">
         {/* Header Actions */}
         <div className="flex justify-between items-center mb-8">
@@ -437,7 +435,7 @@ const Account = () => {
           onVerified={handleVerificationComplete}
         />
       </div>
-    </div>
+    </>
   );
 };
 

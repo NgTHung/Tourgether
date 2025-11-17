@@ -2,9 +2,6 @@ import "~/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
-
-import { TRPCReactProvider } from "~/trpc/react";
-import { Toaster } from "~/components/ui/sonner";
 import Header from "~/components/Header";
 
 export const metadata: Metadata = {
@@ -18,17 +15,13 @@ const geist = Geist({
 	variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default function HeaderLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" className={`${geist.variable}`}>
-			<body>
-				<div className="min-h-screen bg-background">
-					<TRPCReactProvider>{children}</TRPCReactProvider>
-				</div>
-				<Toaster />
-			</body>
-		</html>
+		<>
+			<Header userRole="traveler" />
+			{children}
+		</>
 	);
 }

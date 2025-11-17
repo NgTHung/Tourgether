@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import Header from "~/components/Header";
+"use client";
+import { useState, use } from "react";
 import { MapPin, Calendar, DollarSign, Clock, Star, User, Edit, Camera } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -9,8 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { redirect } from "next/navigation";
 
-const TourDetail = () => {
-  const { id } = useParams();
+const TourDetail = ({
+  params,
+}:{
+  params: Promise<{ id: string }>;
+}) => {
+  const id = use(params).id;
   const [activeTab, setActiveTab] = useState("details");
   
   // Mock user role - in real app this would come from auth context
@@ -61,17 +64,15 @@ const TourDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header userRole={userRole} />
-
-      {/* Hero Image */}
+    <>
+          {/* Hero Image */}
       <div className="relative h-96 w-full overflow-hidden">
         <img
           src={tour.imageUrl}
           alt={tour.title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
       </div>
 
       <main className="container py-8 px-4 -mt-32 relative z-10">
@@ -394,7 +395,7 @@ const TourDetail = () => {
           </div>
         </div>
       </main>
-    </div>
+    </>
   );
 };
 

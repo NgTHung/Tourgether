@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -12,7 +13,7 @@ import {
 import { Calendar as CalendarIcon, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "~/lib/utils";
-import { DateRange } from "react-day-picker";
+import { type DateRange } from "react-day-picker";
 
 interface FilterBarProps {
   userRole: "student" | "business" | "traveler";

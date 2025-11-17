@@ -1,14 +1,15 @@
-import { useLocation } from "react-router-dom";
+"use client";
+
 import { useEffect } from "react";
 import Link from "next/link"
+import { usePathname } from "next/navigation";
 
 const NotFound = () => {
-  const location = useLocation();
+  const location = usePathname();
 
   useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
-
+    console.error("404 Error: User attempted to access non-existent route:", location);
+  }, [location]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="text-center">

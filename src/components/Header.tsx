@@ -1,3 +1,4 @@
+"use client";
 import { Search, User, Settings, LogOut, Compass } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";

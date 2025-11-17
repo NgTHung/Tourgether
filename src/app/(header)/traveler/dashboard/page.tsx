@@ -1,13 +1,15 @@
+"use client";
 import { useState } from "react";
 import Header from "~/components/Header";
 import TourCard from "~/components/TourCard";
-import FilterBar, { FilterState } from "~/components/FilterBar";
+import FilterBar, { type FilterState } from "~/components/FilterBar";
 import { Button } from "~/components/ui/button";
-import { GraduationCap, History } from "lucide-react";
-import { redirect } from "next/navigation";
+import { Compass } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-const StudentDashboard = () => {
-  const [filters, setFilters] = useState<FilterState>({ city: "" });
+const TravelerDashboard = () => {
+  const router = useRouter();
+  const [filters, setFilters] = useState<FilterState>({ city: "", priceRange: [0, 500] });
   const [activeTab, setActiveTab] = useState<"available" | "previous">("available");
 
   const handleApplyFilters = (newFilters: FilterState) => {
@@ -23,8 +25,8 @@ const StudentDashboard = () => {
       location: "Rome, Italy",
       date: "May 15, 2024",
       price: 150,
+      rating: 4.8,
       businessName: "Rome Adventures Co.",
-      applicants: 5,
       imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
     },
     {
@@ -33,8 +35,8 @@ const StudentDashboard = () => {
       location: "Swiss Alps",
       date: "June 10, 2024",
       price: 200,
+      rating: 4.9,
       businessName: "Alpine Tours",
-      applicants: 3,
       imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
     },
     {
@@ -43,8 +45,8 @@ const StudentDashboard = () => {
       location: "Santorini, Greece",
       date: "May 25, 2024",
       price: 120,
+      rating: 4.7,
       businessName: "Greek Island Tours",
-      applicants: 8,
       imageUrl: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=800&q=80",
     },
     {
@@ -53,36 +55,53 @@ const StudentDashboard = () => {
       location: "Bangkok, Thailand",
       date: "June 5, 2024",
       price: 80,
+      rating: 4.6,
       businessName: "Thai Experiences",
-      applicants: 12,
       imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+    },
+    {
+      id: "5",
+      title: "Desert Safari Adventure",
+      location: "Dubai, UAE",
+      date: "June 15, 2024",
+      price: 180,
+      rating: 4.8,
+      businessName: "Desert Explorers",
+      imageUrl: "https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=800&q=80",
+    },
+    {
+      id: "6",
+      title: "Northern Lights Tour",
+      location: "Reykjavik, Iceland",
+      date: "July 1, 2024",
+      price: 250,
+      rating: 4.9,
+      businessName: "Iceland Adventures",
+      imageUrl: "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=800&q=80",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header userRole="student" />
-      
-      <main className="container py-8 px-4">
+      <>
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <GraduationCap className="w-6 h-6 text-primary" />
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <Compass className="w-6 h-6 text-accent" />
             </div>
-            <h1 className="text-3xl font-bold">Student Dashboard</h1>
+            <h1 className="text-3xl font-bold">Discover Tours</h1>
           </div>
           <p className="text-muted-foreground">
-            Browse opportunities and manage your tour guide career
+            Browse amazing experiences around the world
           </p>
         </div>
 
         {/* 2-Column Layout */}
         <div className="flex gap-8">
           {/* Left Column - Fixed Filter Panel */}
-          <div className="w-80 flex-shrink-0">
+          <div className="w-80 shrink-0">
             <div className="sticky top-8">
-              <FilterBar userRole="student" onApplyFilters={handleApplyFilters} />
+              <FilterBar userRole="traveler" onApplyFilters={handleApplyFilters} />
             </div>
           </div>
 
@@ -104,12 +123,11 @@ const StudentDashboard = () => {
                   size="sm"
                   onClick={() => {
                     if (activeTab !== "previous") {
-                      redirect("/previous-tours");
+                      router.push("/previous-tours");
                     }
                   }}
-                  className="rounded-md flex items-center gap-2"
+                  className="rounded-md"
                 >
-                  <History className="w-4 h-4" />
                   Previous Tours
                 </Button>
               </div>
@@ -123,33 +141,18 @@ const StudentDashboard = () => {
                     key={tour.id}
                     {...tour}
                     action={{
-                      label: "Apply Now",
-                      variant: "gradient",
-                      onClick: () => redirect(`/tour/${tour.id}`),
+                      label: "Book Now",
+                      variant: "accent",
+                      onClick: () => router.push(`/tour/${tour.id}`),
                     }}
                   />
                 ))}
               </div>
             )}
-
-            {/* Previous Tours Placeholder */}
-            {activeTab === "previous" && (
-              <div className="text-center py-12">
-                <History className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No Previous Tours</h3>
-                <p className="text-muted-foreground mb-6">
-                  You haven&apos;t completed any tours yet. Start applying for available opportunities!
-                </p>
-                <Button onClick={() => redirect("/previous-tours")} variant="outline">
-                  View All Previous Tours
-                </Button>
-              </div>
-            )}
           </div>
         </div>
-      </main>
-    </div>
+      </>
   );
 };
 
-export default StudentDashboard;
+export default TravelerDashboard;

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import Header from "~/components/Header";
 import { Heart, MessageCircle, Send, Image as ImageIcon } from "lucide-react";
@@ -87,8 +89,7 @@ const SocialFeed = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header userRole="student" />
+    <>
       
       <main className="container max-w-2xl py-8 px-4">
         {/* Create Post */}
@@ -178,7 +179,7 @@ const SocialFeed = () => {
           ))}
         </div>
       </main>
-    </div>
+    </>
   );
 };
 

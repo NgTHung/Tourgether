@@ -1,3 +1,5 @@
+"use client";
+
 import { Upload, X, GripVertical } from "lucide-react";
 import { useState } from "react";
 import { cn } from "~/lib/utils";
@@ -36,7 +38,7 @@ const FileUpload = ({ images, onImagesChange }: FileUploadProps) => {
     const newImages = [...images];
     const draggedImage = newImages[draggedIndex];
     newImages.splice(draggedIndex, 1);
-    newImages.splice(index, 0, draggedImage);
+    newImages.splice(index, 0, draggedImage!);
     
     onImagesChange(newImages);
     setDraggedIndex(index);

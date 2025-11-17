@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Header from "~/components/Header";
 import TourCard from "~/components/TourCard";
-import FilterBar, { FilterState } from "~/components/FilterBar";
+import FilterBar, { type FilterState } from "~/components/FilterBar";
 import { Plus, Building2, History } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { redirect } from "next/navigation";

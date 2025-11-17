@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { redirect } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import Header from "~/components/Header";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

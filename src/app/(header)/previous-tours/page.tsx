@@ -1,13 +1,9 @@
+"use client";
 import { useState } from "react";
-import { redirect } from "next/navigation";
-import Header from "~/components/Header";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Badge } from "~/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Separator } from "~/components/ui/separator";
+import { Card, CardContent } from "~/components/ui/card";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { 
   ArrowLeft, 
   Star, 
@@ -19,6 +15,7 @@ import {
   MessageSquare,
   Send
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type UserRole = "student" | "business" | "traveler";
 
@@ -68,6 +65,7 @@ interface TravelerTour {
 }
 
 const PreviousTours = () => {
+  const router = useRouter();
   // Mock user role - in real app this would come from auth context
   const [userRole] = useState<UserRole>("traveler");
   const [newReview, setNewReview] = useState("");
@@ -222,7 +220,7 @@ const PreviousTours = () => {
                       <span className="font-semibold">${tour.earnings} earned</span>
                     </div>
                   </div>
-                  <Button variant="outline" onClick={() => redirect(`/tour/${tour.id}`)}>
+                  <Button variant="outline" onClick={() => router.push(`/tour/${tour.id}`)}>
                     View Details
                   </Button>
                 </div>
@@ -310,7 +308,7 @@ const PreviousTours = () => {
                   </div>
                 </div>
 
-                <Button variant="outline" onClick={() => redirect(`/business/tour/${tour.id}`)}>
+                <Button variant="outline" onClick={() => router.push(`/business/tour/${tour.id}`)}>
                   View Full Report
                 </Button>
               </div>
@@ -354,7 +352,7 @@ const PreviousTours = () => {
                   </p>
                 </div>
 
-                <Button variant="outline" onClick={() => redirect(`/tour/${tour.id}`)}>
+                <Button variant="outline" onClick={() => router.push(`/tour/${tour.id}`)}>
                   View Tour Details
                 </Button>
 
@@ -388,7 +386,7 @@ const PreviousTours = () => {
                         value={newReview}
                         onChange={(e) => setNewReview(e.target.value)}
                         placeholder="Share your experience with other travelers..."
-                        className="min-h-[80px]"
+                        className="min-h-20"
                       />
                       <Button 
                         onClick={handleSubmitReview}
@@ -410,14 +408,12 @@ const PreviousTours = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header userRole={userRole} />
-      
+    <>
       <main className="container py-8 px-4">
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => redirect(-1)}
+            onClick={() => router.back()}
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -436,7 +432,7 @@ const PreviousTours = () => {
         {userRole === "business" && renderBusinessView()}
         {userRole === "traveler" && renderTravelerView()}
       </main>
-    </div>
+    </>
   );
 };
 

@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { redirect } from "next/navigation";
 import Header from "~/components/Header";
@@ -67,8 +68,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header userRole="student" />
+    <>
 
       <main className="container max-w-2xl py-8 px-4">
         <Button
@@ -141,7 +141,7 @@ const Settings = () => {
         email={email}
         onVerify={handleVerify}
       />
-    </div>
+    </>
   );
 };
 
