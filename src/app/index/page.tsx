@@ -1,8 +1,10 @@
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Compass, Users, Briefcase, Plane, ArrowRight } from "lucide-react";
-import heroImage from "~/assets/hero-beach.jpg";
+import heroImage from "public/assets/hero-beach-jgTo3uaI.jpg";
 import { redirect } from "next/navigation";
+import Image from "next/image"
+
 // /
 const Index = () => {
 
@@ -11,7 +13,7 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden bg-primary">
         <div className="absolute inset-0">
-          <img
+          <Image
             src={heroImage}
             alt="Beautiful beach destination"
             className="w-full h-full object-cover opacity-20"
