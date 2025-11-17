@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import TagsInput from "@/components/TagsInput";
-import FileUpload from "@/components/FileUpload";
-import TourPreview from "@/components/TourPreview";
-import ItineraryBuilder from "@/components/ItineraryBuilder";
+import { useParams } from "react-router-dom";
+import { redirect } from "next/navigation";
+import Header from "~/components/Header";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { Label } from "~/components/ui/label";
+import TagsInput from "~/components/TagsInput";
+import FileUpload from "~/components/FileUpload";
+import TourPreview from "~/components/TourPreview";
+import ItineraryBuilder from "~/components/ItineraryBuilder";
 import { ArrowLeft, Calendar, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,7 +21,6 @@ interface ItineraryItem {
 }
 
 const CreateTour = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
 
@@ -72,7 +72,7 @@ const CreateTour = () => {
     }
 
     toast.success(isEditing ? "Tour updated successfully!" : "Tour created successfully!");
-    navigate("/business/dashboard");
+    redirect("/business/dashboard");
   };
 
   const handleItinerarySave = (newItinerary: ItineraryItem[]) => {
@@ -87,7 +87,7 @@ const CreateTour = () => {
       <main className="container py-6 px-4">
         <Button
           variant="ghost"
-          onClick={() => navigate("/business/dashboard")}
+          onClick={() => redirect("/business/dashboard")}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

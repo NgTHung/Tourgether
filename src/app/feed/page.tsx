@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Header from "@/components/Header";
+import Header from "~/components/Header";
 import { Heart, MessageCircle, Send, Image as ImageIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { Textarea } from "~/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 interface Post {
   id: string;

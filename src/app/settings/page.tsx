@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { redirect } from "next/navigation";
+import Header from "~/components/Header";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import { ArrowLeft } from "lucide-react";
-import UnsavedChangesModal from "@/components/UnsavedChangesModal";
-import EmailVerificationModal from "@/components/EmailVerificationModal";
+import UnsavedChangesModal from "~/components/UnsavedChangesModal";
+import EmailVerificationModal from "~/components/EmailVerificationModal";
 import { toast } from "sonner";
 
 const Settings = () => {
-  const navigate = useNavigate();
-  
   const [fullName, setFullName] = useState("Jane Doe");
   const [email, setEmail] = useState("jane@example.com");
   const [phone, setPhone] = useState("+1 123 456 789");
@@ -42,13 +40,13 @@ const Settings = () => {
       setPendingNavigation(path);
       setShowUnsavedModal(true);
     } else {
-      navigate(path);
+      redirect(path);
     }
   };
 
   const handleLeave = () => {
     if (pendingNavigation) {
-      navigate(pendingNavigation);
+      redirect(pendingNavigation);
     }
   };
 

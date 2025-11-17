@@ -2,9 +2,9 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Compass, Users, Briefcase, Plane, ArrowRight } from "lucide-react";
 import heroImage from "~/assets/hero-beach.jpg";
+import { redirect } from "next/navigation";
 // /
 const Index = () => {
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
@@ -32,7 +32,7 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={() => navigate("/auth")}
+              onClick={() => redirect("/auth")}
               variant="gradient"
               size="lg"
               className="text-lg"
@@ -41,7 +41,7 @@ const Index = () => {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
-              onClick={() => navigate("/feed")}
+              onClick={() => redirect("/feed")}
               variant="outline"
               size="lg"
               className="text-lg"
@@ -60,8 +60,8 @@ const Index = () => {
               One Platform, Three Perspectives
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Whether you're a student seeking opportunities, a business creating tours,
-              or a traveler exploring the world, we've got you covered.
+              Whether you&apos;re a student seeking opportunities, a business creating tours,
+              or a traveler exploring the world, we&apos;ve got you covered.
             </p>
           </div>
 
@@ -93,7 +93,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => navigate("/auth")}
+                  onClick={() => redirect("/auth")}
                   variant="default"
                   className="w-full"
                 >
@@ -129,7 +129,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => navigate("/auth")}
+                  onClick={() => redirect("/auth")}
                   variant="accent"
                   className="w-full"
                 >
@@ -165,7 +165,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => navigate("/auth")}
+                  onClick={() => redirect("/auth")}
                   variant="default"
                   className="w-full"
                 >
@@ -187,7 +187,7 @@ const Index = () => {
             Join thousands of students, businesses, and travelers already connected on Tourgether
           </p>
           <Button
-            onClick={() => navigate("/auth")}
+            onClick={() => redirect("/auth")}
             variant="gradient"
             size="lg"
             className="text-lg"

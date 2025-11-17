@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import Header from "@/components/Header";
+import Header from "~/components/Header";
 import { MapPin, Calendar, DollarSign, Clock, Star, User, Edit, Camera } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Badge } from "~/components/ui/badge";
+import { redirect } from "next/navigation";
 
 const TourDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("details");
   
   // Mock user role - in real app this would come from auth context
@@ -95,7 +94,7 @@ const TourDetail = () => {
                     {/* Edit Tour Button - Only visible to business owner */}
                     {userRole === "business" && isOwner && (
                       <Button 
-                        onClick={() => navigate(`/business/edit-tour/${id}`)} 
+                        onClick={() => redirect(`/business/edit-tour/${id}`)} 
                         variant="outline"
                         size="sm"
                       >
@@ -200,7 +199,7 @@ const TourDetail = () => {
                     </div>
 
                     <div className="space-y-3">
-                      <h3 className="font-semibold">What's Included:</h3>
+                      <h3 className="font-semibold">What&apos;s Included:</h3>
                       <ul className="space-y-2 text-muted-foreground">
                         <li className="flex items-start">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-3" />
@@ -347,7 +346,7 @@ const TourDetail = () => {
                       variant="gradient" 
                       size="lg" 
                       className="w-full mb-3"
-                      onClick={() => navigate(`/business/edit-tour/${id}`)}
+                      onClick={() => redirect(`/business/edit-tour/${id}`)}
                     >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Tour

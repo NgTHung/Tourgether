@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import { redirect } from "next/navigation";
+import Header from "~/components/Header";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Separator } from "~/components/ui/separator";
 import { 
   ArrowLeft, 
   Star, 
@@ -68,8 +68,6 @@ interface TravelerTour {
 }
 
 const PreviousTours = () => {
-  const navigate = useNavigate();
-  
   // Mock user role - in real app this would come from auth context
   const [userRole] = useState<UserRole>("traveler");
   const [newReview, setNewReview] = useState("");
@@ -224,7 +222,7 @@ const PreviousTours = () => {
                       <span className="font-semibold">${tour.earnings} earned</span>
                     </div>
                   </div>
-                  <Button variant="outline" onClick={() => navigate(`/tour/${tour.id}`)}>
+                  <Button variant="outline" onClick={() => redirect(`/tour/${tour.id}`)}>
                     View Details
                   </Button>
                 </div>
@@ -312,7 +310,7 @@ const PreviousTours = () => {
                   </div>
                 </div>
 
-                <Button variant="outline" onClick={() => navigate(`/business/tour/${tour.id}`)}>
+                <Button variant="outline" onClick={() => redirect(`/business/tour/${tour.id}`)}>
                   View Full Report
                 </Button>
               </div>
@@ -356,7 +354,7 @@ const PreviousTours = () => {
                   </p>
                 </div>
 
-                <Button variant="outline" onClick={() => navigate(`/tour/${tour.id}`)}>
+                <Button variant="outline" onClick={() => redirect(`/tour/${tour.id}`)}>
                   View Tour Details
                 </Button>
 
@@ -419,7 +417,7 @@ const PreviousTours = () => {
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => redirect(-1)}
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

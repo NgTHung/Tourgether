@@ -1,13 +1,12 @@
 import { useState } from "react";
-import Header from "@/components/Header";
-import TourCard from "@/components/TourCard";
-import FilterBar, { FilterState } from "@/components/FilterBar";
+import Header from "~/components/Header";
+import TourCard from "~/components/TourCard";
+import FilterBar, { FilterState } from "~/components/FilterBar";
 import { Plus, Building2, History } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Button } from "~/components/ui/button";
+import { redirect } from "next/navigation";
 
 const BusinessDashboard = () => {
-  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterState>({ city: "" });
   const [activeTab, setActiveTab] = useState<"active" | "previous">("active");
 
@@ -58,7 +57,7 @@ const BusinessDashboard = () => {
               Manage your tours, view applicants, and grow your business
             </p>
           </div>
-          <Button onClick={() => navigate("/business/create-tour")} variant="gradient" size="lg">
+          <Button onClick={() => redirect("/business/create-tour")} variant="gradient" size="lg">
             <Plus className="w-5 h-5 mr-2" />
             Create New Tour
           </Button>
@@ -91,7 +90,7 @@ const BusinessDashboard = () => {
                   size="sm"
                   onClick={() => {
                     if (activeTab !== "previous") {
-                      navigate("/previous-tours");
+                      redirect("/previous-tours");
                     }
                   }}
                   className="rounded-md flex items-center gap-2"
@@ -114,7 +113,7 @@ const BusinessDashboard = () => {
                         action={{
                           label: "View Tour",
                           variant: "default",
-                          onClick: () => navigate(`/business/tour/${tour.id}`),
+                          onClick: () => redirect(`/business/tour/${tour.id}`),
                         }}
                       />
                     ))}
@@ -126,7 +125,7 @@ const BusinessDashboard = () => {
                     <p className="text-muted-foreground mb-6">
                       Create your first tour to start connecting with students and travelers
                     </p>
-                    <Button onClick={() => navigate("/business/create-tour")} variant="gradient">
+                    <Button onClick={() => redirect("/business/create-tour")} variant="gradient">
                       <Plus className="w-5 h-5 mr-2" />
                       Create Your First Tour
                     </Button>
@@ -143,7 +142,7 @@ const BusinessDashboard = () => {
                 <p className="text-muted-foreground mb-6">
                   Your completed tours will appear here with revenue and review data.
                 </p>
-                <Button onClick={() => navigate("/previous-tours")} variant="outline">
+                <Button onClick={() => redirect("/previous-tours")} variant="outline">
                   View All Previous Tours
                 </Button>
               </div>

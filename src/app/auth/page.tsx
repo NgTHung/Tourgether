@@ -1,27 +1,26 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Compass, GraduationCap, Briefcase } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { redirect } from "next/navigation";
 
 type UserRole = "student" | "business" | "traveler";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<UserRole>("student");
-  const navigate = useNavigate();
 
   const handleAuth = (e: React.FormEvent, role: UserRole) => {
     e.preventDefault();
     // Mock authentication - redirect to appropriate dashboard
     if (role === "student") {
-      navigate("/student/dashboard");
+      redirect("/student/dashboard");
     } else if (role === "business") {
-      navigate("/business/dashboard");
+      redirect("/business/dashboard");
     } else {
-      navigate("/traveler/dashboard");
+      redirect("/traveler/dashboard");
     }
   };
 
