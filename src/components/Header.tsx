@@ -13,7 +13,7 @@ import { redirect } from "next/navigation";
 import SettingsModal from "~/components/SettingsModal";
 
 interface HeaderProps {
-  userRole?: "student" | "business" | "traveler";
+  userRole?: string;
 }
 
 const Header = ({ userRole }: HeaderProps) => {
@@ -24,11 +24,11 @@ const Header = ({ userRole }: HeaderProps) => {
 
   const handleLogoClick = () => {
     // Navigate to appropriate dashboard based on user role
-    if (userRole === "student") {
+    if (userRole === "GUIDE") {
       redirect("/student/dashboard");
-    } else if (userRole === "business") {
+    } else if (userRole === "ORGANIZATION") {
       redirect("/business/dashboard");
-    } else if (userRole === "traveler") {
+    } else if (userRole === "USER") {
       redirect("/traveler/dashboard");
     } else {
       redirect("/");
@@ -74,9 +74,9 @@ const Header = ({ userRole }: HeaderProps) => {
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium">
-                  {userRole === "student" && "Student Account"}
-                  {userRole === "business" && "Business Account"}
-                  {userRole === "traveler" && "Traveler Account"}
+                  {userRole === "GUIDE" && "Student Account"}
+                  {userRole === "ORGANIZATION" && "Business Account"}
+                  {userRole === "USER" && "Traveler Account"}
                 </p>
                 <p className="text-xs text-muted-foreground">user@example.com</p>
               </div>

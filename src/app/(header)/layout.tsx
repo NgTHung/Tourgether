@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import Header from "~/components/Header";
+import { authClient } from "~/server/better-auth/client";
 
 export const metadata: Metadata = {
 	title: "Create T3 App",
@@ -18,9 +19,15 @@ const geist = Geist({
 export default function HeaderLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
+    const { 
+        data: session, 
+        isPending, //loading state
+        error, //error object
+        refetch //refetch the session
+    } = authClient.useSession() 
 	return (
 		<>
-			<Header userRole="traveler" />
+			<Header userRole={session?.user?.role ?? "traveler"} />
 			{children}
 		</>
 	);

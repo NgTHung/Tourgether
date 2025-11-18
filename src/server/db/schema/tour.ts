@@ -48,6 +48,7 @@ export const tours = pgTable("tours", {
 	price: integer("price").notNull(),
 	location: text("location").notNull(),
 	date: timestamp("date").notNull(),
+	thumbnailUrl: text("thumbnail_url").notNull(),
 	ownerUserID: text("owner_user_id").references(() => user.id, {
 		onDelete: "cascade",
 	}),
@@ -70,6 +71,7 @@ export const toursRelations = relations(tours, ({ one, many }) => ({
 	}),
 	tags: many(tourToTags),
 	reviews: many(tourReviews),
+	guiderAppliedTours: many(guiderAppliedTours),
 }));
 
 export const organizations = pgTable("organizations", {
@@ -103,6 +105,7 @@ export const tourGuideRelations = relations(tourGuide, ({ many, one }) => ({
 	tags: many(guideToTags),
 	tours: many(tours),
 	user: one(user, { fields: [tourGuide.userID], references: [user.id] }),
+	guiderAppliedTours: many(guiderAppliedTours),
 }));
 
 export const tags = pgTable("tags", {
@@ -216,4 +219,24 @@ export const tourReviews = pgTable("tour_reviews", {
 export const tourReviewsRelations = relations(tourReviews, ({ one }) => ({
 	tour: one(tours, { fields: [tourReviews.tourID], references: [tours.id] }),
 	user: one(user, { fields: [tourReviews.userID], references: [user.id] }),
+}));
+
+export const guiderAppliedTours = pgTable("guider_applied_tours", {
+	guideID: text("guide_id").references(() => tourGuide.userID, {
+		onDelete: "cascade",
+	}),
+	tourID: uuid("tour_id").references(() => tours.id, {
+		onDelete: "cascade",
+	}),
+	appliedAt: timestamp("applied_at").defaultNow().notNull(),
+});
+export const guiderAppliedToursRelations = relations(guiderAppliedTours, ({ one }) => ({
+	guide: one(tourGuide, {
+		fields: [guiderAppliedTours.guideID],
+		references: [tourGuide.userID],
+	}),
+	tour: one(tours, {
+		fields: [guiderAppliedTours.tourID],
+		references: [tours.id],
+	}),
 }));

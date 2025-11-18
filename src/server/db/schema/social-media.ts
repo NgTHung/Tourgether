@@ -6,6 +6,7 @@ import {
 	uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
+import { relations } from "drizzle-orm/relations";
 
 export const posts = pgTable("posts", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -16,6 +17,10 @@ export const posts = pgTable("posts", {
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
 });
+export const postsRelations = relations(posts, ({ many }) => ({
+	comments: many(comments),
+	likes: many(likes),
+}));
 
 export const likes = pgTable(
 	"likes",
@@ -29,6 +34,10 @@ export const likes = pgTable(
 	},
 	(table) => [primaryKey({ columns: [table.userID, table.postID] })],
 );
+export const likesRelations = relations(likes, ({ one }) => ({
+	user: one(user, { fields: [likes.userID], references: [user.id] }),
+	post: one(posts, { fields: [likes.postID], references: [posts.id] }),
+}));
 
 export const comments = pgTable("comments", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -44,3 +53,7 @@ export const comments = pgTable("comments", {
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
 });
+export const commentsRelations = relations(comments, ({ one }) => ({
+	user: one(user, { fields: [comments.userID], references: [user.id] }),
+	post: one(posts, { fields: [comments.postID], references: [posts.id] }),
+}));
