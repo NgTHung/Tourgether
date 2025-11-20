@@ -35,7 +35,7 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={() => redirect("/auth")}
+              onClick={() => redirect("/signup")}
               variant="gradient"
               size="lg"
               className="text-lg"
@@ -96,7 +96,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => redirect("/auth")}
+                  onClick={() => redirect("/signup")}
                   variant="default"
                   className="w-full"
                 >
@@ -132,7 +132,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => redirect("/auth")}
+                  onClick={() => redirect("/signup")}
                   variant="accent"
                   className="w-full"
                 >
@@ -145,7 +145,7 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      <section className="py-24 px-4 bg-linear-to-br from-primary/10 via-background to-accent/10">
         <div className="container text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Ready to Start Your Journey?
@@ -154,7 +154,7 @@ const Index = () => {
             Join thousands of students and businesses already connected on Tourgether
           </p>
           <Button
-            onClick={() => redirect("/auth")}
+            onClick={() => redirect("/signup")}
             variant="gradient"
             size="lg"
             className="text-lg"
