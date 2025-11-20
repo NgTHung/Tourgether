@@ -7,22 +7,41 @@ import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Compass, GraduationCap, Briefcase } from "lucide-react";
 import { redirect } from "next/navigation";
-
+import { authClient } from "~/server/better-auth/client";
 type UserRole = "student" | "business" | "traveler";
 
 const Auth = () => {
+  const { signIn, signUp } = authClient;
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<UserRole>("student");
 
-  const handleAuth = (e: React.FormEvent, role: UserRole) => {
+  const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication - redirect to appropriate dashboard
-    if (role === "student") {
-      redirect("/student/dashboard");
-    } else if (role === "business") {
-      redirect("/business/dashboard");
-    } else {
-      redirect("/traveler/dashboard");
+    if (isLogin) {
+      signIn.email({
+        email: (e.target as any).email.value,
+        password: (e.target as any).password.value,
+        rememberMe: true,
+      }).then((res) => {
+        if (res.error == null) {
+          redirect("/");
+        } else {
+          alert("Login failed: " + res.error.message);
+        }
+      });
+    }
+    else {
+      signUp.email({
+        email: (e.target as any).email.value as string,
+        password: (e.target as any).password.value as string,
+        name: "",
+      }).then((res) => {
+        if (res.error == null) {
+          redirect("/");
+        } else {
+          alert("Signup failed: " + res.error.message);
+        }
+      });
     }
   };
 
@@ -85,7 +104,7 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => handleAuth(e, selectedRole)} className="space-y-6">
+            <form onSubmit={handleAuth} className="space-y-6">
               {/* Role Selection - Horizontal Segmented Control */}
               <div className="space-y-3">
                 <Label className="text-base font-semibold">Select Your Role</Label>
