@@ -14,7 +14,7 @@ import {
 import { Compass, GraduationCap, Briefcase } from "lucide-react";
 import { login } from "~/actions/auth";
 import { useRouter } from "next/navigation";
-type UserRole = "student" | "business" | "traveler";
+type UserRole = "student" | "business";
 
 const Auth = () => {
     const router = useRouter();
@@ -67,18 +67,6 @@ const Auth = () => {
 									</p>
 								</div>
 							</div>
-							<div className="flex items-start gap-3">
-								<div className="w-2 h-2 rounded-full bg-primary mt-2" />
-								<div>
-									<p className="font-semibold">
-										For Travelers
-									</p>
-									<p className="text-sm text-muted-foreground">
-										Book unique experiences and discover the
-										world
-									</p>
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>
@@ -103,17 +91,15 @@ const Auth = () => {
 								<div className="relative bg-muted rounded-lg p-1">
 									{/* Sliding Background */}
 									<div
-										className={`absolute top-1 bottom-1 w-1/3 bg-primary rounded-md shadow-sm transition-transform duration-300 ease-out ${
+										className={`absolute top-1 bottom-1 w-1/2 bg-primary rounded-md shadow-sm transition-transform duration-300 ease-out ${
 											selectedRole === "student"
 												? "translate-x-0"
-												: selectedRole === "business"
-													? "translate-x-full"
-													: "translate-x-[calc(200%-0.5rem)]"
+												: "translate-x-full"
 										}`}
 									/>
 
 									{/* Role Options */}
-									<div className="relative grid grid-cols-3">
+									<div className="relative grid grid-cols-2">
 										<button
 											type="button"
 											onClick={() =>
@@ -154,28 +140,6 @@ const Auth = () => {
 												</div>
 												<div className="text-xs opacity-75">
 													Tour Operator
-												</div>
-											</div>
-										</button>
-
-										<button
-											type="button"
-											onClick={() =>
-												setSelectedRole("traveler")
-											}
-											className={`relative flex flex-col items-center gap-2 p-4 text-center transition-colors ${
-												selectedRole === "traveler"
-													? "text-primary-foreground font-medium"
-													: "text-muted-foreground hover:text-foreground"
-											}`}
-										>
-											<Compass className="w-6 h-6" />
-											<div>
-												<div className="font-medium text-sm">
-													Traveler
-												</div>
-												<div className="text-xs opacity-75">
-													Explorer
 												</div>
 											</div>
 										</button>

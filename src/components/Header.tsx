@@ -19,7 +19,7 @@ interface HeaderProps {
 const Header = ({ userRole }: HeaderProps) => {
 
   const handleLogout = () => {
-    redirect("/auth");
+    redirect("/signin");
   };
 
   const handleLogoClick = () => {
@@ -35,9 +35,9 @@ const Header = ({ userRole }: HeaderProps) => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-soft">{" "}
-      <div className="container flex h-16 items-center px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Left Column - Logo */}
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0">
           <button
             onClick={handleLogoClick}
             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
@@ -50,8 +50,8 @@ const Header = ({ userRole }: HeaderProps) => {
         </div>
 
         {/* Center Column - Search Bar */}
-        <div className="flex-1 flex justify-center px-4">
-          <div className="w-full max-w-2xl relative">
+        <div className="flex-1 flex justify-center px-4 max-w-2xl mx-auto">
+          <div className="w-full relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="search"
@@ -62,7 +62,7 @@ const Header = ({ userRole }: HeaderProps) => {
         </div>
 
         {/* Right Column - User Profile */}
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">

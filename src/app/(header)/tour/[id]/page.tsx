@@ -70,7 +70,7 @@ const TourDetail = ({
         <div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
       </div>
 
-      <main className="container py-8 px-4 -mt-32 relative z-10">
+      <main className="container mx-auto py-8 px-4 -mt-32 relative z-10">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">

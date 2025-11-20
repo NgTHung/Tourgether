@@ -257,7 +257,7 @@ const PreviousTours = () => {
 
   return (
     <>
-      <main className="container py-8 px-4">
+      <main className="container mx-auto py-8 px-4">
         <div className="mb-8">
           <Button
             variant="ghost"

@@ -31,7 +31,7 @@ const Index = () => {
             Tourgether
           </h1>
           <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto drop-shadow-md">{" "}
-            Connecting tourism students with businesses and travelers worldwide
+            Connecting tourism students with businesses worldwide
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -57,7 +57,7 @@ const Index = () => {
 
       {/* Features Section */}
       <section className="py-24 px-4">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               One Platform, Two Perspectives
@@ -114,7 +114,7 @@ const Index = () => {
                   <h3 className="text-2xl font-bold mb-3">For Businesses</h3>
                   <p className="text-muted-foreground">
                     Hire talented tourism students and create unforgettable experiences
-                    for travelers around the globe.
+                    around the globe.
                   </p>
                 </div>
                 <ul className="space-y-3 mb-6">
@@ -146,7 +146,7 @@ const Index = () => {
 
       {/* CTA Section */}
       <section className="py-24 px-4 bg-linear-to-br from-primary/10 via-background to-accent/10">
-        <div className="container text-center">
+        <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Ready to Start Your Journey?
           </h2>

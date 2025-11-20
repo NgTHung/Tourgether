@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react";
-import Header from "~/components/Header";
 import TourCard from "~/components/TourCard";
 import FilterBar, { type FilterState } from "~/components/FilterBar";
 import { Plus, Building2, History } from "lucide-react";
@@ -44,9 +43,8 @@ const BusinessDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userRole="business" />
       
-      <main className="container py-8 px-4">
+      <main className="container mx-auto py-8 px-4">
         {/* Page Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>

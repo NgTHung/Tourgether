@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Header from "~/components/Header";
@@ -85,7 +87,7 @@ const CreateTour = ({  params,
 
   return (
     <div className="min-h-screen bg-background">
-      <Header userRole="business" />
+      {/* <Header userRole="business" /> */}
 
       <main className="container py-6 px-4">
         <Button

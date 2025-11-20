@@ -29,7 +29,7 @@ export default function HeaderLayout({
     } = authClient.useSession() 
 	return (
 		<>
-			<Header userRole={session?.user?.role ?? "traveler"} />
+			<Header userRole={session?.user?.role ?? "student"} />
 			{children}
 		</>
 	);

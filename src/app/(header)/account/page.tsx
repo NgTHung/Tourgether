@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react";
-import Header from "~/components/Header";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
@@ -42,17 +41,22 @@ interface BaseUserData {
 }
 
 interface StudentData extends BaseUserData {
+  username: string;
   university: string;
   major: string;
   year: string;
+  gender: string;
   languages: string[];
   toursCompleted: number;
   certifications: string[];
 }
 
 interface BusinessData extends BaseUserData {
+  username: string;
   companyType: string;
   website: string;
+  taxId: string;
+  hotline: string;
   description: string;
   toursOffered: number;
   services: string[];
@@ -70,6 +74,7 @@ const Account = () => {
   const [editableData, setEditableData] = useState({
     student: {
       name: "Jane Doe",
+      username: "janedoe_guide",
       email: "jane.doe@university.edu",
       phone: "+1 (555) 123-4567",
       location: "Rome, Italy",
@@ -77,6 +82,7 @@ const Account = () => {
       university: "University of Rome",
       major: "Tourism Management",
       year: "3rd Year",
+      gender: "Female",
       languages: ["English", "Italian", "Spanish"],
       toursCompleted: 12,
       rating: 4.8,
@@ -86,12 +92,15 @@ const Account = () => {
     } as StudentData,
     business: {
       name: "Rome Adventures Co.",
+      username: "romeadventures",
       email: "contact@romeadventures.com",
       phone: "+39 06 123 4567",
+      hotline: "+39 06 987 6543",
       location: "Rome, Italy",
       joinDate: "January 2023",
       companyType: "Tour Operator",
       website: "www.romeadventures.com",
+      taxId: "IT12345678901",
       description: "Authentic Roman experiences since 2020",
       toursOffered: 25,
       rating: 4.6,
@@ -188,9 +197,7 @@ const Account = () => {
         <div className="flex justify-between items-center mb-8">
           <Button
             variant="ghost"
-            onClick={() => handleNavigateAway(userRole === "student" ? "/student/dashboard" : 
-                                           userRole === "business" ? "/business/dashboard" : 
-                                           "/traveler/dashboard")}
+            onClick={() => handleNavigateAway(userRole === "student" ? "/student/dashboard" : "/business/dashboard")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
@@ -253,6 +260,23 @@ const Account = () => {
                   ) : (
                     <h1 className="text-3xl font-bold mb-2">{userData.name}</h1>
                   )}
+                  
+                  {/* Username */}
+                  <div className="mb-4">
+                    {isEditMode ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">@</span>
+                        <Input
+                          value={(userData as StudentData | BusinessData).username}
+                          onChange={(e) => updateField("username", e.target.value)}
+                          className="border-0 p-0 bg-transparent focus-visible:ring-1 w-auto text-lg"
+                          placeholder="username"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-lg text-muted-foreground">@{(userData as StudentData | BusinessData).username}</p>
+                    )}
+                  </div>
                   
                   <div className="flex flex-wrap gap-4 text-muted-foreground">
                     <div className="flex items-center gap-2">
@@ -496,6 +520,18 @@ const RoleSpecificSection = ({ userRole, userData, isEditMode, updateField, addA
                 <p className="text-sm mt-1">{(userData as StudentData).major}</p>
               )}
             </div>
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground">Gender</Label>
+              {isEditMode ? (
+                <Input
+                  value={(userData as StudentData).gender}
+                  onChange={(e) => updateField("gender", e.target.value)}
+                  className="mt-1"
+                />
+              ) : (
+                <p className="text-sm mt-1">{(userData as StudentData).gender}</p>
+              )}
+            </div>
             <ArrayField 
               label="Languages"
               items={(userData as StudentData).languages}
@@ -525,6 +561,42 @@ const RoleSpecificSection = ({ userRole, userData, isEditMode, updateField, addA
                 />
               ) : (
                 <p className="text-sm mt-1">{(userData as BusinessData).companyType}</p>
+              )}
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground">Website</Label>
+              {isEditMode ? (
+                <Input
+                  value={(userData as BusinessData).website}
+                  onChange={(e) => updateField("website", e.target.value)}
+                  className="mt-1"
+                />
+              ) : (
+                <p className="text-sm mt-1">{(userData as BusinessData).website}</p>
+              )}
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground">Hotline</Label>
+              {isEditMode ? (
+                <Input
+                  value={(userData as BusinessData).hotline}
+                  onChange={(e) => updateField("hotline", e.target.value)}
+                  className="mt-1"
+                />
+              ) : (
+                <p className="text-sm mt-1">{(userData as BusinessData).hotline}</p>
+              )}
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-muted-foreground">Tax ID</Label>
+              {isEditMode ? (
+                <Input
+                  value={(userData as BusinessData).taxId}
+                  onChange={(e) => updateField("taxId", e.target.value)}
+                  className="mt-1"
+                />
+              ) : (
+                <p className="text-sm mt-1">{(userData as BusinessData).taxId}</p>
               )}
             </div>
             <ArrayField 

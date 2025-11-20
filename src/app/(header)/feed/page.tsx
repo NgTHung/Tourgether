@@ -12,7 +12,7 @@ interface Post {
   id: string;
   author: string;
   avatar: string;
-  role: "student" | "business" | "traveler";
+  role: "student" | "business";
   content: string;
   image?: string;
   likes: number;
@@ -46,18 +46,6 @@ const SocialFeed = () => {
       comments: 23,
       timestamp: "5 hours ago",
       liked: true,
-    },
-    {
-      id: "3",
-      author: "Emma Chen",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
-      role: "traveler",
-      content: "Santorini exceeded all my expectations! The sunset cruise was magical. Huge thanks to Greek Island Tours for the incredible experience! ⛵️",
-      image: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=600&q=80",
-      likes: 89,
-      comments: 15,
-      timestamp: "1 day ago",
-      liked: false,
     },
   ]);
 
