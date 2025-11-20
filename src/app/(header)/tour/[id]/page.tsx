@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const TourDetail = ({
   params,
@@ -14,10 +14,11 @@ const TourDetail = ({
   params: Promise<{ id: string }>;
 }) => {
   const id = use(params).id;
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("details");
   
   // Mock user role - in real app this would come from auth context
-  const [userRole] = useState<"student" | "business" | "traveler">("business");
+  const [userRole] = useState<"student" | "business">("business");
   const [isOwner] = useState(true); // Mock ownership check - in real app this would be based on business ID
 
   // Mock data
@@ -57,12 +58,6 @@ const TourDetail = ({
     { id: "3", name: "Emma Chen", rating: 4.7, tours: 32, avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma" },
   ];
 
-  const joinedTravelers = [
-    { id: "1", name: "John Doe", country: "USA", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John" },
-    { id: "2", name: "Lisa Wang", country: "Canada", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa" },
-    { id: "3", name: "Ahmed Hassan", country: "Egypt", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed" },
-  ];
-
   return (
     <>
           {/* Hero Image */}
@@ -95,7 +90,7 @@ const TourDetail = ({
                     {/* Edit Tour Button - Only visible to business owner */}
                     {userRole === "business" && isOwner && (
                       <Button 
-                        onClick={() => redirect(`/business/edit-tour/${id}`)} 
+                        onClick={() => router.push(`/business/edit-tour/${id}`)} 
                         variant="outline"
                         size="sm"
                       >
@@ -129,10 +124,7 @@ const TourDetail = ({
                 <TabsTrigger value="details" className="flex-1">Details</TabsTrigger>
                 {/* Conditional Admin Tabs - Only visible to business owner */}
                 {userRole === "business" && isOwner && (
-                  <>
-                    <TabsTrigger value="students" className="flex-1">Applied Students</TabsTrigger>
-                    <TabsTrigger value="travelers" className="flex-1">Joined Travelers</TabsTrigger>
-                  </>
+                  <TabsTrigger value="students" className="flex-1">Applied Students</TabsTrigger>
                 )}
               </TabsList>
 
@@ -269,38 +261,6 @@ const TourDetail = ({
                       </CardContent>
                     </Card>
                   </TabsContent>
-
-                  <TabsContent value="travelers" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Joined Travelers ({joinedTravelers.length})</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {joinedTravelers.map((traveler) => (
-                            <div
-                              key={traveler.id}
-                              className="flex items-center justify-between p-4 border rounded-lg"
-                            >
-                              <div className="flex items-center gap-4">
-                                <Avatar className="w-12 h-12">
-                                  <AvatarImage src={traveler.avatar} />
-                                  <AvatarFallback>{traveler.name[0]}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-semibold">{traveler.name}</p>
-                                  <p className="text-sm text-muted-foreground">{traveler.country}</p>
-                                </div>
-                              </div>
-                              <Button variant="outline" size="sm">
-                                Contact
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
                 </>
               )}
             </Tabs>
@@ -319,17 +279,6 @@ const TourDetail = ({
                 </div>
 
                 {/* Show different actions based on user role */}
-                {userRole === "traveler" && (
-                  <>
-                    <Button variant="gradient" size="lg" className="w-full mb-3">
-                      Book This Tour
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      Contact Business
-                    </Button>
-                  </>
-                )}
-
                 {userRole === "student" && (
                   <>
                     <Button variant="gradient" size="lg" className="w-full mb-3">
@@ -347,7 +296,7 @@ const TourDetail = ({
                       variant="gradient" 
                       size="lg" 
                       className="w-full mb-3"
-                      onClick={() => redirect(`/business/edit-tour/${id}`)}
+                      onClick={() => router.push(`/business/edit-tour/${id}`)}
                     >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit Tour
@@ -378,16 +327,10 @@ const TourDetail = ({
                     <span className="font-semibold">English, Italian</span>
                   </div>
                   {userRole === "business" && isOwner && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Applicants</span>
-                        <span className="font-semibold text-primary">{appliedStudents.length} pending</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Bookings</span>
-                        <span className="font-semibold text-accent">{joinedTravelers.length} confirmed</span>
-                      </div>
-                    </>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Applicants</span>
+                      <span className="font-semibold text-primary">{appliedStudents.length} pending</span>
+                    </div>
                   )}
                 </div>
               </CardContent>

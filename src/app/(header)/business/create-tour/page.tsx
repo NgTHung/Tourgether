@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { redirect, useParams } from "next/navigation";
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import Header from "~/components/Header";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -9,7 +9,7 @@ import TagsInput from "~/components/TagsInput";
 import FileUpload from "~/components/FileUpload";
 import TourPreview from "~/components/TourPreview";
 import ItineraryBuilder from "~/components/ItineraryBuilder";
-import { ArrowLeft, Calendar, Plus } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 interface ItineraryItem {
@@ -19,9 +19,13 @@ interface ItineraryItem {
   notes: string;
 }
 
-const CreateTour = () => {
-  const { id } = useParams();
+const CreateTour = ({  params,
+}:{
+  params: Promise<{ id: string }>;
+}) => {
+  const id = use(params).id;
   const isEditing = !!id;
+  const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -71,7 +75,7 @@ const CreateTour = () => {
     }
 
     toast.success(isEditing ? "Tour updated successfully!" : "Tour created successfully!");
-    redirect("/business/dashboard");
+    router.push("/business/dashboard");
   };
 
   const handleItinerarySave = (newItinerary: ItineraryItem[]) => {
@@ -86,7 +90,7 @@ const CreateTour = () => {
       <main className="container py-6 px-4">
         <Button
           variant="ghost"
-          onClick={() => redirect("/business/dashboard")}
+          onClick={() => router.push("/business/dashboard")}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

@@ -28,8 +28,6 @@ const Header = ({ userRole }: HeaderProps) => {
       redirect("/student/dashboard");
     } else if (userRole === "ORGANIZATION") {
       redirect("/business/dashboard");
-    } else if (userRole === "USER") {
-      redirect("/traveler/dashboard");
     } else {
       redirect("/");
     }
@@ -76,7 +74,6 @@ const Header = ({ userRole }: HeaderProps) => {
                 <p className="text-sm font-medium">
                   {userRole === "GUIDE" && "Student Account"}
                   {userRole === "ORGANIZATION" && "Business Account"}
-                  {userRole === "USER" && "Traveler Account"}
                 </p>
                 <p className="text-xs text-muted-foreground">user@example.com</p>
               </div>

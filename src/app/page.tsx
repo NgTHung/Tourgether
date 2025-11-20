@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { Compass, Users, Briefcase, Plane, ArrowRight } from "lucide-react";
+import { Compass, Users, Briefcase, ArrowRight } from "lucide-react";
 import heroImage from "public/assets/hero-beach-jgTo3uaI.jpg";
 import { redirect } from "next/navigation";
 import Image from "next/image"
@@ -60,15 +60,15 @@ const Index = () => {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              One Platform, Three Perspectives
+              One Platform, Two Perspectives
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Whether you&apos;re a student seeking opportunities, a business creating tours,
-              or a traveler exploring the world, we&apos;ve got you covered.
+              Whether you&apos;re a student seeking opportunities or a business creating tours,
+              we&apos;ve got you covered.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="border-2 hover:border-primary transition-colors">
               <CardContent className="p-8">
                 <div className="mb-6">
@@ -140,42 +140,6 @@ const Index = () => {
                 </Button>
               </CardContent>
             </Card>
-
-            <Card className="border-2 hover:border-primary transition-colors">
-              <CardContent className="p-8">
-                <div className="mb-6">
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                    <Plane className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3">For Travelers</h3>
-                  <p className="text-muted-foreground">
-                    Discover unique tours and experiences curated by passionate students
-                    and experienced businesses.
-                  </p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                    <span className="text-sm">Browse thousands of unique tours</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                    <span className="text-sm">Book instantly and securely</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
-                    <span className="text-sm">Connect with passionate guides</span>
-                  </li>
-                </ul>
-                <Button
-                  onClick={() => redirect("/auth")}
-                  variant="default"
-                  className="w-full"
-                >
-                  Join as Traveler
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>
@@ -187,7 +151,7 @@ const Index = () => {
             Ready to Start Your Journey?
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of students, businesses, and travelers already connected on Tourgether
+            Join thousands of students and businesses already connected on Tourgether
           </p>
           <Button
             onClick={() => redirect("/auth")}

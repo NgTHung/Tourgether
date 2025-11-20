@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Header from "~/components/Header";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -11,6 +11,7 @@ import EmailVerificationModal from "~/components/EmailVerificationModal";
 import { toast } from "sonner";
 
 const Settings = () => {
+  const router = useRouter();
   const [fullName, setFullName] = useState("Jane Doe");
   const [email, setEmail] = useState("jane@example.com");
   const [phone, setPhone] = useState("+1 123 456 789");
@@ -41,13 +42,13 @@ const Settings = () => {
       setPendingNavigation(path);
       setShowUnsavedModal(true);
     } else {
-      redirect(path);
+      router.push(path);
     }
   };
 
   const handleLeave = () => {
     if (pendingNavigation) {
-      redirect(pendingNavigation);
+      router.push(pendingNavigation);
     }
   };
 
@@ -135,12 +136,12 @@ const Settings = () => {
         onLeave={handleLeave}
       />
 
-      <EmailVerificationModal
+      {/* <EmailVerificationModal
         open={showVerificationModal}
         onOpenChange={setShowVerificationModal}
         email={email}
         onVerify={handleVerify}
-      />
+      /> */}
     </>
   );
 };

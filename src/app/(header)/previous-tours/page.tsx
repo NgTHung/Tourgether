@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Textarea } from "~/components/ui/textarea";
 import { Card, CardContent } from "~/components/ui/card";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
+import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
   Star, 
@@ -11,13 +11,10 @@ import {
   Calendar, 
   DollarSign, 
   Users, 
-  TrendingUp,
-  MessageSquare,
-  Send
+  TrendingUp
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
-type UserRole = "student" | "business" | "traveler";
+type UserRole = "student" | "business";
 
 interface Review {
   id: string;
@@ -51,26 +48,10 @@ interface BusinessTour {
   imageUrl: string;
 }
 
-interface TravelerTour {
-  id: string;
-  title: string;
-  location: string;
-  date: string;
-  businessName: string;
-  guide: string;
-  price: number;
-  rating: number;
-  imageUrl: string;
-  myReview: null | Review;
-}
-
 const PreviousTours = () => {
   const router = useRouter();
   // Mock user role - in real app this would come from auth context
-  const [userRole] = useState<UserRole>("traveler");
-  const [newReview, setNewReview] = useState("");
-  const [tourRating, setTourRating] = useState(0);
-  const [guideRating, setGuideRating] = useState(0);
+  const [userRole] = useState<UserRole>("student");
 
   // Mock data for different views
   const mockData = {
@@ -107,34 +88,6 @@ const PreviousTours = () => {
           imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=80"
         }
       ] as BusinessTour[]
-    },
-    traveler: {
-      completedTours: [
-        {
-          id: "1",
-          title: "Historic City Walking Tour",
-          location: "Rome, Italy",
-          date: "April 15, 2024",
-          businessName: "Rome Adventures Co.",
-          guide: "Marco Rossi",
-          price: 150,
-          rating: 4.8,
-          imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=80",
-          myReview: null // null means no review left yet
-        }
-      ] as TravelerTour[]
-    }
-  };
-
-  const data = mockData[userRole];
-
-  const getTypedTours = () => {
-    if (userRole === "student") {
-      return mockData.student.completedTours;
-    } else if (userRole === "business") {
-      return mockData.business.completedTours;
-    } else {
-      return mockData.traveler.completedTours;
     }
   };
 
@@ -160,23 +113,6 @@ const PreviousTours = () => {
         ))}
       </div>
     );
-  };
-
-  const handleSubmitReview = () => {
-    if (!newReview.trim() || tourRating === 0 || guideRating === 0) {
-      return;
-    }
-    
-    console.log("Submitting review:", {
-      review: newReview,
-      tourRating,
-      guideRating
-    });
-    
-    // Reset form
-    setNewReview("");
-    setTourRating(0);
-    setGuideRating(0);
   };
 
   const renderStudentView = () => (
@@ -225,7 +161,7 @@ const PreviousTours = () => {
                   </Button>
                 </div>
 
-                {/* Total Ratings and Reviews Section */}
+                {/* Reviews Section */}
                 <div className="pt-4 border-t">
                   <h4 className="font-semibold mb-3">Traveler Reviews ({tour.reviews.length})</h4>
                   <div className="space-y-3">
@@ -319,94 +255,6 @@ const PreviousTours = () => {
     </div>
   );
 
-  const renderTravelerView = () => (
-    <div className="space-y-6">
-      {mockData.traveler.completedTours.map((tour: TravelerTour) => (
-        <Card key={tour.id}>
-          <CardContent className="p-6">
-            <div className="flex gap-6">
-              <img
-                src={tour.imageUrl}
-                alt={tour.title}
-                className="w-32 h-32 rounded-lg object-cover"
-              />
-              <div className="flex-1 space-y-4">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">{tour.title}</h3>
-                  <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {tour.location}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {tour.date}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <DollarSign className="w-4 h-4" />
-                      ${tour.price}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Guide: {tour.guide} • {tour.businessName}
-                  </p>
-                </div>
-
-                <Button variant="outline" onClick={() => router.push(`/tour/${tour.id}`)}>
-                  View Tour Details
-                </Button>
-
-                {/* Leave a Review Section */}
-                {!tour.myReview && (
-                  <div className="border-t pt-4">
-                    <h4 className="font-semibold mb-4 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      Leave a Review
-                    </h4>
-                    <div className="space-y-4">
-                      <div className="flex gap-8">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Rate the Tour</label>
-                          <StarRating 
-                            rating={tourRating} 
-                            onRatingChange={setTourRating} 
-                            interactive 
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Rate the Guide</label>
-                          <StarRating 
-                            rating={guideRating} 
-                            onRatingChange={setGuideRating} 
-                            interactive 
-                          />
-                        </div>
-                      </div>
-                      <Textarea
-                        value={newReview}
-                        onChange={(e) => setNewReview(e.target.value)}
-                        placeholder="Share your experience with other travelers..."
-                        className="min-h-20"
-                      />
-                      <Button 
-                        onClick={handleSubmitReview}
-                        disabled={!newReview.trim() || tourRating === 0 || guideRating === 0}
-                        className="w-full sm:w-auto"
-                      >
-                        <Send className="w-4 h-4 mr-2" />
-                        Submit Review
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-
   return (
     <>
       <main className="container py-8 px-4">
@@ -424,13 +272,11 @@ const PreviousTours = () => {
           <p className="text-muted-foreground">
             {userRole === "student" && "Review your completed guide experiences and traveler feedback"}
             {userRole === "business" && "View your completed tours with revenue and performance data"}
-            {userRole === "traveler" && "Rate and review your travel experiences"}
           </p>
         </div>
 
         {userRole === "student" && renderStudentView()}
         {userRole === "business" && renderBusinessView()}
-        {userRole === "traveler" && renderTravelerView()}
       </main>
     </>
   );

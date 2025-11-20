@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Label } from "~/components/ui/label";
 import EmailVerificationModal from "~/components/EmailVerificationModal";
 import UnsavedChangesModal from "~/components/UnsavedChangesModal";
+import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
   User, 
@@ -20,16 +21,14 @@ import {
   Calendar,
   GraduationCap,
   Building2,
-  Plane,
   Edit,
   Save,
   X,
   Plus,
   Trash2
 } from "lucide-react";
-import { redirect } from "next/navigation";
 
-type UserRole = "student" | "business" | "traveler";
+type UserRole = "student" | "business";
 
 interface BaseUserData {
   name: string;
@@ -59,13 +58,6 @@ interface BusinessData extends BaseUserData {
   services: string[];
 }
 
-interface TravelerData extends BaseUserData {
-  toursBooked: number;
-  toursCompleted: number;
-  favoriteDestinations: string[];
-  interests: string[];
-}
-
 const Account = () => {
   const [userRole] = useState<UserRole>("student");
   const [isEditMode, setIsEditMode] = useState(false);
@@ -73,6 +65,7 @@ const Account = () => {
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const router = useRouter()
 
   const [editableData, setEditableData] = useState({
     student: {
@@ -105,21 +98,7 @@ const Account = () => {
       avatar: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop",
       biography: "Leading tour company specializing in authentic Roman experiences and cultural immersion.",
       services: ["Walking Tours", "Food Tours", "Private Experiences"]
-    } as BusinessData,
-    traveler: {
-      name: "John Smith",
-      email: "john.smith@email.com",
-      phone: "+1 (555) 987-6543",
-      location: "New York, USA",
-      joinDate: "February 2024",
-      toursBooked: 8,
-      toursCompleted: 6,
-      favoriteDestinations: ["Italy", "France", "Spain"],
-      rating: 4.9,
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-      biography: "Avid traveler seeking authentic cultural experiences and meaningful connections around the world.",
-      interests: ["Photography", "Local Cuisine", "History"]
-    } as TravelerData
+    } as BusinessData
   });
 
   const userData = editableData[userRole];
@@ -130,8 +109,6 @@ const Account = () => {
         return <GraduationCap className="w-5 h-5" />;
       case "business":
         return <Building2 className="w-5 h-5" />;
-      case "traveler":
-        return <Plane className="w-5 h-5" />;
     }
   };
 
@@ -141,8 +118,6 @@ const Account = () => {
         return "Tourism Student";
       case "business":
         return "Business Partner";
-      case "traveler":
-        return "Traveler";
     }
   };
 
@@ -151,7 +126,7 @@ const Account = () => {
       setPendingNavigation(path);
       setShowUnsavedModal(true);
     } else {
-      redirect(path);
+      router.push(path);
     }
   };
 
@@ -373,17 +348,15 @@ const Account = () => {
             <CardTitle>Professional Overview</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               <div className="text-center p-6 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="text-3xl font-bold text-primary mb-2">
                   {userRole === "student" && (userData as StudentData).toursCompleted}
                   {userRole === "business" && (userData as BusinessData).toursOffered}
-                  {userRole === "traveler" && (userData as TravelerData).toursBooked}
                 </div>
                 <p className="text-sm text-muted-foreground font-medium">
                   {userRole === "student" && "Tours Completed"}
                   {userRole === "business" && "Tours Offered"}
-                  {userRole === "traveler" && "Tours Booked"}
                 </p>
               </div>
               
@@ -391,15 +364,6 @@ const Account = () => {
                 <div className="text-3xl font-bold text-accent mb-2">{userData.rating}</div>
                 <p className="text-sm text-muted-foreground font-medium">Average Rating</p>
               </div>
-              
-              {userRole === "traveler" && (
-                <div className="text-center p-6 bg-primary/5 rounded-lg border border-primary/20">
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    {(userData as TravelerData).toursCompleted}
-                  </div>
-                  <p className="text-sm text-muted-foreground font-medium">Completed</p>
-                </div>
-              )}
               
               <div className="text-center p-6 bg-muted/50 rounded-lg border">
                 <div className="text-3xl font-bold text-foreground mb-2">
@@ -420,20 +384,16 @@ const Account = () => {
             setHasUnsavedChanges(false);
             setShowUnsavedModal(false);
             if (pendingNavigation) {
-              redirect(pendingNavigation);
+              router.push(pendingNavigation);
             }
-          }}
-          onStay={() => {
-            setShowUnsavedModal(false);
-            setPendingNavigation(null);
           }}
         />
 
-        <EmailVerificationModal
+        {/* <EmailVerificationModal
           open={showVerificationModal}
           onOpenChange={setShowVerificationModal}
-          onVerified={handleVerificationComplete}
-        />
+          onVerify={handleVerificationComplete}
+        /> */}
       </div>
     </>
   );
@@ -505,10 +465,8 @@ const RoleSpecificSection = ({ userRole, userData, isEditMode, updateField, addA
         <CardTitle className="flex items-center gap-2">
           {userRole === "student" && <GraduationCap className="w-5 h-5" />}
           {userRole === "business" && <Building2 className="w-5 h-5" />}
-          {userRole === "traveler" && <Plane className="w-5 h-5" />}
           {userRole === "student" && "Academic Information"}
           {userRole === "business" && "Business Information"}
-          {userRole === "traveler" && "Travel Preferences"}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -578,25 +536,6 @@ const RoleSpecificSection = ({ userRole, userData, isEditMode, updateField, addA
             />
           </>
         )}
-        
-        {userRole === "traveler" && (
-          <>
-            <ArrayField 
-              label="Favorite Destinations"
-              items={(userData as TravelerData).favoriteDestinations}
-              isEditMode={isEditMode}
-              onAdd={(item) => addArrayItem("favoriteDestinations", item)}
-              onRemove={(index) => removeArrayItem("favoriteDestinations", index)}
-            />
-            <ArrayField 
-              label="Interests"
-              items={(userData as TravelerData).interests}
-              isEditMode={isEditMode}
-              onAdd={(item) => addArrayItem("interests", item)}
-              onRemove={(index) => removeArrayItem("interests", index)}
-            />
-          </>
-        )}
       </CardContent>
     </Card>
   );
@@ -624,7 +563,7 @@ const ArrayField = ({ label, items, isEditMode, onAdd, onRemove }: any) => {
                 {isEditMode && (
                   <button
                     onClick={() => onRemove(index)}
-                    className="ml-2 hover:text-destructive"
+                    className="m l-2 hover:text-destructive"
                   >
                     <X className="w-3 h-3" />
                   </button>

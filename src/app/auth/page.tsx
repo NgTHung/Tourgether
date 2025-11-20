@@ -5,10 +5,10 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { Compass, GraduationCap, Briefcase } from "lucide-react";
+import { GraduationCap, Briefcase } from "lucide-react";
 import { redirect } from "next/navigation";
 
-type UserRole = "student" | "business" | "traveler";
+type UserRole = "student" | "business";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,8 +21,6 @@ const Auth = () => {
       redirect("/student/dashboard");
     } else if (role === "business") {
       redirect("/business/dashboard");
-    } else {
-      redirect("/traveler/dashboard");
     }
   };
 
@@ -33,7 +31,7 @@ const Auth = () => {
         <div className="hidden md:flex flex-col justify-center space-y-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-gradient-primary rounded-2xl">
-              <Compass className="w-10 h-10 text-primary-foreground" />
+              <GraduationCap className="w-10 h-10 text-primary-foreground" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Tourgether
@@ -61,13 +59,7 @@ const Auth = () => {
                   <p className="text-sm text-muted-foreground">Hire talented students and create amazing tours</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-primary mt-2" />
-                <div>
-                  <p className="font-semibold">For Travelers</p>
-                  <p className="text-sm text-muted-foreground">Book unique experiences and discover the world</p>
-                </div>
-              </div>
+
             </div>
           </div>
         </div>
@@ -87,20 +79,18 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={(e) => handleAuth(e, selectedRole)} className="space-y-6">
               {/* Role Selection - Horizontal Segmented Control */}
-              <div className="space-y-3">
+                <div className="space-y-3">
                 <Label className="text-base font-semibold">Select Your Role</Label>
                 <div className="relative bg-muted rounded-lg p-1">
                   {/* Sliding Background */}
                   <div 
-                    className={`absolute top-1 bottom-1 w-1/3 bg-primary rounded-md shadow-sm transition-transform duration-300 ease-out ${
-                      selectedRole === "student" ? "translate-x-0" : 
-                      selectedRole === "business" ? "translate-x-full" : 
-                      "translate-x-[calc(200%-0.5rem)]"
+                    className={`absolute top-1 bottom-1 w-1/2 bg-primary rounded-md shadow-sm transition-transform duration-300 ease-out ${
+                      selectedRole === "student" ? "translate-x-0" : "translate-x-full"
                     }`}
                   />
                   
                   {/* Role Options */}
-                  <div className="relative grid grid-cols-3">
+                  <div className="relative grid grid-cols-2">
                     <button
                       type="button"
                       onClick={() => setSelectedRole("student")}
@@ -128,25 +118,9 @@ const Auth = () => {
                         <div className="text-xs opacity-75">Tour Operator</div>
                       </div>
                     </button>
-                    
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole("traveler")}
-                      className={`relative flex flex-col items-center gap-2 p-4 text-center transition-colors ${
-                        selectedRole === "traveler" ? "text-primary-foreground font-medium" : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      <Compass className="w-6 h-6" />
-                      <div>
-                        <div className="font-medium text-sm">Traveler</div>
-                        <div className="text-xs opacity-75">Explorer</div>
-                      </div>
-                    </button>
                   </div>
                 </div>
-              </div>
-
-              {/* Login Form */}
+              </div>              {/* Login Form */}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>

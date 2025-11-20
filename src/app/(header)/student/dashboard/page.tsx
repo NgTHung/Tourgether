@@ -5,9 +5,10 @@ import TourCard from "~/components/TourCard";
 import FilterBar, { type FilterState } from "~/components/FilterBar";
 import { Button } from "~/components/ui/button";
 import { GraduationCap, History } from "lucide-react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const StudentDashboard = () => {
+  const router = useRouter();
   const [filters, setFilters] = useState<FilterState>({ city: "" });
   const [activeTab, setActiveTab] = useState<"available" | "previous">("available");
 
@@ -103,7 +104,7 @@ const StudentDashboard = () => {
                   size="sm"
                   onClick={() => {
                     if (activeTab !== "previous") {
-                      redirect("/previous-tours");
+                      router.push("/previous-tours");
                     }
                   }}
                   className="rounded-md flex items-center gap-2"
@@ -124,7 +125,7 @@ const StudentDashboard = () => {
                     action={{
                       label: "Apply Now",
                       variant: "gradient",
-                      onClick: () => redirect(`/tour/${tour.id}`),
+                      onClick: () => router.push(`/tour/${tour.id}`),
                     }}
                   />
                 ))}
@@ -139,7 +140,7 @@ const StudentDashboard = () => {
                 <p className="text-muted-foreground mb-6">
                   You haven&apos;t completed any tours yet. Start applying for available opportunities!
                 </p>
-                <Button onClick={() => redirect("/previous-tours")} variant="outline">
+                <Button onClick={() => router.push("/previous-tours")} variant="outline">
                   View All Previous Tours
                 </Button>
               </div>
