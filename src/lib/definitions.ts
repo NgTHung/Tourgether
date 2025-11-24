@@ -10,8 +10,26 @@ export const SignupFormSchema = z.object({
 		.regex(/[^a-zA-Z0-9]/, "Contain at least one special character.")
 		.trim(),
     confirmPassword: z.string().trim(),
+});
+
+export const StudentSignupFormSchema = SignupFormSchema.extend({
+	fullname: z.string().min(1, "Full name is required.").trim(),
+	phonenumber: z.string().min(1, "Phone number is required.").trim(),
+	// address: z.string().min(1, "Address is required.").trim(),
+	gender: z.enum(["male", "female", "other"]),
+	username: z.string().min(1, "Username is required.").trim(),
 }).refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
+	message: "Passwords do not match.",
+});
+
+export const BusinessSignupFormSchema = SignupFormSchema.extend({
+	phonenumber: z.string().min(1, "Phone number is required.").trim(),
+	// address: z.string().min(1, "Address is required.").trim(),
+	organizationName: z.string().min(1, "Organization name is required.").trim(),
+	taxId: z.string().min(1, "Tax ID is required.").trim(),
+	website: z.string().url("Please enter a valid URL.").optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+	message: "Passwords do not match.",
 });
 
 export const LoginFormSchema = z.object({
@@ -25,7 +43,16 @@ export type FormState =
 				name?: string[];
 				email?: string[];
 				password?: string[];
+				confirmPassword?: string[];
+				phonenumber?: string[];
+				username?: string[];
+				organizationName?: string[];
+				taxId?: string[];
+				website?: string[];
+				fullname?: string[];
+				gender?: string[];
 			};
 			message?: string;
+			data?: any;
 	  }
 	| undefined;

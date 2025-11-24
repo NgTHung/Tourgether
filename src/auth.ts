@@ -5,6 +5,7 @@ import { username } from "better-auth/plugins";
 
 import { db } from "~/server/db";
 import * as user from "~/server/db/schema/auth-schema";
+import { z } from "zod";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -17,7 +18,7 @@ export const auth = betterAuth({
   socialProviders: {
   },
   plugins: [
-    username(),
+    // username(),
     nextCookies(),
   ],
   user:{
@@ -27,7 +28,14 @@ export const auth = betterAuth({
         defaultValue: "USER",
         input: false,
         required: true,
-        enum: ["ADMIN", "USER", "GUIDE", "ORGANIZATION"]
+        validator: {
+          input: z.string().refine((val) => ["ADMIN", "USER", "GUIDE", "ORGANIZATION"].includes(val), {
+            message: "Role must be one of: ADMIN, USER, GUIDE, ORGANIZATION",
+          }),
+          output: z.string().refine((val) => ["ADMIN", "USER", "GUIDE", "ORGANIZATION"].includes(val), {
+            message: "Role must be one of: ADMIN, USER, GUIDE, ORGANIZATION",
+          }),
+        }
       },
       phonenumber: {
         type: "string",

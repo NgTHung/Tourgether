@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,6 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { Label } from "~/components/ui/label";
 import {
   Table,
   TableBody,
@@ -25,9 +24,14 @@ import { Plus, Trash2, Clock } from "lucide-react";
 
 interface ItineraryItem {
   id: string;
+  title: string;
+  location: string;
+  duration: number;
+  description: string;
   time: string;
-  activity: string;
-  notes: string;
+  activities: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface ItineraryBuilderProps {
@@ -38,45 +42,69 @@ interface ItineraryBuilderProps {
 
 const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: ItineraryBuilderProps) => {
   const [open, setOpen] = useState(false);
-  const [itinerary, setItinerary] = useState<ItineraryItem[]>(
-    initialItinerary.length > 0 
-      ? initialItinerary 
-      : [{ id: '1', time: '09:00', activity: '', notes: '' }]
-  );
+  const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      if (initialItinerary.length > 0) {
+        setItinerary(initialItinerary);
+      } else {
+        setItinerary([{ 
+          id: '1', 
+          title: '', 
+          location: '', 
+          duration: 0, 
+          time: '', 
+          description: '', 
+          activities: 1, 
+          createdAt: new Date(), 
+          updatedAt: new Date() 
+        }]);
+      }
+    }
+  }, [open, initialItinerary]);
 
   const addRow = () => {
-    const newId = (Math.max(...itinerary.map(item => parseInt(item.id))) + 1).toString();
-    setItinerary([...itinerary, { id: newId, time: '', activity: '', notes: '' }]);
+    const newId = (Math.max(0, ...itinerary.map(item => parseInt(item.id) || 0)) + 1).toString();
+    setItinerary([...itinerary, { 
+      id: newId, 
+      title: '', 
+      location: '', 
+      duration: 0, 
+      time: '', 
+      description: '', 
+      activities: itinerary.length + 1, 
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    }]);
   };
 
   const removeRow = (id: string) => {
     if (itinerary.length > 1) {
-      setItinerary(itinerary.filter(item => item.id !== id));
+      const newItinerary = itinerary.filter(item => item.id !== id);
+      // Re-index activities
+      const reindexed = newItinerary.map((item, index) => ({
+        ...item,
+        activities: index + 1
+      }));
+      setItinerary(reindexed);
     }
   };
 
-  const updateRow = (id: string, field: keyof ItineraryItem, value: string) => {
+  const updateRow = (id: string, field: keyof ItineraryItem, value: string | number) => {
     setItinerary(itinerary.map(item => 
       item.id === id ? { ...item, [field]: value } : item
     ));
   };
 
   const handleSave = () => {
-    // Filter out empty rows
-    const validItinerary = itinerary.filter(item => 
-      item.time.trim() && item.activity.trim()
-    );
+    // Ensure activities are correct indices and filter if needed
+    const validItinerary = itinerary.map((item, index) => ({
+      ...item,
+      activities: index + 1
+    }));
+    
     onSave(validItinerary);
-    setOpen(false);
-  };
-
-  const handleCancel = () => {
-    // Reset to initial state
-    setItinerary(
-      initialItinerary.length > 0 
-        ? initialItinerary 
-        : [{ id: '1', time: '09:00', activity: '', notes: '' }]
-    );
     setOpen(false);
   };
 
@@ -85,14 +113,14 @@ const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: Itinerary
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
             Itinerary Builder
           </DialogTitle>
           <DialogDescription>
-            Create a detailed schedule for your tour. Add times, activities, and notes for each stop.
+            Create a detailed schedule for your tour. Add times, locations, and descriptions for each stop.
           </DialogDescription>
         </DialogHeader>
         
@@ -101,15 +129,21 @@ const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: Itinerary
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">#</TableHead>
                   <TableHead className="w-32">Time</TableHead>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="w-16">Actions</TableHead>
+                  <TableHead className="w-48">Title</TableHead>
+                  <TableHead className="w-48">Location</TableHead>
+                  <TableHead className="w-24">Duration (min)</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="w-16"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {itinerary.map((item, index) => (
                   <TableRow key={item.id}>
+                    <TableCell className="font-medium">
+                      {index + 1}
+                    </TableCell>
                     <TableCell>
                       <Input
                         type="time"
@@ -120,18 +154,35 @@ const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: Itinerary
                     </TableCell>
                     <TableCell>
                       <Input
-                        value={item.activity}
-                        onChange={(e) => updateRow(item.id, 'activity', e.target.value)}
-                        placeholder="Meeting Point - Piazza Navona"
+                        value={item.title}
+                        onChange={(e) => updateRow(item.id, 'title', e.target.value)}
+                        placeholder="Activity Title"
                         className="w-full"
                       />
                     </TableCell>
                     <TableCell>
+                      <Input
+                        value={item.location}
+                        onChange={(e) => updateRow(item.id, 'location', e.target.value)}
+                        placeholder="Location"
+                        className="w-full"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        value={item.duration}
+                        onChange={(e) => updateRow(item.id, 'duration', parseInt(e.target.value) || 0)}
+                        className="w-full"
+                        min={0}
+                      />
+                    </TableCell>
+                    <TableCell>
                       <Textarea
-                        value={item.notes}
-                        onChange={(e) => updateRow(item.id, 'notes', e.target.value)}
-                        placeholder="Meet your guide and fellow travelers"
-                        className="w-full min-h-[60px] resize-none"
+                        value={item.description}
+                        onChange={(e) => updateRow(item.id, 'description', e.target.value)}
+                        placeholder="Description"
+                        className="w-full min-h-10 resize-none"
                       />
                     </TableCell>
                     <TableCell>
@@ -161,7 +212,7 @@ const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: Itinerary
           </Button>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={handleCancel}>
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSave} variant="gradient">

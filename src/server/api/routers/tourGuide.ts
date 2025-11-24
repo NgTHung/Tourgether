@@ -1,7 +1,8 @@
 import z from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { and, eq, desc } from "drizzle-orm";
-import { guideToTags, tags, tourGuide, tours } from "~/server/db/schema/tour";
+import { guiderAppliedTours, guideToTags, tags, tourGuide, tours } from "~/server/db/schema/tour";
+import { TRPCError } from "@trpc/server";
 
 export const tourGuideRouter = createTRPCRouter({
 	getTourGuideByUserID: publicProcedure
@@ -14,15 +15,15 @@ export const tourGuideRouter = createTRPCRouter({
 				.limit(1);
 
 			if (!tourGuideQuery[0]) {
-				throw new Error("Tour guide not found");
+				throw new TRPCError({ message: "Tour guide not found", code: "NOT_FOUND" });
 			}
 
 			return tourGuideQuery[0];
 		}),
 
 	getMyGuideProfile: protectedProcedure.query(async ({ ctx }) => {
-		if (ctx.session.user.role !== "TOUR_GUIDE") {
-			throw new Error("Unauthorized: Only tour guides can access this");
+		if (ctx.session.user.role !== "GUIDE") {
+			throw new TRPCError({ message: "Unauthorized: Only guides can access this", code: "UNAUTHORIZED" });
 		}
 
 		const guide = await ctx.db
@@ -32,7 +33,7 @@ export const tourGuideRouter = createTRPCRouter({
 			.limit(1);
 
 		if (!guide[0]) {
-			throw new Error("Tour guide profile not found");
+			throw new TRPCError({ message: "Tour guide profile not found", code: "NOT_FOUND" });
 		}
 
 		return guide[0];
@@ -75,10 +76,11 @@ export const tourGuideRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			if (ctx.session.user.role !== "ADMIN") {
-				throw new Error(
-					"Unauthorized: Only admins can create profiles",
-				);
+			if (ctx.session.user.role !== "GUIDE") {
+				throw new TRPCError({
+					message: "Unauthorized: Only guides can create profiles",
+					code: "UNAUTHORIZED",
+				});
 			}
 
 			const existing = await ctx.db
@@ -88,7 +90,7 @@ export const tourGuideRouter = createTRPCRouter({
 				.limit(1);
 
 			if (existing[0]) {
-				throw new Error("Tour guide profile already exists");
+				throw new TRPCError({ message: "Tour guide profile already exists", code: "CONFLICT" });
 			}
 
 			const newGuide = await ctx.db
@@ -115,10 +117,11 @@ export const tourGuideRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			if (ctx.session.user.role !== "TOUR_GUIDE") {
-				throw new Error(
-					"Unauthorized: Only tour guides can update profiles",
-				);
+			if (ctx.session.user.role !== "GUIDE") {
+				throw new TRPCError({
+					message: "Unauthorized: Only guides can update profiles",
+					code: "UNAUTHORIZED",
+				});
 			}
 
 			const updatedGuide = await ctx.db
@@ -133,15 +136,15 @@ export const tourGuideRouter = createTRPCRouter({
 				.returning();
 
 			if (updatedGuide.length === 0) {
-				throw new Error("Tour guide profile not found");
+				throw new TRPCError({ message: "Tour guide profile not found", code: "NOT_FOUND" });
 			}
 
 			return updatedGuide[0];
 		}),
 
 	deleteGuideProfile: protectedProcedure.mutation(async ({ ctx }) => {
-		if (ctx.session.user.role !== "ADMIN") {
-			throw new Error("Unauthorized: Only admins can delete profiles");
+		if (ctx.session.user.role !== "GUIDE") {
+			throw new TRPCError({ message: "Unauthorized: Only guides can delete profiles", code: "UNAUTHORIZED" });
 		}
 
 		const deletedGuide = await ctx.db
@@ -150,7 +153,7 @@ export const tourGuideRouter = createTRPCRouter({
 			.returning();
 
 		if (deletedGuide.length === 0) {
-			throw new Error("Tour guide profile not found");
+			throw new TRPCError({ message: "Tour guide profile not found", code: "NOT_FOUND" });
 		}
 
 		return deletedGuide[0];
@@ -159,8 +162,8 @@ export const tourGuideRouter = createTRPCRouter({
 	addTagToGuide: protectedProcedure
 		.input(z.string())
 		.mutation(async ({ ctx, input }) => {
-			if (ctx.session.user.role !== "TOUR_GUIDE") {
-				throw new Error("Unauthorized: Only tour guides can add tags");
+			if (ctx.session.user.role !== "GUIDE") {
+				throw new TRPCError({ message: "Unauthorized: Only guides can add tags", code: "UNAUTHORIZED" });
 			}
 
 			const tag = await ctx.db
@@ -170,7 +173,7 @@ export const tourGuideRouter = createTRPCRouter({
 				.limit(1);
 
 			if (!tag[0]) {
-				throw new Error("Tag not found");
+				throw new TRPCError({ message: "Tag not found", code: "NOT_FOUND" });
 			}
 
 			const existing = await ctx.db
@@ -185,7 +188,7 @@ export const tourGuideRouter = createTRPCRouter({
 				.limit(1);
 
 			if (existing[0]) {
-				throw new Error("Tag already added to guide");
+				throw new TRPCError({ message: "Tag already added to guide", code: "CONFLICT" });
 			}
 
 			await ctx.db.insert(guideToTags).values({
@@ -199,10 +202,8 @@ export const tourGuideRouter = createTRPCRouter({
 	removeTagFromGuide: protectedProcedure
 		.input(z.string())
 		.mutation(async ({ ctx, input }) => {
-			if (ctx.session.user.role !== "TOUR_GUIDE") {
-				throw new Error(
-					"Unauthorized: Only tour guides can remove tags",
-				);
+			if (ctx.session.user.role !== "GUIDE") {
+				throw new TRPCError({ message: "Unauthorized: Only guides can remove tags", code: "UNAUTHORIZED" });
 			}
 
 			const result = await ctx.db
@@ -215,5 +216,36 @@ export const tourGuideRouter = createTRPCRouter({
 				);
 
 			return { success: true, tagID: input };
+		}),
+
+	applyAsGuideToTour: protectedProcedure
+		.input(z.string())
+		.mutation(async ({ ctx, input }) => {
+			if (ctx.session.user.role !== "GUIDE") {
+				throw new TRPCError({ message: "Unauthorized: Only guides can join tours", code: "UNAUTHORIZED" });
+			}
+			const tour = await ctx.db
+				.select()
+				.from(tours)
+				.where(eq(tours.id, input))
+				.limit(1);
+			if (!tour[0]) {
+				throw new TRPCError({ message: "Tour not found", code: "NOT_FOUND" });
+			}
+			if(tour[0].guideID === ctx.session.user.id){
+				throw new TRPCError({ message: "You are already the guide of this tour", code: "CONFLICT" });
+			}
+			if(tour[0].guideID !== null){
+				throw new TRPCError({ message: "This tour already has a guide assigned", code: "CONFLICT" });
+			}
+			const createdApplication = await ctx.db
+				.insert(guiderAppliedTours)
+				.values({
+					tourID: input,
+					guideID: ctx.session.user.id,
+				})
+				.returning();
+
+			return createdApplication[0];
 		}),
 });

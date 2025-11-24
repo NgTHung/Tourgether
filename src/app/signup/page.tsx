@@ -10,20 +10,30 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import { Compass, GraduationCap, Briefcase, ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect, useSearchParams } from "next/navigation";
+import { authClient } from "~/server/better-auth/client";
 
 type UserRole = "student" | "business";
 
 const Signup = () => {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const callbackUrl = searchParams.get("callbackUrl");
+	const { data: session, isPending } = authClient.useSession();
+
+	if (!isPending && session) {
+		redirect("/");
+	}
+
 	const [selectedRole, setSelectedRole] = useState<UserRole>("student");
 
 	const handleContinue = () => {
-		if (selectedRole === "student") {
-			router.push("/signup/student");
-		} else {
-			router.push("/signup/business");
-		}
+		const base =
+			selectedRole === "student" ? "/signup/student" : "/signup/business";
+		const url = callbackUrl
+			? `${base}?callbackUrl=${encodeURIComponent(callbackUrl)}`
+			: base;
+		router.push(url);
 	};
 
 	return (
@@ -165,7 +175,13 @@ const Signup = () => {
 
 						<div className="mt-6 text-center text-sm">
 							<button
-								onClick={() => router.push("/signin")}
+								onClick={() =>
+									router.push(
+										callbackUrl
+											? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
+											: "/signin",
+									)
+								}
 								className="text-primary hover:underline"
 							>
 								Already have an account? Sign in

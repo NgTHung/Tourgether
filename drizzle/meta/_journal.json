@@ -57,6 +57,27 @@
       "when": 1763627967325,
       "tag": "0007_tense_zaladane",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1763876758770,
+      "tag": "0008_shocking_retro_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1763891578465,
+      "tag": "0009_groovy_ghost_rider",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1763978747939,
+      "tag": "0010_rainy_impossible_man",
+      "breakpoints": true
     }
   ]
 }

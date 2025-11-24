@@ -1,4 +1,8 @@
-import { organizations } from "~/server/db/schema/tour";
+import {
+	guiderAppliedTours,
+	organizations,
+	tours,
+} from "~/server/db/schema/tour";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import z from "zod";
 import { and, eq } from "drizzle-orm";
@@ -45,14 +49,14 @@ export const organizationRouter = createTRPCRouter({
 		.input(
 			z.object({
 				taxID: z.number().int().positive(),
-				websiteURL: z.string().url(),
-				slogan: z.string().min(1).max(500),
+				websiteURL: z.string().url().optional(),
+				slogan: z.string().min(1).max(500).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			if (ctx.session.user.role !== "ADMIN") {
+			if (ctx.session.user.role !== "ORGANIZATION") {
 				throw new Error(
-					"Unauthorized: Only admins can create organization profiles",
+					"Unauthorized: Only organizations can create organization profiles",
 				);
 			}
 
@@ -115,9 +119,9 @@ export const organizationRouter = createTRPCRouter({
 
 	// Delete organization profile
 	deleteOrganization: protectedProcedure.mutation(async ({ ctx }) => {
-		if (ctx.session.user.role !== "ADMIN") {
+		if (ctx.session.user.role !== "ORGANIZATION") {
 			throw new Error(
-				"Unauthorized: Only admins can delete organization profiles",
+				"Unauthorized: Only organizations can delete organization profiles",
 			);
 		}
 
@@ -132,4 +136,50 @@ export const organizationRouter = createTRPCRouter({
 
 		return deletedOrganization[0];
 	}),
+
+	approveGuiderApplication: protectedProcedure
+		.input(
+			z.object({
+				tourID: z.string(),
+				guideID: z.string(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			if (ctx.session.user.role !== "ORGANIZATION") {
+				throw new Error(
+					"Unauthorized: Only organizations can approve guider applications",
+				);
+			}
+
+			const application = await ctx.db
+				.select()
+				.from(guiderAppliedTours)
+				.where(
+					and(
+						eq(guiderAppliedTours.tourID, input.tourID),
+						eq(guiderAppliedTours.guideID, input.guideID),
+					),
+				)
+				.limit(1);
+			if (!application[0]) {
+				throw new Error("Application not found");
+			}
+			const updatedTour = await ctx.db
+				.update(tours)
+				.set({
+					guideID: input.guideID,
+				})
+				.where(
+					and(
+						eq(tours.id, input.tourID),
+						eq(tours.ownerUserID, ctx.session.user.id),
+						eq(tours.guideID, ""),
+					),
+				)
+				.returning();
+			if (updatedTour.length === 0) {
+				throw new Error("Tour not found or unauthorized");
+			}
+			return updatedTour[0];
+		}),
 });

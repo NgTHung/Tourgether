@@ -13,12 +13,22 @@ import {
 } from "~/components/ui/card";
 import { Compass, GraduationCap, Briefcase } from "lucide-react";
 import { login } from "~/actions/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect, useSearchParams } from "next/navigation";
+import { authClient } from "~/server/better-auth/client";
 type UserRole = "student" | "business";
 
 const Auth = () => {
-    const router = useRouter();
-    const [state, action, pending] = useActionState(login, undefined)
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const callbackUrl = searchParams.get("callbackUrl") || "/";
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
+
+	if (!isSessionPending && session) {
+		redirect("/");
+	}
+
+	const [state, action, pending] = useActionState(login, undefined);
 	const [selectedRole, setSelectedRole] = useState<UserRole>("student");
 
 	return (
@@ -83,6 +93,11 @@ const Auth = () => {
 					</CardHeader>
 					<CardContent>
 						<form action={action} className="space-y-6">
+							<input
+								type="hidden"
+								name="callbackUrl"
+								value={callbackUrl}
+							/>
 							{/* Role Selection - Horizontal Segmented Control */}
 							<div className="space-y-3">
 								<Label className="text-base font-semibold">
@@ -182,7 +197,13 @@ const Auth = () => {
 
 						<div className="mt-6 text-center text-sm">
 							<button
-                                onClick={() => router.push("/signup")}
+								onClick={() =>
+									router.push(
+										callbackUrl !== "/"
+											? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
+											: "/signup",
+									)
+								}
 								className="text-primary hover:underline"
 							>
 								Don't have an account? Sign up

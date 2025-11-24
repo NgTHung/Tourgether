@@ -7,72 +7,57 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { api } from "~/trpc/react";
+import { useSession } from "~/components/AuthProvider";
 
 interface Post {
   id: string;
-  author: string;
-  avatar: string;
-  role: "student" | "business";
   content: string;
-  image?: string;
   likes: number;
   comments: number;
-  timestamp: string;
-  liked?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  liked: number | undefined;
+  postedBy: {
+    id: string;
+    name: string;
+    image: string | null;
+  } | null;
 }
 
 const SocialFeed = () => {
   const [newPost, setNewPost] = useState("");
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: "1",
-      author: "Sarah Johnson",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      role: "student",
-      content: "Just finished leading an amazing tour through the Swiss Alps! The views were absolutely breathtaking. Can't wait for the next adventure! 🏔️",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",
-      likes: 42,
-      comments: 8,
-      timestamp: "2 hours ago",
-      liked: false,
-    },
-    {
-      id: "2",
-      author: "Rome Adventures Co.",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rome",
-      role: "business",
-      content: "Exciting news! We're launching a new sunset tour of the Colosseum. Limited spots available for this unique experience. Book now!",
-      likes: 128,
-      comments: 23,
-      timestamp: "5 hours ago",
-      liked: true,
-    },
-  ]);
-
+  const [post, postQuery] = api.social.getAllPosts.useSuspenseQuery();
+  const [posts, setPosts] = useState<Post[]>(post);
+  const {
+    data: session,
+    isPending, //loading state
+    error, //error object
+    refetch, //refetch the session
+  } = useSession();
   const handleLike = (postId: string) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 }
-        : post
-    ));
+    api.social.likePost.useMutation().mutate(postId);
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
+              liked: post.liked ? 0 : 1,
+            }
+          : post,
+      ),
+    );
   };
 
   const handleCreatePost = () => {
-    if (!newPost.trim()) return;
-    
-    const post: Post = {
-      id: Date.now().toString(),
-      author: "You",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
-      role: "student",
-      content: newPost,
-      likes: 0,
-      comments: 0,
-      timestamp: "Just now",
-      liked: false,
-    };
-    
-    setPosts([post, ...posts]);
+    if (newPost.trim() === "") return;
+
+    api.social.createPost.useMutation().mutate({content: newPost}, {
+      onSuccess: (createdPost) => {
+        setPosts((prevPosts) => [{...createdPost!, liked: 0, likes: 0, comments: 0, postedBy: { id: (session?.user.id ?? ""), name: (session?.user.name ?? ""), image: (session?.user.image ?? null) }}!, ...prevPosts]);
+      }
+    });
     setNewPost("");
   };
 
@@ -118,33 +103,19 @@ const SocialFeed = () => {
                 {/* Post Header */}
                 <div className="flex items-start gap-3 mb-4">
                   <Avatar>
-                    <AvatarImage src={post.avatar} />
-                    <AvatarFallback>{post.author[0]}</AvatarFallback>
+                    <AvatarImage src={post.postedBy?.image ?? undefined} />
+                    <AvatarFallback>{post.postedBy?.name[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold">{post.author}</p>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                        {post.role}
-                      </span>
+                      <p className="font-semibold">{post.postedBy?.name}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{post.timestamp}</p>
+                    <p className="text-sm text-muted-foreground">{post.updatedAt.toLocaleString()}</p>
                   </div>
                 </div>
 
                 {/* Post Content */}
                 <p className="mb-4 whitespace-pre-wrap">{post.content}</p>
-
-                {/* Post Image */}
-                {post.image && (
-                  <div className="mb-4 rounded-lg overflow-hidden">
-                    <img
-                      src={post.image}
-                      alt="Post"
-                      className="w-full h-auto"
-                    />
-                  </div>
-                )}
 
                 {/* Post Actions */}
                 <div className="flex items-center gap-6 pt-3 border-t">

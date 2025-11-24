@@ -13,8 +13,14 @@ import {
   Users, 
   TrendingUp
 } from "lucide-react";
+import { useSession } from "~/components/AuthProvider";
+import { api } from "~/trpc/react";
 
-type UserRole = "student" | "business";
+const formatter = new Intl.DateTimeFormat("en-US", {
+	month: "2-digit",
+	day: "2-digit",
+	year: "numeric",
+});
 
 interface Review {
   id: string;
@@ -51,46 +57,14 @@ interface BusinessTour {
 const PreviousTours = () => {
   const router = useRouter();
   // Mock user role - in real app this would come from auth context
-  const [userRole] = useState<UserRole>("student");
+  const {
+    data: session,
+    isPending, //loading state
+    error, //error object
+    refetch, //refetch the session
+  } = useSession();
 
-  // Mock data for different views
-  const mockData = {
-    student: {
-      completedTours: [
-        {
-          id: "1",
-          title: "Historic City Walking Tour",
-          location: "Rome, Italy",
-          date: "April 15, 2024",
-          businessName: "Rome Adventures Co.",
-          earnings: 120,
-          rating: 4.8,
-          travelers: 12,
-          imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=80",
-          reviews: [
-            { id: "1", traveler: "John Doe", rating: 5, comment: "Amazing guide! Very knowledgeable and friendly." },
-            { id: "2", traveler: "Sarah Johnson", rating: 4, comment: "Great tour, learned so much about Roman history." }
-          ]
-        }
-      ] as StudentTour[]
-    },
-    business: {
-      completedTours: [
-        {
-          id: "1",
-          title: "Historic City Walking Tour",
-          location: "Rome, Italy",
-          date: "April 15, 2024",
-          guide: "Marco Rossi",
-          finalRevenue: 1800,
-          travelers: 12,
-          rating: 4.8,
-          imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=80"
-        }
-      ] as BusinessTour[]
-    }
-  };
-
+  const [cTour, cTourQuery] = api.tour.getCompletedTours.useSuspenseQuery();
   const StarRating = ({ 
     rating, 
     onRatingChange, 
@@ -117,18 +91,18 @@ const PreviousTours = () => {
 
   const renderStudentView = () => (
     <div className="space-y-6">
-      {mockData.student.completedTours.map((tour: StudentTour) => (
+      {cTour.map((tour) => (
         <Card key={tour.id}>
           <CardContent className="p-6">
             <div className="flex gap-6">
               <img
-                src={tour.imageUrl}
-                alt={tour.title}
+                src={tour.thumbnailUrl}
+                alt={tour.name}
                 className="w-32 h-32 rounded-lg object-cover"
               />
               <div className="flex-1 space-y-4">
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">{tour.title}</h3>
+                  <h3 className="text-xl font-semibold mb-2">{tour.name}</h3>
                   <div className="flex items-center gap-4 text-muted-foreground text-sm">
                     <span className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
@@ -136,26 +110,12 @@ const PreviousTours = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {tour.date}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {tour.travelers} travelers
+                      {formatter.format(tour.date)}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <StarRating rating={tour.rating} />
-                      <span className="font-medium">{tour.rating}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-green-600">
-                      <DollarSign className="w-4 h-4" />
-                      <span className="font-semibold">${tour.earnings} earned</span>
-                    </div>
-                  </div>
                   <Button variant="outline" onClick={() => router.push(`/tour/${tour.id}`)}>
                     View Details
                   </Button>
@@ -165,17 +125,17 @@ const PreviousTours = () => {
                 <div className="pt-4 border-t">
                   <h4 className="font-semibold mb-3">Traveler Reviews ({tour.reviews.length})</h4>
                   <div className="space-y-3">
-                    {tour.reviews.map((review: Review) => (
+                    {tour.reviews.map((review) => (
                       <div key={review.id} className="flex gap-3">
                         <Avatar className="w-8 h-8">
-                          <AvatarFallback>{review.traveler[0]}</AvatarFallback>
+                          <AvatarFallback>{review.user?.name[0] ?? "U"}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm">{review.traveler}</span>
+                            <span className="font-medium text-sm">{review.user?.name ?? "Anonymous"}</span>
                             <StarRating rating={review.rating} />
                           </div>
-                          <p className="text-sm text-muted-foreground">{review.comment}</p>
+                          <p className="text-sm text-muted-foreground">{review.review}</p>
                         </div>
                       </div>
                     ))}
@@ -191,18 +151,18 @@ const PreviousTours = () => {
 
   const renderBusinessView = () => (
     <div className="space-y-6">
-      {mockData.business.completedTours.map((tour: BusinessTour) => (
+      {cTour.map((tour) => (
         <Card key={tour.id}>
           <CardContent className="p-6">
             <div className="flex gap-6">
               <img
-                src={tour.imageUrl}
-                alt={tour.title}
+                src={tour.thumbnailUrl}
+                alt={tour.name}
                 className="w-32 h-32 rounded-lg object-cover"
               />
               <div className="flex-1 space-y-4">
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">{tour.title}</h3>
+                  <h3 className="text-xl font-semibold mb-2">{tour.name}</h3>
                   <div className="flex items-center gap-4 text-muted-foreground text-sm">
                     <span className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />
@@ -210,11 +170,11 @@ const PreviousTours = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {tour.date}
+                      {formatter.format(tour.date)}
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
-                      Guide: {tour.guide}
+                      Guide: {tour.guide?.user.name || "N/A"}
                     </span>
                   </div>
                 </div>
@@ -226,14 +186,6 @@ const PreviousTours = () => {
                     Business Summary
                   </h4>
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">${tour.finalRevenue}</div>
-                      <div className="text-xs text-muted-foreground">Final Revenue</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">{tour.travelers}</div>
-                      <div className="text-xs text-muted-foreground">Travelers Joined</div>
-                    </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         <span className="text-2xl font-bold">{tour.rating}</span>
@@ -270,13 +222,13 @@ const PreviousTours = () => {
           
           <h1 className="text-3xl font-bold mb-2">Previous Tours</h1>
           <p className="text-muted-foreground">
-            {userRole === "student" && "Review your completed guide experiences and traveler feedback"}
-            {userRole === "business" && "View your completed tours with revenue and performance data"}
+            {session?.user.role === "GUIDE" && "Review your completed guide experiences and traveler feedback"}
+            {session?.user.role === "ORGANIZATION" && "View your completed tours with revenue and performance data"}
           </p>
         </div>
 
-        {userRole === "student" && renderStudentView()}
-        {userRole === "business" && renderBusinessView()}
+        {session?.user.role === "GUIDE" && renderStudentView()}
+        {session?.user.role === "ORGANIZATION" && renderBusinessView()}
       </main>
     </>
   );

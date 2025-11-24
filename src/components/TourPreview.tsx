@@ -12,7 +12,7 @@ interface TourPreviewProps {
   title: string;
   description: string;
   images: string[];
-  price: string;
+  price: number;
   location: string;
   tags: string[];
 }

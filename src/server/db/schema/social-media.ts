@@ -10,16 +10,19 @@ import { relations } from "drizzle-orm/relations";
 
 export const posts = pgTable("posts", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	title: text("title").notNull(),
 	content: text("content").notNull(),
+	postedById: text("posted_by").references(() => user.id, {
+		onDelete: "cascade",
+	}),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
 });
-export const postsRelations = relations(posts, ({ many }) => ({
+export const postsRelations = relations(posts, ({ many, one }) => ({
 	comments: many(comments),
 	likes: many(likes),
+	postedBy: one(user, { fields: [posts.postedById], references: [user.id] }),
 }));
 
 export const likes = pgTable(

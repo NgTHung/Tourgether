@@ -13,9 +13,9 @@ import { Calendar as CalendarIcon, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "~/lib/utils";
 import { type DateRange } from "react-day-picker";
+import z from "zod";
 
 interface FilterBarProps {
-  userRole: "student" | "business";
   onApplyFilters: (filters: FilterState) => void;
 }
 
@@ -23,6 +23,16 @@ export interface FilterState {
   dateRange?: DateRange;
   city: string;
 }
+
+export const zFilterState = z.object({
+  city: z.string(),
+  dateRange: z
+    .object({
+      from: z.union([z.date(), z.undefined()]),
+      to: z.date().optional(),
+    })
+    .optional(),
+}) satisfies z.ZodType<FilterState>;
 
 const FilterBar = ({ onApplyFilters }: FilterBarProps) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();

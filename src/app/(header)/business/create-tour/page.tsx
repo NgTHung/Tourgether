@@ -13,12 +13,18 @@ import TourPreview from "~/components/TourPreview";
 import ItineraryBuilder from "~/components/ItineraryBuilder";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "~/trpc/react";
 
 interface ItineraryItem {
   id: string;
+  title: string;
+  location: string;
+  duration: number;
+  description: string;
   time: string;
-  activity: string;
-  notes: string;
+  activities: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const CreateTour = ({  params,
@@ -29,46 +35,17 @@ const CreateTour = ({  params,
   const isEditing = !!id;
   const router = useRouter();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [location, setLocation] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [images, setImages] = useState<string[]>([]);
-  const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
+  const [tourData, tourDataQuery] = isEditing
+    ? api.tour.getTourById.useSuspenseQuery({id: id, shouldGetTags: true})
+    : [{ title: "", description: "", price: 0, location: "", tags: [], images: [], itinerary: [] }];
 
-  // Auto-fill form when editing
-  useEffect(() => {
-    if (isEditing && id) {
-      // In a real app, this would fetch data from an API
-      // For now, using mock data to demonstrate auto-fill functionality
-      const mockTourData = {
-        title: "Historic City Walking Tour",
-        description: "Experience the eternal city like never before with our comprehensive walking tour through Rome's most iconic landmarks and hidden gems.",
-        price: "150",
-        location: "Rome, Italy",
-        tags: ["historical", "walking", "cultural"],
-        images: [
-          "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80",
-          "https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=800&q=80"
-        ],
-        itinerary: [
-          { id: "1", time: "09:00", activity: "Meeting Point - Piazza Navona", notes: "Meet your guide and fellow travelers" },
-          { id: "2", time: "09:30", activity: "Pantheon", notes: "Marvel at ancient Roman architecture" },
-          { id: "3", time: "10:30", activity: "Trevi Fountain", notes: "Make a wish at Rome's most famous fountain" },
-          { id: "4", time: "11:30", activity: "Spanish Steps", notes: "Climb the iconic steps" }
-        ]
-      };
-
-      setTitle(mockTourData.title);
-      setDescription(mockTourData.description);
-      setPrice(mockTourData.price);
-      setLocation(mockTourData.location);
-      setTags(mockTourData.tags);
-      setImages(mockTourData.images);
-      setItinerary(mockTourData.itinerary);
-    }
-  }, [isEditing, id]);
+  const [title, setTitle] = useState(tourData.tour?.name || "");
+  const [description, setDescription] = useState(tourData.tour?.description || "");
+  const [price, setPrice] = useState(tourData.tour?.price || 0);
+  const [location, setLocation] = useState(tourData.tour?.location || "");
+  const [tags, setTags] = useState(tourData.tags);
+  const [images, setImages] = useState<string[]>(tourData.tour?.thumbnailUrl ? [tourData.tour.thumbnailUrl] : []);
+  const [itinerary, setItinerary] = useState<ItineraryItem[]>(tourData.tour?.itineraries || []);
 
   const handleSave = () => {
     if (!title || !description || !price || !location) {
@@ -151,7 +128,7 @@ const CreateTour = ({  params,
                   id="price"
                   type="number"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => setPrice(parseInt(e.target.value))}
                   placeholder="150"
                 />
               </div>
@@ -204,7 +181,7 @@ const CreateTour = ({  params,
                     {itinerary.slice(0, 3).map((item, index) => (
                       <div key={item.id} className="flex items-center text-sm">
                         <span className="w-16 font-mono text-primary">{item.time}</span>
-                        <span className="flex-1">{item.activity}</span>
+                        <span className="flex-1">{item.title}</span>
                       </div>
                     ))}
                     {itinerary.length > 3 && (
