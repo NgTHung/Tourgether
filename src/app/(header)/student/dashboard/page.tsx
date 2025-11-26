@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import Header from "~/components/Header";
 import TourCard from "~/components/TourCard";

@@ -49,7 +49,7 @@ export const organizationRouter = createTRPCRouter({
 		.input(
 			z.object({
 				taxID: z.number().int().positive(),
-				websiteURL: z.string().url().optional(),
+				websiteURL: z.url().optional(),
 				slogan: z.string().min(1).max(500).optional(),
 			}),
 		)

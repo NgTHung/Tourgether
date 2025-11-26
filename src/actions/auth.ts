@@ -7,10 +7,12 @@ import {
 	type FormState,
 } from "~/lib/definitions";
 import { auth } from "~/auth";
-import { ApiError } from "next/dist/server/api-utils";
-import { api } from "~/trpc/server";
+import type { TRPCError } from "@trpc/server";
 
-export async function studentSignup(state: any, formData: FormData): Promise<FormState> {
+export async function studentSignup(
+	state: unknown,
+	formData: FormData,
+): Promise<FormState> {
 	const fullname = formData.get("fullName") as string;
 	const email = formData.get("email") as string;
 	const password = formData.get("password") as string;
@@ -46,7 +48,8 @@ export async function studentSignup(state: any, formData: FormData): Promise<For
 			data,
 		};
 	}
-	try {
+	try{
+
 		await auth.api.signUpEmail({
 			body: {
 				name: validatedFields.data.fullname,
@@ -57,17 +60,11 @@ export async function studentSignup(state: any, formData: FormData): Promise<For
 				gender: validatedFields.data.gender,
 			},
 		});
-		await api.guide.createGuideProfile({
-			description: "",
-			certificates: [],
-			school: "",
-			workExperience: [],
-		});
-	} catch (error: ApiError | any) {
+	}
+	catch(err: TRPCError){
 		return {
-			message: error.message,
-			data,
-		};
+			message: err.message
+		}
 	}
 	const callbackUrl = formData.get("callbackUrl") as string;
 	redirect(
@@ -77,17 +74,21 @@ export async function studentSignup(state: any, formData: FormData): Promise<For
 	);
 }
 
-export async function businessSignup(state: any, formData: FormData): Promise<FormState> {
+export async function businessSignup(
+	state: unknown,
+	formData: FormData,
+): Promise<FormState> {
 	const email = formData.get("email") as string;
 	const password = formData.get("password") as string;
 	const confirmPassword = formData.get("confirmPassword") as string;
 	const organizationName = formData.get("organizationName") as string;
-	const taxId = formData.get("taxId") as string;
-	const website = formData.get("website") as string;
+	// const taxId = formData.get("taxId") as string;
+	// const website = formData.get("website") as string;
 	const username = formData.get("username") as string;
 	const hotlinePrefix = formData.get("hotlinePrefix") as string;
 	const hotline = formData.get("hotline") as string;
-	const phonenumber = hotlinePrefix && hotline ? `${hotlinePrefix}${hotline}` : "";
+	const phonenumber =
+		hotlinePrefix && hotline ? `${hotlinePrefix}${hotline}` : "";
 
 	const validatedFields = BusinessSignupFormSchema.safeParse({
 		email,
@@ -95,15 +96,15 @@ export async function businessSignup(state: any, formData: FormData): Promise<Fo
 		confirmPassword,
 		phonenumber,
 		organizationName,
-		taxId,
-		website,
+		// taxId,
+		// website,
 	});
 
 	const data = {
 		email,
 		organizationName,
-		taxId,
-		website,
+		// taxId,
+		// website,
 		username,
 		hotlinePrefix,
 		hotline,
@@ -115,8 +116,9 @@ export async function businessSignup(state: any, formData: FormData): Promise<Fo
 			data,
 		};
 	}
-	try {
-		const data = await auth.api.signUpEmail({
+	try{
+
+		await auth.api.signUpEmail({
 			body: {
 				email: validatedFields.data.email,
 				password: validatedFields.data.password,
@@ -124,16 +126,11 @@ export async function businessSignup(state: any, formData: FormData): Promise<Fo
 				name: validatedFields.data.organizationName,
 			},
 		});
-		await api.organization.createOrganization({
-			taxID: parseInt(validatedFields.data.taxId),
-			websiteURL: validatedFields.data.website || "",
-			slogan: "",
-		});
-	} catch (error: ApiError | any) {
+	}
+	catch(err: TRPCError){
 		return {
-			message: error.message,
-			data,
-		};
+			message: err.message
+		}
 	}
 	const callbackUrl = formData.get("callbackUrl") as string;
 	redirect(
@@ -143,7 +140,10 @@ export async function businessSignup(state: any, formData: FormData): Promise<Fo
 	);
 }
 
-export async function login(state: any, formData: FormData): Promise<FormState> {
+export async function login(
+	state: unknown,
+	formData: FormData,
+): Promise<FormState> {
 	const validatedFields = LoginFormSchema.safeParse({
 		email: formData.get("email"),
 		password: formData.get("password"),
@@ -153,7 +153,8 @@ export async function login(state: any, formData: FormData): Promise<FormState> 
 			errors: validatedFields.error.flatten().fieldErrors,
 		};
 	}
-	try {
+	try{
+
 		await auth.api.signInEmail({
 			body: {
 				email: validatedFields.data.email,
@@ -161,10 +162,11 @@ export async function login(state: any, formData: FormData): Promise<FormState> 
 				rememberMe: true,
 			},
 		});
-	} catch (error: ApiError | any) {
+	}
+	catch(err: TRPCError){
 		return {
-			message: error.message,
-		};
+			message: err.message
+		}
 	}
 	const callbackUrl = (formData.get("callbackUrl") as string) || "/";
 	redirect(callbackUrl);

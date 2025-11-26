@@ -13,19 +13,19 @@ import {
 } from "~/components/ui/card";
 import { Compass, GraduationCap, Briefcase } from "lucide-react";
 import { login } from "~/actions/auth";
-import { useRouter, redirect, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "~/server/better-auth/client";
 type UserRole = "student" | "business";
 
 const Auth = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const callbackUrl = searchParams.get("callbackUrl") || "/";
+	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 	const { data: session, isPending: isSessionPending } =
 		authClient.useSession();
 
 	if (!isSessionPending && session) {
-		redirect("/");
+		router.push("/");
 	}
 
 	const [state, action, pending] = useActionState(login, undefined);
@@ -98,69 +98,6 @@ const Auth = () => {
 								name="callbackUrl"
 								value={callbackUrl}
 							/>
-							{/* Role Selection - Horizontal Segmented Control */}
-							<div className="space-y-3">
-								<Label className="text-base font-semibold">
-									Select Your Role
-								</Label>
-								<div className="relative bg-muted rounded-lg p-1">
-									{/* Sliding Background */}
-									<div
-										className={`absolute top-1 bottom-1 w-1/2 bg-primary rounded-md shadow-sm transition-transform duration-300 ease-out ${
-											selectedRole === "student"
-												? "translate-x-0"
-												: "translate-x-full"
-										}`}
-									/>
-
-									{/* Role Options */}
-									<div className="relative grid grid-cols-2">
-										<button
-											type="button"
-											onClick={() =>
-												setSelectedRole("student")
-											}
-											className={`relative flex flex-col items-center gap-2 p-4 text-center transition-colors ${
-												selectedRole === "student"
-													? "text-primary-foreground font-medium"
-													: "text-muted-foreground hover:text-foreground"
-											}`}
-										>
-											<GraduationCap className="w-6 h-6" />
-											<div>
-												<div className="font-medium text-sm">
-													Student
-												</div>
-												<div className="text-xs opacity-75">
-													Tour Guide
-												</div>
-											</div>
-										</button>
-
-										<button
-											type="button"
-											onClick={() =>
-												setSelectedRole("business")
-											}
-											className={`relative flex flex-col items-center gap-2 p-4 text-center transition-colors ${
-												selectedRole === "business"
-													? "text-primary-foreground font-medium"
-													: "text-muted-foreground hover:text-foreground"
-											}`}
-										>
-											<Briefcase className="w-6 h-6" />
-											<div>
-												<div className="font-medium text-sm">
-													Business
-												</div>
-												<div className="text-xs opacity-75">
-													Tour Operator
-												</div>
-											</div>
-										</button>
-									</div>
-								</div>
-							</div>
 
 							{/* Login Form */}
 							<div className="space-y-4">
@@ -206,7 +143,7 @@ const Auth = () => {
 								}
 								className="text-primary hover:underline"
 							>
-								Don't have an account? Sign up
+								Don&apos;t have an account? Sign up
 							</button>
 						</div>
 					</CardContent>

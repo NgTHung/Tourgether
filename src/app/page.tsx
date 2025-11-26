@@ -3,12 +3,13 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Compass, Users, Briefcase, ArrowRight } from "lucide-react";
 import heroImage from "public/assets/hero-beach-jgTo3uaI.jpg";
-import { redirect } from "next/navigation";
+// import { router.push } from "next/navigation";
 import Image from "next/image"
+import { useRouter } from "next/navigation";
 
 // /
 const Index = () => {
-
+  const router = useRouter()
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -35,7 +36,7 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={() => redirect("/signup")}
+              onClick={() => router.push("/signup")}
               variant="gradient"
               size="lg"
               className="text-lg"
@@ -44,7 +45,7 @@ const Index = () => {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button
-              onClick={() => redirect("/feed")}
+              onClick={() => router.push("/feed")}
               variant="outline"
               size="lg"
               className="text-lg"
@@ -96,7 +97,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => redirect("/signup")}
+                  onClick={() => router.push("/signup")}
                   variant="default"
                   className="w-full"
                 >
@@ -132,7 +133,7 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => redirect("/signup")}
+                  onClick={() => router.push("/signup")}
                   variant="accent"
                   className="w-full"
                 >
@@ -154,7 +155,7 @@ const Index = () => {
             Join thousands of students and businesses already connected on Tourgether
           </p>
           <Button
-            onClick={() => redirect("/signup")}
+            onClick={() => router.push("/signup")}
             variant="gradient"
             size="lg"
             className="text-lg"

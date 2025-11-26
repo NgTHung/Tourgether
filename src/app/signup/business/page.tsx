@@ -20,7 +20,7 @@ import { authClient } from "~/server/better-auth/client";
 const BusinessSignup = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const callbackUrl = searchParams.get("callbackUrl") || "";
+	const callbackUrl = searchParams.get("callbackUrl") ?? "";
 	const { data: session, isPending } = authClient.useSession();
 
 	if (!isPending && session) {
@@ -216,7 +216,7 @@ const BusinessSignup = () => {
 							</div>
 
 							{/* Website (Optional) */}
-							<div className="space-y-2">
+							{/* <div className="space-y-2">
 								<Label
 									htmlFor="website"
 									className={cn(state?.errors?.website && "text-destructive")}
@@ -244,10 +244,10 @@ const BusinessSignup = () => {
 										))}
 									</div>
 								)}
-							</div>
+							</div> */}
 
 							{/* Tax ID */}
-							<div className="space-y-2">
+							{/* <div className="space-y-2">
 								<Label
 									htmlFor="taxId"
 									className={cn(state?.errors?.taxId && "text-destructive")}
@@ -280,7 +280,7 @@ const BusinessSignup = () => {
 										Your business tax identification number
 									</p>
 								)}
-							</div>
+							</div> */}
 
 							{/* Password */}
 							<div className="space-y-2">

@@ -1,11 +1,14 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { username } from "better-auth/plugins";
+import { createAuthMiddleware, username } from "better-auth/plugins";
 
 import { db } from "~/server/db";
 import * as user from "~/server/db/schema/auth-schema";
 import { z } from "zod";
+import { api } from "./trpc/server";
+import { eq } from "drizzle-orm";
+import { organizations, tourGuide } from "./server/db/schema/tour";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -18,7 +21,7 @@ export const auth = betterAuth({
   socialProviders: {
   },
   plugins: [
-    // username(),
+    username(),
     nextCookies(),
   ],
   user:{
@@ -83,6 +86,38 @@ export const auth = betterAuth({
   },
   advanced: {
     cookiePrefix: "tourgether",
+  },
+  databaseHooks:{
+    user: {
+      create: {
+        after: async (usr, context) => {
+          if(!context?.path.startsWith("/signup"))
+            return;
+          const useracc = await db.query.user.findFirst({
+            where: eq(user.user.id, usr.id)
+          })
+          if(!useracc)
+            return
+          if(useracc.role === "GUIDE"){
+            await db.insert(tourGuide)
+                    .values({
+                      userID: useracc.id,
+                      school: "",
+                      description: ""                      
+                    })
+          }
+          else {
+            await db.insert(organizations)
+                    .values({
+                      userID: useracc.id,
+                      taxID: 0,
+                      slogan: "",
+                      websiteURL: ""
+                    })
+          }
+        },
+      }
+    }
   }
 });
 
