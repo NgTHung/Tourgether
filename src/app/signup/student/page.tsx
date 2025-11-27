@@ -14,7 +14,7 @@ import {
 } from "~/components/ui/card";
 import { ArrowLeft, GraduationCap, AlertCircle } from "lucide-react";
 import { studentSignup } from "~/actions/auth";
-import { useRouter, redirect, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { authClient } from "~/server/better-auth/client";
 
@@ -25,7 +25,7 @@ const StudentSignup = () => {
 	const { data: session, isPending } = authClient.useSession();
 
 	if (!isPending && session) {
-		redirect("/");
+		router.push("/");
 	}
 
 	const [state, action, pending] = useActionState(studentSignup, {

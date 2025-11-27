@@ -21,11 +21,19 @@ const Auth = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+	const onboardingType = searchParams.get("onboarding");
 	const { data: session, isPending: isSessionPending } =
 		authClient.useSession();
 
 	if (!isSessionPending && session) {
-		router.push("/");
+		// If onboarding parameter exists, redirect to appropriate onboarding
+		if (onboardingType === "student") {
+			router.push("/onboarding/student");
+		} else if (onboardingType === "business") {
+			router.push("/onboarding/business");
+		} else {
+			router.push("/");
+		}
 	}
 
 	const [state, action, pending] = useActionState(login, undefined);

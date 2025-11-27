@@ -73,6 +73,7 @@ export const tourGuideRouter = createTRPCRouter({
 				certificates: z.array(z.string()).default([]),
 				workExperience: z.array(z.string()).default([]),
 				description: z.string().min(1).max(2000),
+				cvUrl: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -101,6 +102,7 @@ export const tourGuideRouter = createTRPCRouter({
 					certificates: input.certificates,
 					workExperience: input.workExperience,
 					description: input.description,
+					cvUrl: input.cvUrl,
 				})
 				.returning();
 
@@ -114,6 +116,7 @@ export const tourGuideRouter = createTRPCRouter({
 				certificates: z.array(z.string()).optional(),
 				workExperience: z.array(z.string()).optional(),
 				description: z.string().min(1).max(2000).optional(),
+				cvUrl: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -131,6 +134,7 @@ export const tourGuideRouter = createTRPCRouter({
 					certificates: input.certificates,
 					workExperience: input.workExperience,
 					description: input.description,
+					cvUrl: input.cvUrl,
 				})
 				.where(eq(tourGuide.userID, ctx.session.user.id))
 				.returning();

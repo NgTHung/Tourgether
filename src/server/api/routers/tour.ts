@@ -11,7 +11,17 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { z } from "zod/v4";
 import { and, avg, eq, or, isNull, gte, lte } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { zFilterState } from "~/components/FilterBar";
+// import { zFilterState } from "~/components/FilterBar";
+
+export const zFilterState = z.object({
+  city: z.string(),
+  dateRange: z
+	.object({
+	  from: z.union([z.date(), z.undefined()]),
+	  to: z.date().optional(),
+	})
+	.optional(),
+});
 
 export const tourRouter = createTRPCRouter({
 	getAccessibleTours: protectedProcedure

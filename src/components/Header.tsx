@@ -1,4 +1,5 @@
 "use client";
+
 import { Search, User, Settings, LogOut, Compass } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -9,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import SettingsModal from "~/components/SettingsModal";
 
 interface HeaderProps {
@@ -17,19 +18,20 @@ interface HeaderProps {
 }
 
 const Header = ({ userRole }: HeaderProps) => {
+  const router = useRouter();
 
   const handleLogout = () => {
-    redirect("/signin");
+    router.push("/signin");
   };
 
   const handleLogoClick = () => {
     // Navigate to appropriate dashboard based on user role
     if (userRole === "GUIDE") {
-      redirect("/student/dashboard");
+      router.push("/student/dashboard");
     } else if (userRole === "ORGANIZATION") {
-      redirect("/business/dashboard");
+      router.push("/business/dashboard");
     } else {
-      redirect("/");
+      router.push("/");
     }
   };
 
@@ -78,7 +80,7 @@ const Header = ({ userRole }: HeaderProps) => {
                 <p className="text-xs text-muted-foreground">user@example.com</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => redirect("/account")}>
+              <DropdownMenuItem onClick={() => router.push("/account")}>
                 <User className="w-4 h-4 mr-2" />
                 View My Account
               </DropdownMenuItem>

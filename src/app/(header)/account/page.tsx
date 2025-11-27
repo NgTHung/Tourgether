@@ -27,6 +27,7 @@ import {
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
+import type { organizations, tourGuide } from "~/server/db/schema/tour";
 
 interface BaseUserData {
 	name: string;
@@ -49,6 +50,7 @@ interface StudentData extends BaseUserData {
 	certifications: string[];
 	workExperience: string[];
 	languages: string[];
+	cvUrl: string;
 }
 
 interface BusinessData extends BaseUserData {
@@ -91,48 +93,49 @@ const Account = () => {
 	// Helper to safely get profile data based on role
 	const getInitialData = () => {
 		const baseData = {
-			name: profile.currentUser.name || "",
-			username: profile.currentUser.username || "",
-			email: profile.currentUser.email || "",
-			phone: profile.currentUser.phonenumber || "",
-			location: profile.currentUser.address || "",
+			name: profile.currentUser.name ?? "",
+			username: profile.currentUser.username ?? "",
+			email: profile.currentUser.email ?? "",
+			phone: profile.currentUser.phonenumber ?? "",
+			location: profile.currentUser.address ?? "",
 			createdAt: profile.currentUser.createdAt,
 			updatedAt: profile.currentUser.updatedAt,
-			rating: profile.currentUser.rating || 0,
-			avatar: profile.currentUser.image || "",
-			gender: profile.currentUser.gender || "",
+			rating: profile.currentUser.rating ?? 0,
+			avatar: profile.currentUser.image ?? "",
+			gender: profile.currentUser.gender ?? "",
 			biography: "", // Will be overwritten by role specific data
 		};
 
 		if (userRole === "student") {
-			const guideProfile = profile.profile as any; // Type assertion for easier access
+			const guideProfile = profile.profile as Exclude<typeof profile.profile, typeof organizations.$inferSelect>; // Type assertion for easier access
 			return {
 				student: {
 					...baseData,
-					university: guideProfile?.school || "",
+					university: guideProfile?.school ?? "",
 					major: "", // Not in schema
 					toursCompleted: 0, // Need to fetch or calculate
-					certifications: guideProfile?.certificates || [],
-					workExperience: guideProfile?.workExperience || [],
+					certifications: guideProfile?.certificates ?? [],
+					workExperience: guideProfile?.workExperience ?? [],
 					languages: [], // Not in schema
-					biography: guideProfile?.description || "",
+					biography: guideProfile?.description ?? "",
+					cvUrl: guideProfile?.cvUrl ?? "",
 				} as StudentData,
 				business: {} as BusinessData,
 			};
 		} else {
-			const orgProfile = profile.profile as any;
+			const orgProfile = profile.profile as Exclude<typeof profile.profile, typeof tourGuide.$inferSelect>;
 			return {
 				student: {} as StudentData,
 				business: {
 					...baseData,
-					website: orgProfile?.websiteURL || "",
-					taxId: orgProfile?.taxID?.toString() || "",
-					slogan: orgProfile?.slogan || "",
+					website: orgProfile?.websiteURL ?? "",
+					taxId: orgProfile?.taxID?.toString() ?? "",
+					slogan: orgProfile?.slogan ?? "",
 					companyType: "", // Not in schema
 					hotline: "", // Not in schema
 					toursOffered: 0, // Need to fetch or calculate
 					services: [], // Not in schema
-					biography: orgProfile?.slogan || "", // Use slogan as biography for business
+					biography: orgProfile?.slogan ?? "", // Use slogan as biography for business
 				} as BusinessData,
 			};
 		}
@@ -191,6 +194,7 @@ const Account = () => {
 				certificates: studentData.certifications,
 				workExperience: studentData.workExperience,
 				description: studentData.biography,
+				cvUrl: studentData.cvUrl,
 			});
 		} else {
 			const businessData = userData as BusinessData;
@@ -206,7 +210,7 @@ const Account = () => {
 	const addArrayItem = (field: string, newItem: string) => {
 		if (!newItem.trim()) return;
 
-		const currentValue = (userData as any)[field];
+		const currentValue = (userData as unknown)[field];
 		if (Array.isArray(currentValue)) {
 			setEditableData((prev) => ({
 				...prev,
@@ -220,7 +224,7 @@ const Account = () => {
 	};
 
 	const removeArrayItem = (field: string, index: number) => {
-		const currentValue = (userData as any)[field];
+		const currentValue = (userData as unknown)[field];
 		if (Array.isArray(currentValue)) {
 			setEditableData((prev) => ({
 				...prev,
@@ -289,7 +293,7 @@ const Account = () => {
 							<Button
 								onClick={handleSaveChanges}
 								variant="gradient"
-								disabled={!hasUnsavedChanges || updateProfileMutation.isPending}
+								disabled={!hasUnsavedChanges ?? updateProfileMutation.isPending}
 							>
 								<Save className="w-4 h-4 mr-2" />
 								{updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
@@ -554,7 +558,7 @@ const ProfessionalSection = ({
 	isEditMode,
 	userData,
 	updateField,
-}: any) => (
+}) => (
 	<Card>
 		<CardHeader>
 			<CardTitle className="flex items-center gap-2">
@@ -722,6 +726,38 @@ const RoleSpecificSection = ({
 								removeArrayItem("certifications", index)
 							}
 						/>
+						<ArrayField
+							label="Work Experience"
+							items={(userData as StudentData).workExperience}
+							isEditMode={isEditMode}
+							onAdd={(item) =>
+								addArrayItem("workExperience", item)
+							}
+							onRemove={(index) =>
+								removeArrayItem("workExperience", index)
+							}
+						/>
+						<div>
+							<Label className="text-sm font-medium text-muted-foreground">
+								CV / Resume
+							</Label>
+							{(userData as StudentData).cvUrl ? (
+								<div className="mt-1">
+									<a
+										href={(userData as StudentData).cvUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-sm text-primary hover:underline"
+									>
+										View CV
+									</a>
+								</div>
+							) : (
+								<p className="text-sm mt-1 text-muted-foreground">
+									No CV uploaded
+								</p>
+							)}
+						</div>
 					</>
 				)}
 

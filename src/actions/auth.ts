@@ -49,7 +49,7 @@ export async function studentSignup(
 		};
 	}
 	try{
-
+		
 		await auth.api.signUpEmail({
 			body: {
 				name: validatedFields.data.fullname,
@@ -67,10 +67,10 @@ export async function studentSignup(
 		}
 	}
 	const callbackUrl = formData.get("callbackUrl") as string;
-	redirect(
+	router.push(
 		callbackUrl
-			? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
-			: "/signin",
+		? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&onboarding=student`
+		: "/signin?onboarding=student",
 	);
 }
 
@@ -135,8 +135,8 @@ export async function businessSignup(
 	const callbackUrl = formData.get("callbackUrl") as string;
 	redirect(
 		callbackUrl
-			? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
-			: "/signin",
+			? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&onboarding=business`
+			: "/signin?onboarding=business",
 	);
 }
 
@@ -155,7 +155,7 @@ export async function login(
 	}
 	try{
 
-		await auth.api.signInEmail({
+		const res = await auth.api.signInEmail({
 			body: {
 				email: validatedFields.data.email,
 				password: validatedFields.data.password,

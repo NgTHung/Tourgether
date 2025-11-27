@@ -6,10 +6,22 @@ import heroImage from "public/assets/hero-beach-jgTo3uaI.jpg";
 // import { router.push } from "next/navigation";
 import Image from "next/image"
 import { useRouter } from "next/navigation";
+import { authClient } from "~/server/better-auth/client";
 
 // /
 const Index = () => {
   const router = useRouter()
+  const { data: session, isPending: isSessionPending } =
+      authClient.useSession();
+
+  if(!isSessionPending && session?.user){
+    if(session.user.role === "GUIDE"){
+      router.push("/student/dashboard")
+    }
+    else{
+      router.push("/business/dashboard")
+    }
+  }
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}

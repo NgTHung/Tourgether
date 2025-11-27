@@ -115,6 +115,7 @@ export const tourGuide = pgTable("tour_guide", {
 		.array()
 		.default(sql`'{}'::text[]`),
 	description: text("description"),
+	cvUrl: text("cv_url"),
 });
 
 export const tourGuideRelations = relations(tourGuide, ({ many, one }) => ({

@@ -48,6 +48,7 @@ export const userRouter = createTRPCRouter({
                 certificates: z.array(z.string()).optional(),
                 workExperience: z.array(z.string()).optional(),
                 description: z.string().optional(),
+                cvUrl: z.string().optional(),
                 // Organization specific
                 taxID: z.string().optional(), // Input as string, convert to int
                 websiteURL: z.string().optional(),
@@ -84,6 +85,7 @@ export const userRouter = createTRPCRouter({
                         certificates: input.certificates,
                         workExperience: input.workExperience,
                         description: input.description,
+                        cvUrl: input.cvUrl,
                     })
                     .onConflictDoUpdate({
                         target: tourGuide.userID,
@@ -92,6 +94,7 @@ export const userRouter = createTRPCRouter({
                             certificates: input.certificates,
                             workExperience: input.workExperience,
                             description: input.description,
+                            cvUrl: input.cvUrl,
                         },
                     });
             } else if (ctx.session.user.role === "ORGANIZATION") {
