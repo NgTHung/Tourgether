@@ -86,8 +86,8 @@ const Index = () => {
 					</div>
 
 					<div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-						<Card className="border-2 hover:border-primary transition-colors">
-							<CardContent className="p-8">
+						<Card className="border-2 hover:border-primary transition-colors h-full flex flex-col">
+							<CardContent className="p-8 flex-1 flex flex-col">
 								<div className="mb-6">
 									<div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
 										<Briefcase className="w-8 h-8 text-primary" />
@@ -124,18 +124,18 @@ const Index = () => {
 								<Button
 									onClick={() => router.push("/signup")}
 									variant="default"
-									className="w-full"
+									className="w-full mt-auto"
 								>
 									Join as Student
 								</Button>
 							</CardContent>
 						</Card>
 
-						<Card className="border-2 hover:border-accent transition-colors">
-							<CardContent className="p-8">
+						<Card className="border-2 hover:border-primary transition-colors h-full flex flex-col">
+							<CardContent className="p-8 flex-1 flex flex-col">
 								<div className="mb-6">
-									<div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mb-4">
-										<Users className="w-8 h-8 text-accent" />
+									<div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+										<Users className="w-8 h-8 text-primary" />
 									</div>
 									<h3 className="text-2xl font-bold mb-3">
 										For Businesses
@@ -148,19 +148,19 @@ const Index = () => {
 								</div>
 								<ul className="space-y-3 mb-6">
 									<li className="flex items-start gap-2">
-										<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
+										<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
 										<span className="text-sm">
 											Create and manage tours easily
 										</span>
 									</li>
 									<li className="flex items-start gap-2">
-										<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
+										<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
 										<span className="text-sm">
 											Access qualified student guides
 										</span>
 									</li>
 									<li className="flex items-start gap-2">
-										<div className="w-1.5 h-1.5 rounded-full bg-accent mt-2" />
+										<div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
 										<span className="text-sm">
 											Grow your business globally
 										</span>
@@ -168,8 +168,8 @@ const Index = () => {
 								</ul>
 								<Button
 									onClick={() => router.push("/signup")}
-									variant="accent"
-									className="w-full"
+									variant="default"
+									className="w-full mt-auto"
 								>
 									Join as Business
 								</Button>

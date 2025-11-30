@@ -79,7 +79,7 @@ const Signup = () => {
 								</div>
 							</div>
 							<div className="flex items-start gap-3">
-								<div className="w-2 h-2 rounded-full bg-accent mt-2" />
+								<div className="w-2 h-2 rounded-full bg-primary mt-2" />
 								<div>
 									<p className="font-semibold">
 										For Businesses
@@ -100,12 +100,12 @@ const Signup = () => {
 						<div className="flex justify-center mb-4">
 							<div className={cn(
 								"p-3 rounded-2xl",
-								selectedRole === "student" ? "bg-primary/10" : "bg-accent/10"
+								selectedRole === "student" ? "bg-primary/10" : "bg-primary/10"
 							)}>
 								{selectedRole === "student" ? (
 									<GraduationCap className="w-10 h-10 text-primary" />
 								) : (
-									<Briefcase className="w-10 h-10 text-accent" />
+									<Briefcase className="w-10 h-10 text-primary" />
 								)}
 							</div>
 						</div>

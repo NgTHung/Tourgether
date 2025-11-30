@@ -52,8 +52,8 @@ const BusinessOnboarding = () => {
 			<Card className="w-full max-w-2xl shadow-elevated">
 				<CardHeader className="text-center">
 					<div className="flex justify-center mb-4">
-						<div className="p-3 bg-accent/10 rounded-2xl">
-							<Briefcase className="w-10 h-10 text-accent" />
+						<div className="p-3 bg-primary/10 rounded-2xl">
+							<Briefcase className="w-10 h-10 text-primary" />
 						</div>
 					</div>
 					<CardTitle className="text-2xl">
