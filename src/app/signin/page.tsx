@@ -21,19 +21,23 @@ const Auth = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
-	const onboardingType = searchParams.get("onboarding");
 	const { data: session, isPending: isSessionPending } =
 		authClient.useSession();
 
 	if (!isSessionPending && session) {
-		// If onboarding parameter exists, redirect to appropriate onboarding
-		if (onboardingType === "student") {
-			router.push("/onboarding/student");
-		} else if (onboardingType === "business") {
-			router.push("/onboarding/business");
-		} else {
-			router.push("/");
+		if (session.user.finishedOnboardings === false) {
+			if (session.user.role === "GUIDE") {
+				router.push("/onboarding/student");
+			} else if (session.user.role === "ORGANIZATION") {
+				router.push("/onboarding/business");
+			}
 		}
+		if (session.user.role === "GUIDE") {
+				router.push("/student/dashboard");
+		} else if (session.user.role === "ORGANIZATION") {
+			router.push("/business/dashboard");
+		}
+		router.push("/feed");
 	}
 
 	const [state, action, pending] = useActionState(login, undefined);
@@ -92,9 +96,7 @@ const Auth = () => {
 				{/* Auth Form */}
 				<Card className="w-full shadow-elevated">
 					<CardHeader className="text-center">
-						<CardTitle className="text-2xl">
-                            Welcome Back
-						</CardTitle>
+						<CardTitle className="text-2xl">Welcome Back</CardTitle>
 						<CardDescription>
 							Sign in to your account to continue
 						</CardDescription>
@@ -113,7 +115,7 @@ const Auth = () => {
 									<Label htmlFor="email">Email</Label>
 									<Input
 										id="email"
-                                        name="email"
+										name="email"
 										type="email"
 										placeholder="name@example.com"
 										required
@@ -123,7 +125,7 @@ const Auth = () => {
 									<Label htmlFor="password">Password</Label>
 									<Input
 										id="password"
-                                        name="password"
+										name="password"
 										type="password"
 										placeholder="••••••••"
 										required
@@ -136,7 +138,7 @@ const Auth = () => {
 								className="w-full"
 								variant="gradient"
 							>
-                                Sign In
+								Sign In
 							</Button>
 						</form>
 

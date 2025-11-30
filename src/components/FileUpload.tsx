@@ -1,101 +1,121 @@
 "use client";
 
-import { Upload, X, GripVertical } from "lucide-react";
-import { useState } from "react";
+import { Upload } from "lucide-react";
+import { useState, useRef } from "react";
 import { cn } from "~/lib/utils";
+import { toast } from "sonner";
 
 interface FileUploadProps {
-  images: string[];
-  onImagesChange: (images: string[]) => void;
+  accept?: string;
+  onFileSelect: (file: File) => void;
+  maxSize?: number; // in bytes
+  label?: string;
+  description?: string;
+  className?: string;
+  name?: string;
 }
 
-const FileUpload = ({ images, onImagesChange }: FileUploadProps) => {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+const FileUpload = ({ 
+  accept, 
+  onFileSelect, 
+  maxSize = 5 * 1024 * 1024, // Default 5MB
+  label = "Click to upload or drag and drop",
+  description,
+  className,
+  name
+}: FileUploadProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onImagesChange([...images, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+  const handleFile = (file: File) => {
+    // Check file type if accept is provided
+    if (accept) {
+      const acceptedTypes = accept.split(',').map(type => type.trim());
+      // Simple check for extensions or mime types
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      const isAccepted = acceptedTypes.some(type => {
+        if (type.startsWith('.')) return type.toLowerCase() === fileExtension;
+        if (type.endsWith('/*')) return file.type.startsWith(type.replace('/*', ''));
+        return file.type === type;
+      });
+
+      if (!isAccepted) {
+        toast.error(`File type not accepted. Allowed: ${accept}`);
+        return;
+      }
+    }
+
+    // Check size
+    if (file.size > maxSize) {
+      toast.error(`File is too large. Max size: ${maxSize / 1024 / 1024}MB`);
+      return;
+    }
+
+    onFileSelect(file);
   };
 
-  const removeImage = (index: number) => {
-    onImagesChange(images.filter((_, i) => i !== index));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFile(file);
+    }
+    // Reset input so same file can be selected again if needed
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
   };
 
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index) return;
+    setIsDragging(true);
+  };
 
-    const newImages = [...images];
-    const draggedImage = newImages[draggedIndex];
-    newImages.splice(draggedIndex, 1);
-    newImages.splice(index, 0, draggedImage!);
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
     
-    onImagesChange(newImages);
-    setDraggedIndex(index);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFile(file);
+    }
   };
 
   return (
-    <div className="space-y-4">
-      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors">
-        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-          <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground">
-            Click to upload or drag and drop
+    <div 
+      className={cn(
+        "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+        isDragging ? "border-primary bg-primary/5" : "border-border hover:bg-secondary/50",
+        className
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      onClick={() => inputRef.current?.click()}
+    >
+      <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+        <Upload className={cn("w-8 h-8 mb-2", isDragging ? "text-primary" : "text-muted-foreground")} />
+        <p className="text-sm font-medium text-foreground">
+          {label}
+        </p>
+        {description && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {description}
           </p>
-        </div>
-        <input
-          type="file"
-          className="hidden"
-          multiple
-          accept="image/*"
-          onChange={handleFileSelect}
-        />
-      </label>
-
-      <div className="grid grid-cols-2 gap-3">
-        {images.map((image, index) => (
-          <div
-            key={index}
-            draggable
-            onDragStart={() => handleDragStart(index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragEnd={() => setDraggedIndex(null)}
-            className={cn(
-              "relative group cursor-move rounded-lg overflow-hidden border-2",
-              index === 0 && "col-span-2 border-primary",
-              index !== 0 && "border-border"
-            )}
-          >
-            <img src={image} alt={`Upload ${index + 1}`} className="w-full h-32 object-cover" />
-            {index === 0 && (
-              <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                Cover Image
-              </div>
-            )}
-            <div className="absolute top-2 right-2 flex gap-1">
-              <button
-                onClick={() => removeImage(index)}
-                className="bg-destructive text-destructive-foreground p-1 rounded hover:bg-destructive/90"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <GripVertical className="h-5 w-5 text-white drop-shadow-lg" />
-            </div>
-          </div>
-        ))}
+        )}
       </div>
+      <input
+        ref={inputRef}
+        type="file"
+        name={name}
+        className="hidden"
+        accept={accept}
+        onChange={handleChange}
+      />
     </div>
   );
 };

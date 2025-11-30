@@ -61,13 +61,13 @@ export async function studentSignup(
 			},
 		});
 	}
-	catch(err: TRPCError){
+	catch(err: TRPCError | any){
 		return {
 			message: err.message
 		}
 	}
 	const callbackUrl = formData.get("callbackUrl") as string;
-	router.push(
+	redirect(
 		callbackUrl
 		? `/signin?callbackUrl=${encodeURIComponent(callbackUrl)}&onboarding=student`
 		: "/signin?onboarding=student",
@@ -127,7 +127,7 @@ export async function businessSignup(
 			},
 		});
 	}
-	catch(err: TRPCError){
+	catch(err: TRPCError | any){
 		return {
 			message: err.message
 		}
@@ -163,7 +163,7 @@ export async function login(
 			},
 		});
 	}
-	catch(err: TRPCError){
+	catch(err: TRPCError | any){
 		return {
 			message: err.message
 		}

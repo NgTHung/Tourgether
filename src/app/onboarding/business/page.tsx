@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useActionState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -14,84 +14,38 @@ import {
 	CardTitle,
 } from "~/components/ui/card";
 import { Briefcase, AlertCircle } from "lucide-react";
-import { api } from "~/trpc/react";
 import { toast } from "sonner";
+import { authClient } from "~/server/better-auth/client";
+import { updateBusinessProfile } from "~/actions/onboarding";
 
 const BusinessOnboarding = () => {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const callbackUrl = searchParams.get("callbackUrl");
+	
 	const [taxId, setTaxId] = useState("");
 	const [website, setWebsite] = useState("");
 	const [slogan, setSlogan] = useState("");
-	const [errors, setErrors] = useState<Record<string, string>>({});
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	
+	const [state, formAction, isPending] = useActionState(updateBusinessProfile, null);
 
-	const updateOrgMutation = api.organization.updateOrganization.useMutation({
-		onSuccess: () => {
-			toast.success("Profile completed successfully!");
-			router.push("/feed");
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to complete profile");
-		},
-	});
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
 
-	const validateForm = () => {
-		const newErrors: Record<string, string> = {};
-
-		if (!taxId.trim()) {
-			newErrors.taxId = "Tax ID is required";
-		} else if (isNaN(Number(taxId))) {
-			newErrors.taxId = "Tax ID must be a valid number";
+	useEffect(() => {
+		if (!isSessionPending && !session) {
+			router.push(
+				"/signin?callbackUrl=" +
+					encodeURIComponent("/onboarding/business"),
+			);
 		}
+	}, [isSessionPending, session, router]);
 
-		if (website && !isValidUrl(website)) {
-			newErrors.website = "Please enter a valid URL";
-		}
-
-		if (!slogan.trim()) {
-			newErrors.slogan = "Slogan is required";
-		} else if (slogan.length > 500) {
-			newErrors.slogan = "Slogan must be less than 500 characters";
-		}
-
-		setErrors(newErrors);
-		return Object.keys(newErrors).length === 0;
-	};
-
-	const isValidUrl = (url: string) => {
-		try {
-			new URL(url);
-			return true;
-		} catch {
-			return false;
-		}
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (!validateForm()) {
-			return;
-		}
-
-		setIsSubmitting(true);
-
-		try {
-			await updateOrgMutation.mutateAsync({
-				taxID: parseInt(taxId, 10),
-				websiteURL: website || undefined,
-				slogan,
-			});
-		} catch (error) {
-			console.error("Onboarding error:", error);
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
-
-	const handleSkip = () => {
-		router.push("/feed");
-	};
+    useEffect(() => {
+        if (state?.error) {
+            toast.error(state.error);
+        }
+    }, [state]);
 
 	return (
 		<div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -102,74 +56,101 @@ const BusinessOnboarding = () => {
 							<Briefcase className="w-10 h-10 text-accent" />
 						</div>
 					</div>
-					<CardTitle className="text-2xl">Complete Your Business Profile</CardTitle>
+					<CardTitle className="text-2xl">
+						Complete Your Business Profile
+					</CardTitle>
 					<CardDescription>
 						Provide your business details to start creating tours
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form onSubmit={handleSubmit} className="space-y-6">
+					<form action={formAction} className="space-y-6">
+                        <input type="hidden" name="callbackUrl" value={callbackUrl || ""} />
 						{/* Tax ID */}
 						<div className="space-y-2">
-							<Label htmlFor="taxId" className={errors.taxId ? "text-destructive" : ""}>
-								Tax ID <span className="text-destructive">*</span>
+							<Label
+								htmlFor="taxId"
+								className={
+									state?.errors?.taxId ? "text-destructive" : ""
+								}
+							>
+								Tax ID{" "}
+								<span className="text-destructive">*</span>
 							</Label>
 							<Input
 								id="taxId"
+                                name="taxId"
 								value={taxId}
 								onChange={(e) => setTaxId(e.target.value)}
 								placeholder="e.g., 123456789"
-								className={errors.taxId ? "border-destructive" : ""}
+								className={
+									state?.errors?.taxId ? "border-destructive" : ""
+								}
 							/>
-							{errors.taxId && (
+							{state?.errors?.taxId && (
 								<p className="text-xs text-destructive flex items-center gap-1">
 									<AlertCircle className="w-3 h-3" />
-									{errors.taxId}
+									{state.errors.taxId[0]}
 								</p>
 							)}
 						</div>
 
 						{/* Website */}
 						<div className="space-y-2">
-							<Label htmlFor="website" className={errors.website ? "text-destructive" : ""}>
+							<Label
+								htmlFor="website"
+								className={
+									state?.errors?.website ? "text-destructive" : ""
+								}
+							>
 								Website (Optional)
 							</Label>
 							<Input
 								id="website"
+                                name="website"
 								type="url"
 								value={website}
 								onChange={(e) => setWebsite(e.target.value)}
 								placeholder="https://www.yourcompany.com"
-								className={errors.website ? "border-destructive" : ""}
+								className={
+									state?.errors?.website ? "border-destructive" : ""
+								}
 							/>
-							{errors.website && (
+							{state?.errors?.website && (
 								<p className="text-xs text-destructive flex items-center gap-1">
 									<AlertCircle className="w-3 h-3" />
-									{errors.website}
+									{state.errors.website[0]}
 								</p>
 							)}
 						</div>
 
 						{/* Slogan */}
 						<div className="space-y-2">
-							<Label htmlFor="slogan" className={errors.slogan ? "text-destructive" : ""}>
-								Company Slogan <span className="text-destructive">*</span>
+							<Label
+								htmlFor="slogan"
+								className={
+									state?.errors?.slogan ? "text-destructive" : ""
+								}
+							>
+								Company Slogan{" "}
+								<span className="text-destructive">*</span>
 							</Label>
 							<Textarea
 								id="slogan"
+                                name="slogan"
 								value={slogan}
 								onChange={(e) => setSlogan(e.target.value)}
 								placeholder="Describe what makes your company unique..."
-								className={`min-h-[100px] ${errors.slogan ? "border-destructive" : ""}`}
+								className={`min-h-[100px] ${state?.errors?.slogan ? "border-destructive" : ""}`}
 								maxLength={500}
 							/>
 							<p className="text-xs text-muted-foreground">
 								{slogan.length}/500 characters
 							</p>
-							{errors.slogan && (
+							{state?.errors?.slogan && (
 								<p className="text-xs text-destructive flex items-center gap-1">
 									<AlertCircle className="w-3 h-3" />
-									{errors.slogan}
+									{state.errors.slogan[0]}
 								</p>
 							)}
 						</div>
@@ -177,21 +158,26 @@ const BusinessOnboarding = () => {
 						{/* Action Buttons */}
 						<div className="flex gap-3 pt-4">
 							<Button
-								type="button"
+								type="submit"
+                                name="intent"
+                                value="skip"
 								variant="outline"
-								onClick={handleSkip}
 								className="flex-1"
-								disabled={isSubmitting}
+								disabled={isPending}
 							>
 								Skip for Now
 							</Button>
 							<Button
 								type="submit"
+                                name="intent"
+                                value="submit"
 								variant="gradient"
 								className="flex-1"
-								disabled={isSubmitting}
+								disabled={isPending}
 							>
-								{isSubmitting ? "Completing..." : "Complete Profile"}
+								{isPending
+									? "Completing..."
+									: "Complete Profile"}
 							</Button>
 						</div>
 					</form>

@@ -46,6 +46,11 @@ export const authClient = createAuthClient({
 					required: false,
 					input: false,
 				},
+				finishedOnboardings: {
+					type: "boolean",
+					required: false,
+					input: false,
+				},
 			},
 		}),
         usernameClient(),

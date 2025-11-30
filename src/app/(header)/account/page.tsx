@@ -210,7 +210,7 @@ const Account = () => {
 	const addArrayItem = (field: string, newItem: string) => {
 		if (!newItem.trim()) return;
 
-		const currentValue = (userData as unknown)[field];
+		const currentValue = (userData as any)[field];
 		if (Array.isArray(currentValue)) {
 			setEditableData((prev) => ({
 				...prev,
@@ -224,7 +224,7 @@ const Account = () => {
 	};
 
 	const removeArrayItem = (field: string, index: number) => {
-		const currentValue = (userData as unknown)[field];
+		const currentValue = (userData as any)[field];
 		if (Array.isArray(currentValue)) {
 			setEditableData((prev) => ({
 				...prev,
@@ -293,7 +293,7 @@ const Account = () => {
 							<Button
 								onClick={handleSaveChanges}
 								variant="gradient"
-								disabled={!hasUnsavedChanges ?? updateProfileMutation.isPending}
+								disabled={!hasUnsavedChanges || updateProfileMutation.isPending}
 							>
 								<Save className="w-4 h-4 mr-2" />
 								{updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
@@ -558,6 +558,12 @@ const ProfessionalSection = ({
 	isEditMode,
 	userData,
 	updateField,
+}: {
+	title: string;
+	icon: React.ReactNode;
+	isEditMode: boolean;
+	userData: any;
+	updateField: (field: string, value: string) => void;
 }) => (
 	<Card>
 		<CardHeader>
@@ -710,8 +716,8 @@ const RoleSpecificSection = ({
 							label="Languages"
 							items={(userData as StudentData).languages}
 							isEditMode={isEditMode}
-							onAdd={(item) => addArrayItem("languages", item)}
-							onRemove={(index) =>
+							onAdd={(item: string) => addArrayItem("languages", item)}
+							onRemove={(index: number) =>
 								removeArrayItem("languages", index)
 							}
 						/>
@@ -719,10 +725,10 @@ const RoleSpecificSection = ({
 							label="Certifications"
 							items={(userData as StudentData).certifications}
 							isEditMode={isEditMode}
-							onAdd={(item) =>
+							onAdd={(item: string) =>
 								addArrayItem("certifications", item)
 							}
-							onRemove={(index) =>
+							onRemove={(index: number) =>
 								removeArrayItem("certifications", index)
 							}
 						/>
@@ -730,10 +736,10 @@ const RoleSpecificSection = ({
 							label="Work Experience"
 							items={(userData as StudentData).workExperience}
 							isEditMode={isEditMode}
-							onAdd={(item) =>
+							onAdd={(item: string) =>
 								addArrayItem("workExperience", item)
 							}
-							onRemove={(index) =>
+							onRemove={(index: number) =>
 								removeArrayItem("workExperience", index)
 							}
 						/>
@@ -844,8 +850,8 @@ const RoleSpecificSection = ({
 							label="Services"
 							items={(userData as BusinessData).services}
 							isEditMode={isEditMode}
-							onAdd={(item) => addArrayItem("services", item)}
-							onRemove={(index) =>
+							onAdd={(item: string) => addArrayItem("services", item)}
+							onRemove={(index: number) =>
 								removeArrayItem("services", index)
 							}
 						/>

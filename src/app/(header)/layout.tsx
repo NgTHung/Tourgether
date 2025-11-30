@@ -26,6 +26,19 @@ export default function HeaderLayout({
 		if (!isPending && !session) {
 			router.push("/signin?callbackUrl=" + encodeURIComponent(pathname));
 		}
+		if(!isPending && error) {
+			console.error("Error fetching session:", error);
+		}
+		if(!isPending && session) {
+			if(session.user?.finishedOnboardings === false) {
+				if(session.user?.role === "GUIDE" && !pathname.startsWith("/onboarding")){
+					router.push("/onboarding/student");
+				}
+				if(session.user?.role === "ORGANIZATION" && !pathname.startsWith("/onboarding")){
+					router.push("/onboarding/business");
+				}
+			}
+		}
 	}, [isPending, session, router, pathname]);
 
 	if (isPending) {

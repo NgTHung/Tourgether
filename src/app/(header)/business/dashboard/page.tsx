@@ -49,7 +49,8 @@ const BusinessDashboard = () => {
 	//   },
 	// ];
 
-	const [myTours, myToursQuery] = api.tour.getOwnedTours.useSuspenseQuery(filters);
+	const [myTours, myToursQuery] =
+		api.tour.getOwnedTours.useSuspenseQuery(filters);
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -85,9 +86,7 @@ const BusinessDashboard = () => {
 					{/* Left Column - Fixed Filter Panel */}
 					<div className="w-80 shrink-0">
 						<div className="sticky top-8">
-							<FilterBar
-								onApplyFilters={handleApplyFilters}
-							/>
+							<FilterBar onApplyFilters={handleApplyFilters} />
 						</div>
 					</div>
 
@@ -136,13 +135,18 @@ const BusinessDashboard = () => {
 										{myTours.map((tour) => (
 											<TourCard
 												key={tour.id}
-                        id={tour.id}
-                        title={tour.name}
-                        imageUrl={tour.thumbnailUrl}
-                        location={tour.location}
-                        date={new Date(tour.date).toLocaleDateString()}
-                        price={tour.price}
-                        businessName={session?.user.name || "Your Business"}
+												id={tour.id}
+												title={tour.name}
+												imageUrl={tour.thumbnailUrl}
+												location={tour.location}
+												date={new Date(
+													tour.date,
+												).toLocaleDateString()}
+												price={tour.price}
+												businessName={
+													session?.user.name ||
+													"Your Business"
+												}
 												action={{
 													label: "View Tour",
 													variant: "default",

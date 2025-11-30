@@ -8,7 +8,7 @@ import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
 import TagsInput from "~/components/TagsInput";
-import FileUpload from "~/components/FileUpload";
+import ImageUpload from "~/components/ImageUpload";
 import TourPreview from "~/components/TourPreview";
 import ItineraryBuilder from "~/components/ItineraryBuilder";
 import { ArrowLeft, Calendar } from "lucide-react";
@@ -112,7 +112,7 @@ const CreateTour = ({  params,
             {/* Gallery Section */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold border-b pb-2">Tour Gallery</h2>
-              <FileUpload images={images} onImagesChange={setImages} />
+              <ImageUpload images={images} onImagesChange={setImages} />
               <p className="text-sm text-muted-foreground">
                 First image will be the cover. Drag to reorder.
               </p>

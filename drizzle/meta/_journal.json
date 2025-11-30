@@ -78,6 +78,20 @@
       "when": 1763978747939,
       "tag": "0010_rainy_impossible_man",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1764421296459,
+      "tag": "0011_outstanding_vin_gonzales",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1764422451350,
+      "tag": "0012_sticky_virginia_dare",
+      "breakpoints": true
     }
   ]
 }

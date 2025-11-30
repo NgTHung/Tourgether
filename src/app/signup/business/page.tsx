@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -23,9 +23,16 @@ const BusinessSignup = () => {
 	const callbackUrl = searchParams.get("callbackUrl") ?? "";
 	const { data: session, isPending } = authClient.useSession();
 
-	if (!isPending && session) {
-		router.push("/");
-	}
+	useEffect(() => {
+		if (!isPending && session) {
+			if(session.user.role === "GUIDE") {
+				router.push("/student/dashboard");
+			} else if(session.user.role === "ORGANIZATION") {
+				router.push("/business/dashboard");
+			}
+			router.push("/feed");
+		}
+	}, [isPending, session, router]);
 
 	const [state, action, pending] = useActionState(businessSignup, undefined);
 
