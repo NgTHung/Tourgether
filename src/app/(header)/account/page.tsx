@@ -512,8 +512,8 @@ const Account = () => {
 								</p>
 							</div>
 
-							<div className="text-center p-6 bg-accent/5 rounded-lg border border-accent/20">
-								<div className="text-3xl font-bold text-accent mb-2">
+							<div className="text-center p-6 bg-primary/5 rounded-lg border border-primary/20">
+								<div className="text-3xl font-bold text-primary mb-2">
 									{userData.rating}
 								</div>
 								<p className="text-sm text-muted-foreground font-medium">

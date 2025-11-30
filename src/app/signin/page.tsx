@@ -78,7 +78,7 @@ const Auth = () => {
 								</div>
 							</div>
 							<div className="flex items-start gap-3">
-								<div className="w-2 h-2 rounded-full bg-accent mt-2" />
+								<div className="w-2 h-2 rounded-full bg-primary mt-2" />
 								<div>
 									<p className="font-semibold">
 										For Businesses
