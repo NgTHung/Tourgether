@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -26,24 +26,33 @@ interface ItineraryItem {
   updatedAt: Date;
 }
 
-const CreateTour = () => {
+const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
+  const id = use(params).id;
   const router = useRouter();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(0);
-  const [location, setLocation] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [images, setImages] = useState<string[]>([]);
-  const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
+  const [tourData, tourDataQuery] = api.tour.getTourById.useSuspenseQuery({
+    id: id,
+    shouldGetTags: true,
+    shouldGetItineraries: true,
+  });
 
-  const createTourMutation = api.tour.createTour.useMutation({
+  const [title, setTitle] = useState(tourData.tour?.name || "");
+  const [description, setDescription] = useState(tourData.tour?.description || "");
+  const [price, setPrice] = useState(tourData.tour?.price || 0);
+  const [location, setLocation] = useState(tourData.tour?.location || "");
+  const [tags, setTags] = useState<string[]>(tourData.tags || []);
+  const [images, setImages] = useState<string[]>(
+    tourData.tour?.thumbnailUrl ? [tourData.tour.thumbnailUrl, ...(tourData.tour.galleries ?? [])] : []
+  );
+  const [itinerary, setItinerary] = useState<ItineraryItem[]>(tourData.tour?.itineraries || []);
+
+  const updateTourMutation = api.tour.updateTour.useMutation({
     onSuccess: () => {
-      toast.success("Tour created successfully!");
+      toast.success("Tour updated successfully!");
       router.push("/business/dashboard");
     },
     onError: (error) => {
-      toast.error(`Failed to create tour: ${error.message}`);
+      toast.error(`Failed to update tour: ${error.message}`);
     },
   });
 
@@ -53,13 +62,13 @@ const CreateTour = () => {
       return;
     }
 
-    createTourMutation.mutate({
+    updateTourMutation.mutate({
+      id: id,
       name: title,
       description: description,
       price: price,
       location: location,
-      date: new Date().toISOString(),
-      guideID: null,
+      date: tourData.tour.date.toISOString(),
     });
   };
 
@@ -70,8 +79,6 @@ const CreateTour = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* <Header userRole="business" /> */}
-
       <main className="container py-6 px-4">
         <Button
           variant="ghost"
@@ -82,7 +89,7 @@ const CreateTour = () => {
           Back to Dashboard
         </Button>
 
-        <h1 className="text-3xl font-bold mb-6">Create New Tour</h1>
+        <h1 className="text-3xl font-bold mb-6">Edit Tour</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-250px)]">
           {/* Left Column: Form */}
@@ -203,9 +210,9 @@ const CreateTour = () => {
               size="lg" 
               className="w-full" 
               variant="gradient"
-              disabled={createTourMutation.isPending}
+              disabled={updateTourMutation.isPending}
             >
-              {createTourMutation.isPending ? "Creating..." : "Create Tour"}
+              {updateTourMutation.isPending ? "Updating..." : "Update Tour"}
             </Button>
           </div>
 
@@ -231,4 +238,4 @@ const CreateTour = () => {
   );
 };
 
-export default CreateTour;
+export default EditTour;

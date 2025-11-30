@@ -105,13 +105,13 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 											{tourData.averageRating ??
 												"N/A"}
 										</Badge>
-										{/* Edit Tour Button - Only visible to OGRANIZATION owner */}
-										{userRole === "OGRANIZATION" &&
+										{/* Edit Tour Button - Only visible to ORGANIZATION owner */}
+										{userRole === "ORGANIZATION" &&
 											isOwner && (
 												<Button
 													onClick={() =>
 														router.push(
-															`/OGRANIZATION/edit-tour/${id}`,
+															`/business/edit-tour/${id}`,
 														)
 													}
 													variant="outline"
@@ -149,8 +149,8 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 								<TabsTrigger value="details" className="flex-1">
 									Details
 								</TabsTrigger>
-								{/* Conditional Admin Tabs - Only visible to OGRANIZATION owner */}
-								{userRole === "OGRANIZATION" && isOwner && (
+								{/* Conditional Admin Tabs - Only visible to ORGANIZATION owner */}
+								{userRole === "ORGANIZATION" && isOwner && (
 									<TabsTrigger
 										value="students"
 										className="flex-1"
@@ -422,7 +422,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 									</>
 								)}
 
-								{userRole === "OGRANIZATION" && isOwner && (
+								{userRole === "ORGANIZATION" && isOwner && (
 									<>
 										<Button
 											variant="gradient"
@@ -430,7 +430,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 											className="w-full mb-3"
 											onClick={() =>
 												router.push(
-													`/OGRANIZATION/edit-tour/${id}`,
+													`/business/edit-tour/${id}`,
 												)
 											}
 										>
@@ -446,7 +446,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 									</>
 								)}
 
-								{userRole === "OGRANIZATION" && !isOwner && (
+								{userRole === "ORGANIZATION" && !isOwner && (
 									<Button
 										variant="outline"
 										className="w-full"
