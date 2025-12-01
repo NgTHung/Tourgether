@@ -30,6 +30,7 @@ const StudentOnboarding = () => {
 	const [certificates, setCertificates] = useState<string[]>([]);
 	const [workExperience, setWorkExperience] = useState<string[]>([]);
 	const [cvFile, setCvFile] = useState<File | null>(null);
+	const [cvUrl, setCvUrl] = useState<string>("");
 
 	const [state, formAction, isPending] = useActionState(
 		updateStudentProfile,
@@ -100,7 +101,7 @@ const StudentOnboarding = () => {
 						<input
 							type="hidden"
 							name="cvUrl"
-							value={cvFile ? URL.createObjectURL(cvFile) : ""}
+							value={cvUrl}
 						/>
 
 						{/* School/University */}
@@ -205,7 +206,10 @@ const StudentOnboarding = () => {
 							<FileUpload
 								name="cv"
 								accept=".pdf,.doc,.docx"
-								onFileSelect={(file) => setCvFile(file)}
+								onFileSelect={(url, file) => {
+									setCvFile(file);
+									setCvUrl(url);
+								}}
 								maxSize={5 * 1024 * 1024} // 5MB
 								label="Click to upload or drag and drop"
 								description="PDF, DOC, DOCX (max. 5MB)"
@@ -220,7 +224,10 @@ const StudentOnboarding = () => {
 										type="button"
 										variant="ghost"
 										size="sm"
-										onClick={() => setCvFile(null)}
+										onClick={() => {
+											setCvFile(null);
+											setCvUrl("");
+										}}
 									>
 										<X className="w-4 h-4" />
 									</Button>

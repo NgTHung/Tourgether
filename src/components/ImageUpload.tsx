@@ -1,8 +1,10 @@
 "use client";
 
-import { Upload, X, GripVertical } from "lucide-react";
+import { Upload, X, GripVertical, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "~/lib/utils";
+import { getPresignedUrl } from "~/actions/upload";
+import { toast } from "sonner";
 
 interface ImageUploadProps {
   images: string[];
@@ -11,16 +13,54 @@ interface ImageUploadProps {
 
 const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onImagesChange([...images, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+
+    try {
+      // Upload files in parallel
+      const uploadPromises = files.map(async (file) => {
+        try {
+          const { uploadUrl, fileUrl } = await getPresignedUrl(
+            file.name,
+            file.type,
+            file.size,
+            'image'
+          );
+
+          const response = await fetch(uploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Upload failed: ${response.statusText}`);
+          }
+
+          return fileUrl;
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error);
+          throw error;
+        }
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      onImagesChange([...images, ...uploadedUrls]);
+      toast.success(`Successfully uploaded ${uploadedUrls.length} image(s)`);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload images";
+      toast.error(errorMessage);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const removeImage = (index: number) => {
@@ -46,11 +86,18 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
 
   return (
     <div className="space-y-4">
-      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors">
+      <label className={cn(
+        "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+        isUploading && "opacity-50 cursor-not-allowed"
+      )}>
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-          <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+          {isUploading ? (
+            <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
+          ) : (
+            <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+          )}
           <p className="text-sm text-muted-foreground">
-            Click to upload or drag and drop
+            {isUploading ? "Uploading..." : "Click to upload or drag and drop"}
           </p>
         </div>
         <input
@@ -59,6 +106,7 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
           multiple
           accept="image/*"
           onChange={handleFileSelect}
+          disabled={isUploading}
         />
       </label>
 

@@ -204,6 +204,7 @@ export const tourRouter = createTRPCRouter({
 					message: "Invalid date format",
 				}),
 				guideID: z.string().nullable(),
+				images: z.array(z.string()).default([]),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -227,7 +228,8 @@ export const tourRouter = createTRPCRouter({
 					date: new Date(input.date),
 					ownerUserID: ctx.session.user.id!,
 					guideID: input.guideID,
-					thumbnailUrl: "",
+					thumbnailUrl: input.images[0] || "",
+					galleries: input.images,
 				})
 				.returning();
 			return newTour;
@@ -247,6 +249,7 @@ export const tourRouter = createTRPCRouter({
 					})
 					.optional(),
 				guideID: z.string().nullable().optional(),
+				images: z.array(z.string()).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -269,6 +272,8 @@ export const tourRouter = createTRPCRouter({
 					location: input.location,
 					date: input.date ? new Date(input.date) : undefined,
 					guideID: input.guideID,
+					thumbnailUrl: input.images ? input.images[0] : undefined,
+					galleries: input.images,
 				})
 				.where(
 					and(

@@ -1,13 +1,14 @@
 "use client";
 
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { cn } from "~/lib/utils";
 import { toast } from "sonner";
+import { getPresignedUrl } from "~/actions/upload";
 
 interface FileUploadProps {
   accept?: string;
-  onFileSelect: (file: File) => void;
+  onFileSelect: (url: string, file: File) => void;
   maxSize?: number; // in bytes
   label?: string;
   description?: string;
@@ -25,9 +26,10 @@ const FileUpload = ({
   name
 }: FileUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     // Check file type if accept is provided
     if (accept) {
       const acceptedTypes = accept.split(',').map(type => type.trim());
@@ -51,7 +53,37 @@ const FileUpload = ({
       return;
     }
 
-    onFileSelect(file);
+    setIsUploading(true);
+    try {
+      const fileType = file.type.startsWith('image/') ? 'image' : 'document';
+      const { uploadUrl, fileUrl } = await getPresignedUrl(
+        file.name,
+        file.type,
+        file.size,
+        fileType
+      );
+
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      onFileSelect(fileUrl, file);
+      toast.success("File uploaded successfully");
+    } catch (error) {
+      console.error("Upload failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload file";
+      toast.error(errorMessage);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,17 +122,22 @@ const FileUpload = ({
       className={cn(
         "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
         isDragging ? "border-primary bg-primary/5" : "border-border hover:bg-secondary/50",
+        isUploading && "opacity-50 cursor-not-allowed",
         className
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onClick={() => inputRef.current?.click()}
+      onClick={() => !isUploading && inputRef.current?.click()}
     >
       <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
-        <Upload className={cn("w-8 h-8 mb-2", isDragging ? "text-primary" : "text-muted-foreground")} />
+        {isUploading ? (
+          <Loader2 className="w-8 h-8 mb-2 animate-spin text-primary" />
+        ) : (
+          <Upload className={cn("w-8 h-8 mb-2", isDragging ? "text-primary" : "text-muted-foreground")} />
+        )}
         <p className="text-sm font-medium text-foreground">
-          {label}
+          {isUploading ? "Uploading..." : label}
         </p>
         {description && (
           <p className="text-xs text-muted-foreground mt-1">
@@ -115,6 +152,7 @@ const FileUpload = ({
         className="hidden"
         accept={accept}
         onChange={handleChange}
+        disabled={isUploading}
       />
     </div>
   );

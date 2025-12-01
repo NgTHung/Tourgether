@@ -69,6 +69,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
       price: price,
       location: location,
       date: tourData.tour.date.toISOString(),
+      images: images,
     });
   };
 

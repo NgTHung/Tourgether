@@ -60,6 +60,7 @@ const CreateTour = () => {
       location: location,
       date: new Date().toISOString(),
       guideID: null,
+      images: images,
     });
   };
 
