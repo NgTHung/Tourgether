@@ -8,7 +8,6 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z
-      .string()
       .url()
       .refine(
         (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
@@ -19,8 +18,7 @@ export const env = createEnv({
       .default("development"),
     S3_KEY_ID: z.string().min(1),
     S3_SECRET_ACCESS_KEY: z.string().min(1),
-    S3_ENDPOINT: z.url(),
-    S3_REGION_CODE: z.string().min(1),
+    S3_ENDPOINT: z.string(),
     S3_BUCKET_NAME: z.string().min(1),
   },
 
@@ -43,7 +41,6 @@ export const env = createEnv({
     S3_KEY_ID: process.env.S3_KEY_ID,
     S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
     S3_ENDPOINT: process.env.S3_ENDPOINT,
-    S3_REGION_CODE: process.env.S3_REGION_CODE,
     S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
   },
   /**

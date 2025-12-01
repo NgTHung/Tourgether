@@ -153,7 +153,6 @@ export async function login(
 		};
 	}
 	try{
-
 		const res = await auth.api.signInEmail({
 			body: {
 				email: validatedFields.data.email,

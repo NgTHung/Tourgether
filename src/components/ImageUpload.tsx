@@ -37,6 +37,7 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
             body: file,
             headers: {
               "Content-Type": file.type,
+              
             },
           });
 
