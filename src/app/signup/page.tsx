@@ -30,7 +30,9 @@ const Signup = () => {
 		router.push("/");
 	}
 
-	const [selectedRole, setSelectedRole] = useState<UserRole>("student");
+	const [selectedRole, setSelectedRole] = useState<UserRole>(
+		searchParams.get("role") === "business" ? "business" : "student"
+	);
 
 	const [studentState, studentAction, studentPending] = useActionState(studentSignup, {
 		data: {

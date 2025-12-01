@@ -24,41 +24,10 @@ export const auth = betterAuth({
 		additionalFields: {
 			role: {
 				type: "string",
-				defaultValue: "USER",
-				input: false,
+				defaultValue: "GUIDE",
+				input: true,
 				required: true,
-				validator: {
-					input: z
-						.string()
-						.refine(
-							(val) =>
-								[
-									"ADMIN",
-									"USER",
-									"GUIDE",
-									"ORGANIZATION",
-								].includes(val),
-							{
-								message:
-									"Role must be one of: ADMIN, USER, GUIDE, ORGANIZATION",
-							},
-						),
-					output: z
-						.string()
-						.refine(
-							(val) =>
-								[
-									"ADMIN",
-									"USER",
-									"GUIDE",
-									"ORGANIZATION",
-								].includes(val),
-							{
-								message:
-									"Role must be one of: ADMIN, USER, GUIDE, ORGANIZATION",
-							},
-						),
-				},
+				enum: ["GUIDE", "ORGANIZATION"],
 			},
 			phonenumber: {
 				type: "string",
@@ -105,6 +74,8 @@ export const auth = betterAuth({
 			finishedOnboardings: {
 				type: "boolean",
 				defaultValue: false,
+				input: false,
+				required: true,
 			},
 		},
 	},

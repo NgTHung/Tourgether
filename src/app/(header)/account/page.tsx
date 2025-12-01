@@ -93,16 +93,16 @@ const Account = () => {
 	// Helper to safely get profile data based on role
 	const getInitialData = () => {
 		const baseData = {
-			name: profile.currentUser.name ?? "",
-			username: profile.currentUser.username ?? "",
-			email: profile.currentUser.email ?? "",
-			phone: profile.currentUser.phonenumber ?? "",
-			location: profile.currentUser.address ?? "",
-			createdAt: profile.currentUser.createdAt,
-			updatedAt: profile.currentUser.updatedAt,
-			rating: profile.currentUser.rating ?? 0,
-			avatar: profile.currentUser.image ?? "",
-			gender: profile.currentUser.gender ?? "",
+			name: session?.user?.name ?? "",
+			username: session?.user?.username ?? "",
+			email: session?.user?.email ?? "",
+			phone: session?.user?.phonenumber ?? "",
+			location: session?.user?.address ?? "",
+			createdAt: session?.user?.createdAt,
+			updatedAt: session?.user?.updatedAt,
+			rating: session?.user?.rating ?? 0,
+			avatar: session?.user?.image ?? "",
+			gender: session?.user?.gender ?? "",
 			biography: "", // Will be overwritten by role specific data
 		};
 

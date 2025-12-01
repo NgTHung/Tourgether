@@ -39,6 +39,15 @@ const BusinessOnboarding = () => {
 					encodeURIComponent("/onboarding/business"),
 			);
 		}
+		if (!isSessionPending && session) {
+			if (session.user.finishedOnboardings === true) {
+				if (session.user.role === "GUIDE") {
+					router.push("/student/dashboard");
+				} else {
+					router.push("/business/dashboard");
+				}
+			}
+		}
 	}, [isSessionPending, session, router]);
 
     useEffect(() => {

@@ -8,6 +8,7 @@ import {
 } from "~/lib/definitions";
 import { auth } from "~/auth";
 import type { TRPCError } from "@trpc/server";
+import z from "zod/v4";
 
 export async function studentSignup(
 	state: unknown,
@@ -44,7 +45,7 @@ export async function studentSignup(
 
 	if (!validatedFields.success) {
 		return {
-			errors: validatedFields.error.flatten().fieldErrors,
+			errors: z.flattenError(validatedFields.error).fieldErrors,
 			data,
 		};
 	}
@@ -63,7 +64,8 @@ export async function studentSignup(
 	}
 	catch(err: TRPCError | any){
 		return {
-			message: err.message
+			message: err.message,
+			data
 		}
 	}
 	const callbackUrl = formData.get("callbackUrl") as string;
@@ -82,8 +84,6 @@ export async function businessSignup(
 	const password = formData.get("password") as string;
 	const confirmPassword = formData.get("confirmPassword") as string;
 	const organizationName = formData.get("organizationName") as string;
-	// const taxId = formData.get("taxId") as string;
-	// const website = formData.get("website") as string;
 	const username = formData.get("username") as string;
 	const hotlinePrefix = formData.get("hotlinePrefix") as string;
 	const hotline = formData.get("hotline") as string;
@@ -96,15 +96,12 @@ export async function businessSignup(
 		confirmPassword,
 		phonenumber,
 		organizationName,
-		// taxId,
-		// website,
+		username,
 	});
 
 	const data = {
 		email,
 		organizationName,
-		// taxId,
-		// website,
 		username,
 		hotlinePrefix,
 		hotline,
@@ -112,24 +109,26 @@ export async function businessSignup(
 
 	if (!validatedFields.success) {
 		return {
-			errors: validatedFields.error.flatten().fieldErrors,
+			errors: z.flattenError(validatedFields.error).fieldErrors,
 			data,
 		};
 	}
 	try{
-
 		await auth.api.signUpEmail({
 			body: {
 				email: validatedFields.data.email,
 				password: validatedFields.data.password,
 				phonenumber: validatedFields.data.phonenumber,
 				name: validatedFields.data.organizationName,
+				username: validatedFields.data.username,
+				role: "ORGANIZATION",
 			},
 		});
 	}
 	catch(err: TRPCError | any){
 		return {
-			message: err.message
+			message: err.message,
+			data
 		}
 	}
 	const callbackUrl = formData.get("callbackUrl") as string;
@@ -150,7 +149,7 @@ export async function login(
 	});
 	if (!validatedFields.success) {
 		return {
-			errors: validatedFields.error.flatten().fieldErrors,
+			errors: z.flattenError(validatedFields.error).fieldErrors,
 		};
 	}
 	try{
@@ -165,7 +164,8 @@ export async function login(
 	}
 	catch(err: TRPCError | any){
 		return {
-			message: err.message
+			message: err.message,
+			data: { email: validatedFields.data.email, password: ""}
 		}
 	}
 	const callbackUrl = (formData.get("callbackUrl") as string) || "/";

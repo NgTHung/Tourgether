@@ -21,7 +21,7 @@ export const user = pgTable("user", {
     .notNull(),
   username: text("username").unique(),
   displayUsername: text("display_username"),
-  role: text("role").default("USER").notNull(),
+  role: text("role").default("GUIDE").notNull(),
   phonenumber: text("phonenumber").default("").notNull(),
   address: text("address").default("").notNull(),
   gender: text("gender").default("").notNull(),
@@ -29,7 +29,7 @@ export const user = pgTable("user", {
   verificationID: text("verification_id").default("").notNull(),
   rating: integer("rating").default(0).notNull(),
   mediapage: text("mediapage").default("").notNull(),
-  finishedOnboardings: boolean("finished_onboardings").default(false),
+  finishedOnboardings: boolean("finished_onboardings").default(false).notNull(),
 });
 
 export const session = pgTable(

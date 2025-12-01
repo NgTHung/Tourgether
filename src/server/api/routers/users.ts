@@ -4,22 +4,10 @@ import { user } from "~/server/db/schema/auth-schema";
 import { eq } from "drizzle-orm/sql/expressions";
 import { TRPCError } from "@trpc/server";
 import { organizations, tourGuide, tours } from "~/server/db/schema/tour";
+import { sql } from "drizzle-orm";
 
 export const userRouter = createTRPCRouter({
     getMyProfile: protectedProcedure.query(async ({ ctx }) => {
-        const currentUser = await ctx.db
-            .query.user.findFirst({
-                where: eq(user.id, ctx.session.user.id),
-                extras: {
-                    tours: ctx.db.$count(tours, eq(tours.guideID, ctx.session.user.id)).as("tours"),
-                }
-            });
-        if (!currentUser) {
-            throw new TRPCError({
-                code: "NOT_FOUND",
-                message: "User not found",
-            });
-        }
         let profile: typeof organizations.$inferSelect | typeof tourGuide.$inferSelect | undefined;
         if (ctx.session.user.role === "ORGANIZATION") {
             profile = await ctx.db
@@ -28,12 +16,9 @@ export const userRouter = createTRPCRouter({
                 });
         }
         if (ctx.session.user.role === "GUIDE") {
-            profile = await ctx.db
-                .query.tourGuide.findFirst({
-                    where: eq(tourGuide.userID, ctx.session.user.id),
-                });
+            profile = await ctx.db.execute(sql`(SELECT * FROM "tour_guide" WHERE "tour_guide"."user_id" = ${ctx.session.user.id} LIMIT 1)`).then(res => res.rows[0]) as typeof tourGuide.$inferSelect | undefined;
         }
-        return { currentUser, profile };
+        return { profile };
     }),
     updateUserProfile: protectedProcedure
         .input(

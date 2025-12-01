@@ -27,22 +27,10 @@ export const socialRouter = createTRPCRouter({
 					},
 				},
 				extras: {
-					likes: ctx.db
-						.$count(likes, eq(likes.postID, sql`${posts.id}`))
-						.as("likes"),
-					comments: ctx.db
-						.$count(comments, eq(comments.postID, sql`${posts.id}`))
-						.as("comments"),
-					liked: ctx.db
-						.$count(
-							likes,
-							and(
-								eq(likes.postID, sql`${posts.id}`),
-								eq(likes.userID, ctx.session?.user.id ?? ""),
-							),
-						)
-						.as("liked"),
-				},
+					likesCount: sql`(SELECT COUNT(*) FROM "likes" WHERE "likes"."post_id" = "posts"."id")`.as("likesCount"),
+					commentsCount: sql`(SELECT COUNT(*) FROM "comments" WHERE "comments"."post_id" = "posts"."id")`.as("commentsCount"),
+					likedByCurrentUser: sql`(SELECT EXISTS(SELECT 1 FROM "likes" WHERE "likes"."post_id" = "posts"."id" AND "likes"."user_id" = ${ctx.session?.user.id ?? ""}))`.as("likedByCurrentUser"),
+				}
 			});
 			return postsList;
 		}),
@@ -123,14 +111,11 @@ export const socialRouter = createTRPCRouter({
 	getPostLikes: publicProcedure
 		.input(z.string())
 		.query(async ({ ctx, input }) => {
-			const likesCount = await ctx.db
-				.select({ count: sql<number>`count(*)` })
-				.from(likes)
-				.where(eq(likes.postID, input));
+			const likesCount = await ctx.db.$count(likes, eq(likes.postID, input));
 
 			return {
 				postID: input,
-				likesCount: Number(likesCount[0]?.count ?? 0),
+				likesCount: Number(likesCount),
 			};
 		}),
 

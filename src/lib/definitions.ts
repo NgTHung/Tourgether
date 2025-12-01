@@ -26,7 +26,7 @@ export const BusinessSignupFormSchema = SignupFormSchema.extend({
 	phonenumber: z.string().min(1, "Phone number is required.").trim(),
 	// address: z.string().min(1, "Address is required.").trim(),
 	organizationName: z.string().min(1, "Organization name is required.").trim(),
-	taxId: z.string().min(1, "Tax ID is required.").trim(),
+	username: z.string().min(1, "Username is required.").trim(),
 	website: z.string().url("Please enter a valid URL.").optional(),
 }).refine((data) => data.password === data.confirmPassword, {
 	message: "Passwords do not match.",

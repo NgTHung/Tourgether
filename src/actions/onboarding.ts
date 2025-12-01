@@ -133,7 +133,7 @@ export async function updateStudentProfile(prevState: any, formData: FormData) {
   const validated = studentSchema.safeParse(rawData);
 
   if (!validated.success) {
-    return { errors: validated.error.flatten().fieldErrors };
+    return { errors: z.flattenError(validated.error).fieldErrors };
   }
 
   try {

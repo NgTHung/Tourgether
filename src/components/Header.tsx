@@ -12,23 +12,28 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import SettingsModal from "~/components/SettingsModal";
+import { useSession } from "./AuthProvider";
+import { authClient } from "~/server/better-auth/client";
 
-interface HeaderProps {
-  userRole?: string;
-}
-
-const Header = ({ userRole }: HeaderProps) => {
+const Header = () => {
   const router = useRouter();
 
   const handleLogout = () => {
-    router.push("/signin");
+    authClient.signOut()
   };
+
+  const {
+      data: session,
+      isPending, //loading state
+      error, //error object
+      refetch, //refetch the session
+    } = useSession();
 
   const handleLogoClick = () => {
     // Navigate to appropriate dashboard based on user role
-    if (userRole === "GUIDE") {
+    if (session?.user.role === "GUIDE") {
       router.push("/student/dashboard");
-    } else if (userRole === "ORGANIZATION") {
+    } else if (session?.user.role === "ORGANIZATION") {
       router.push("/business/dashboard");
     } else {
       router.push("/");
@@ -74,10 +79,9 @@ const Header = ({ userRole }: HeaderProps) => {
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium">
-                  {userRole === "GUIDE" && "Student Account"}
-                  {userRole === "ORGANIZATION" && "Business Account"}
+                  {session?.user.name}
                 </p>
-                <p className="text-xs text-muted-foreground">user@example.com</p>
+                <p className="text-xs text-muted-foreground">{session?.user.email}</p>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push("/account")}>

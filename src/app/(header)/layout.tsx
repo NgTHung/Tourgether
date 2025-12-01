@@ -31,10 +31,10 @@ export default function HeaderLayout({
 		}
 		if(!isPending && session) {
 			if(session.user?.finishedOnboardings === false) {
-				if(session.user?.role === "GUIDE" && !pathname.startsWith("/onboarding")){
+				if(session.user?.role === "GUIDE"){
 					router.push("/onboarding/student");
 				}
-				if(session.user?.role === "ORGANIZATION" && !pathname.startsWith("/onboarding")){
+				if(session.user?.role === "ORGANIZATION"){
 					router.push("/onboarding/business");
 				}
 			}
@@ -55,7 +55,7 @@ export default function HeaderLayout({
 
 	return (
 		<SessionProvider value={sessionQuery}>
-			<Header userRole={session?.user?.role ?? "GUIDE"} />
+			<Header/>
 			{children}
 		</SessionProvider>
 	);

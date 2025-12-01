@@ -7,9 +7,9 @@ export const authClient = createAuthClient({
 			user: {
 				role: {
 					type: "string",
-					enum: ["ADMIN", "USER", "GUIDE", "ORGANIZATION"],
+					enum: ["GUIDE", "ORGANIZATION"],
 					required: true,
-					input: false,
+					input: true,
 				},
 				phonenumber: {
 					type: "string",

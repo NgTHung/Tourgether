@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -15,33 +15,33 @@ import { Compass, GraduationCap, Briefcase } from "lucide-react";
 import { login } from "~/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "~/server/better-auth/client";
-type UserRole = "student" | "business";
-
 const Auth = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 	const { data: session, isPending: isSessionPending } =
 		authClient.useSession();
-
-	if (!isSessionPending && session) {
-		if (session.user.finishedOnboardings === false) {
+	useEffect(() => {
+		if (!isSessionPending && session) {
+			console.log("User session:", session);
+			if (session.user.finishedOnboardings === false) {
+				if (session.user.role === "GUIDE") {
+					router.push("/onboarding/student");
+				} else if (session.user.role === "ORGANIZATION") {
+					router.push("/onboarding/business");
+				}
+			}
 			if (session.user.role === "GUIDE") {
-				router.push("/onboarding/student");
+				router.push("/student/dashboard");
 			} else if (session.user.role === "ORGANIZATION") {
-				router.push("/onboarding/business");
+				router.push("/business/dashboard");
+			} else {
+				router.push("/feed");
 			}
 		}
-		if (session.user.role === "GUIDE") {
-				router.push("/student/dashboard");
-		} else if (session.user.role === "ORGANIZATION") {
-			router.push("/business/dashboard");
-		}
-		router.push("/feed");
-	}
+	}, [isSessionPending, session, router]);
 
 	const [state, action, pending] = useActionState(login, undefined);
-	const [selectedRole, setSelectedRole] = useState<UserRole>("student");
 
 	return (
 		<div className="min-h-screen bg-background flex items-center justify-center p-4">

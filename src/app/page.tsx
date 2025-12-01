@@ -122,7 +122,7 @@ const Index = () => {
 									</li>
 								</ul>
 								<Button
-									onClick={() => router.push("/signup")}
+									onClick={() => router.push("/signup?role=student")}
 									variant="default"
 									className="w-full mt-auto"
 								>
@@ -167,7 +167,7 @@ const Index = () => {
 									</li>
 								</ul>
 								<Button
-									onClick={() => router.push("/signup")}
+									onClick={() => router.push("/signup?role=business")}
 									variant="default"
 									className="w-full mt-auto"
 								>
