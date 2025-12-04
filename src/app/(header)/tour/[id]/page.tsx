@@ -84,7 +84,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 			</div>
 
 			<main className="container mx-auto py-8 px-4 -mt-32 relative z-10">
-				<div className="grid lg:grid-cols-3 gap-8">
+				<div className="grid lg:grid-cols-3 gap-8 justify-center">
 					{/* Main Content */}
 					<div className="lg:col-span-2 space-y-6">
 						{/* Tour Header */}

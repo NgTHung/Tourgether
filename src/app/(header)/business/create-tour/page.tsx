@@ -33,6 +33,7 @@ const CreateTour = () => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(0);
   const [location, setLocation] = useState("");
+  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [tags, setTags] = useState<string[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
@@ -58,7 +59,7 @@ const CreateTour = () => {
       description: description,
       price: price,
       location: location,
-      date: new Date().toISOString(),
+      date: new Date(date).toISOString(),
       guideID: null,
       images: images,
     });
@@ -147,6 +148,16 @@ const CreateTour = () => {
                   placeholder="Rome, Italy"
                 />
               </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date *</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                  />
+                </div>
 
               <div className="space-y-2">
                 <Label>Tags/Keywords</Label>

@@ -1,4 +1,4 @@
-"use client"
+ "use client"
 
 import { useState, use } from "react";
 import { useRouter } from "next/navigation";
@@ -40,6 +40,9 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
   const [description, setDescription] = useState(tourData.tour?.description || "");
   const [price, setPrice] = useState(tourData.tour?.price || 0);
   const [location, setLocation] = useState(tourData.tour?.location || "");
+  const [date, setDate] = useState<string>(
+    tourData.tour?.date ? new Date(tourData.tour.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+  );
   const [tags, setTags] = useState<string[]>(tourData.tags || []);
   const [images, setImages] = useState<string[]>(
     tourData.tour?.thumbnailUrl ? [tourData.tour.thumbnailUrl, ...(tourData.tour.galleries ?? [])] : []
@@ -68,7 +71,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
       description: description,
       price: price,
       location: location,
-      date: tourData.tour.date.toISOString(),
+      date: new Date(date).toISOString(),
       images: images,
     });
   };
@@ -152,6 +155,16 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="Rome, Italy"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="date">Date *</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </div>
 

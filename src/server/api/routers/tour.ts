@@ -29,13 +29,6 @@ export const tourRouter = createTRPCRouter({
 		.query(async ({ ctx, input }) => {
 			const availableTours = await ctx.db.query.tours.findMany({
 				where: and(
-					eq(tours.ownerUserID, ctx.session.user.id),
-					ctx.session.user.role === "GUIDE"
-						? or(
-								isNull(tours.guideID),
-								eq(tours.guideID, ctx.session.user.id),
-							)
-						: undefined,
 					input.city ? eq(tours.location, input.city) : undefined,
 					input.dateRange
 						? and(
