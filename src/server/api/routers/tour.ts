@@ -5,6 +5,8 @@ import {
 	tourToTags,
 	tourReviews,
 	guiderAppliedTours,
+	previousTours,
+	tourGuide,
 } from "~/server/db/schema/tour";
 import { user } from "~/server/db/schema/auth-schema";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
@@ -143,6 +145,8 @@ export const tourRouter = createTRPCRouter({
 					or(
 						eq(tours.ownerUserID, ctx.session.user.id),
 						eq(tours.guideID, ctx.session.user.id),
+						// Allow students to view PENDING tours (available for application)
+						eq(tours.status, "PENDING"),
 					),
 				),
 				with: {
@@ -304,6 +308,71 @@ export const tourRouter = createTRPCRouter({
 				});
 			}
 			return deletedTour[0];
+		}),
+	markTourAsCompleted: protectedProcedure
+		.input(z.string())
+		.mutation(async ({ ctx, input }) => {
+			if (ctx.session.user.role !== "ORGANIZATION") {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only organizations can mark tours as completed",
+				});
+			}
+
+			// Get the tour with guide info
+			const tour = await ctx.db.query.tours.findFirst({
+				where: and(
+					eq(tours.id, input),
+					eq(tours.ownerUserID, ctx.session.user.id),
+				),
+				with: {
+					guide: {
+						with: {
+							user: true,
+						},
+					},
+					reviews: true,
+				},
+			});
+
+			if (!tour) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Tour not found or unauthorized",
+				});
+			}
+
+			// Calculate average rating from reviews
+			const avgRating = tour.reviews.length > 0
+				? (tour.reviews.reduce((acc, r) => acc + r.rating, 0) / tour.reviews.length).toFixed(2)
+				: null;
+
+			// Create the previous tour entry
+			const newPreviousTour = await ctx.db
+				.insert(previousTours)
+				.values({
+					originalTourId: tour.id,
+					name: tour.name,
+					description: tour.description,
+					price: tour.price,
+					location: tour.location,
+					date: tour.date,
+					thumbnailUrl: tour.thumbnailUrl,
+					galleries: tour.galleries,
+					ownerUserID: tour.ownerUserID,
+					guideID: tour.guideID,
+					guideName: tour.guide?.user?.name ?? null,
+					createdAt: tour.createdAt,
+					averageRating: avgRating,
+				})
+				.returning();
+
+			// Delete the original tour (this will cascade delete related records)
+			await ctx.db
+				.delete(tours)
+				.where(eq(tours.id, input));
+
+			return newPreviousTour[0];
 		}),
 	getTags: protectedProcedure
 		.input(z.string())

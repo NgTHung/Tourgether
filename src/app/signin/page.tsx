@@ -30,7 +30,9 @@ const Auth = () => {
 				} else if (session.user.role === "ORGANIZATION") {
 					router.push("/onboarding/business");
 				}
+				return; // Don't redirect to dashboard if onboarding not finished
 			}
+			// Only redirect to dashboard if onboarding is complete
 			if (session.user.role === "GUIDE") {
 				router.push("/student/dashboard");
 			} else if (session.user.role === "ORGANIZATION") {

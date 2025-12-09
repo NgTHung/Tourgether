@@ -238,3 +238,58 @@ export const guiderAppliedToursRelations = relations(guiderAppliedTours, ({ one 
 		references: [tours.id],
 	}),
 }));
+
+// Previous Tours - Archived completed tours
+export const previousTours = pgTable("previous_tours", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	originalTourId: uuid("original_tour_id"), // Reference to original tour (for tracking)
+	name: text("name").notNull(),
+	description: text("description").notNull(),
+	price: integer("price").notNull(),
+	location: text("location").notNull(),
+	date: timestamp("date").notNull(),
+	thumbnailUrl: text("thumbnail_url").notNull(),
+	galleries: text("galleries")
+		.array()
+		.default(sql`'{}'::text[]`),
+	ownerUserID: text("owner_user_id").references(() => user.id, {
+		onDelete: "cascade",
+	}),
+	guideID: text("guide_id").references(() => tourGuide.userID, {
+		onDelete: "set null",
+	}),
+	guideName: text("guide_name"), // Store guide name at time of completion
+	completedAt: timestamp("completed_at").defaultNow().notNull(),
+	createdAt: timestamp("created_at").notNull(), // Original tour creation date
+	// Stored analytics/summary data
+	totalRevenue: integer("total_revenue").default(0),
+	totalTravelers: integer("total_travelers").default(0),
+	averageRating: decimal("average_rating", { precision: 3, scale: 2 }),
+});
+
+export const previousToursRelations = relations(previousTours, ({ one, many }) => ({
+	owner: one(user, { fields: [previousTours.ownerUserID], references: [user.id] }),
+	guide: one(tourGuide, {
+		fields: [previousTours.guideID],
+		references: [tourGuide.userID],
+	}),
+	feedbacks: many(previousTourFeedbacks),
+}));
+
+// Feedbacks for previous tours
+export const previousTourFeedbacks = pgTable("previous_tour_feedbacks", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	previousTourID: uuid("previous_tour_id").references(() => previousTours.id, { onDelete: "cascade" }),
+	userID: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+	rating: integer("rating").notNull(),
+	feedback: text("feedback").notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.$onUpdate(() => /* @__PURE__ */ new Date())
+		.notNull(),
+});
+
+export const previousTourFeedbacksRelations = relations(previousTourFeedbacks, ({ one }) => ({
+	previousTour: one(previousTours, { fields: [previousTourFeedbacks.previousTourID], references: [previousTours.id] }),
+	user: one(user, { fields: [previousTourFeedbacks.userID], references: [user.id] }),
+}));

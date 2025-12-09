@@ -9,6 +9,7 @@ import {
 	User,
 	Edit,
 	Camera,
+	CheckCircle,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -44,6 +45,16 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 		},
 		onError: (error) => {
 			toast.error(`Failed to apply: ${error.message}`);
+		},
+	});
+
+	const markCompletedMutation = api.tour.markTourAsCompleted.useMutation({
+		onSuccess: (data) => {
+			toast.success("Tour marked as completed!");
+			router.push(`/previous-tours/${data?.id}`);
+		},
+		onError: (error) => {
+			toast.error(`Failed to complete tour: ${error.message}`);
 		},
 	});
 
@@ -439,10 +450,25 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 										</Button>
 										<Button
 											variant="outline"
-											className="w-full"
+											className="w-full mb-3"
 										>
 											View Analytics
 										</Button>
+										{tourData.tour.status !== "COMPLETED" && (
+											<Button
+												variant="default"
+												className="w-full"
+												disabled={markCompletedMutation.isPending}
+												onClick={() =>
+													markCompletedMutation.mutate(tourData.tour.id)
+												}
+											>
+												<CheckCircle className="w-4 h-4 mr-2" />
+												{markCompletedMutation.isPending
+													? "Marking..."
+													: "Mark as Finished"}
+											</Button>
+										)}
 									</>
 								)}
 

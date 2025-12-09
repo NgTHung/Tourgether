@@ -6,13 +6,17 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
+import { Calendar } from "~/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import TagsInput from "~/components/TagsInput";
 import ImageUpload from "~/components/ImageUpload";
 import TourPreview from "~/components/TourPreview";
 import ItineraryBuilder from "~/components/ItineraryBuilder";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, CalendarIcon, ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
+import { cn } from "~/lib/utils";
+import { format } from "date-fns";
 
 interface ItineraryItem {
   id: string;
@@ -40,8 +44,8 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
   const [description, setDescription] = useState(tourData.tour?.description || "");
   const [price, setPrice] = useState(tourData.tour?.price || 0);
   const [location, setLocation] = useState(tourData.tour?.location || "");
-  const [date, setDate] = useState<string>(
-    tourData.tour?.date ? new Date(tourData.tour.date).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+  const [date, setDate] = useState<Date | undefined>(
+    tourData.tour?.date ? new Date(tourData.tour.date) : new Date(),
   );
   const [tags, setTags] = useState<string[]>(tourData.tags || []);
   const [images, setImages] = useState<string[]>(
@@ -60,7 +64,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
   });
 
   const handleSave = () => {
-    if (!title || !description || !price || !location) {
+    if (!title || !description || !price || !location || !date) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -71,7 +75,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
       description: description,
       price: price,
       location: location,
-      date: new Date(date).toISOString(),
+      date: date.toISOString(),
       images: images,
     });
   };
@@ -83,7 +87,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container py-6 px-4">
+      <main className="container mx-auto py-6 px-4">
         <Button
           variant="ghost"
           onClick={() => router.push("/business/dashboard")}
@@ -159,13 +163,30 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date">Date *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
+                <Label>Schedule Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
@@ -195,7 +216,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
                     onSave={handleItinerarySave}
                   >
                     <Button variant="outline" size="sm">
-                      <Calendar className="w-4 h-4 mr-2" />
+                      <ListOrdered className="w-4 h-4 mr-2" />
                       {itinerary.length > 0 ? "Edit Itinerary" : "Add Itinerary"}
                     </Button>
                   </ItineraryBuilder>

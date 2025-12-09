@@ -152,7 +152,7 @@ const BusinessDashboard = () => {
 													variant: "default",
 													onClick: () =>
 														router.push(
-															`/business/tour/${tour.id}`,
+															`/tour/${tour.id}`,
 														),
 												}}
 											/>
