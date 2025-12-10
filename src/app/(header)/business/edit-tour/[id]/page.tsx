@@ -8,15 +8,24 @@ import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
 import { Calendar } from "~/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Checkbox } from "~/components/ui/checkbox";
 import TagsInput from "~/components/TagsInput";
 import ImageUpload from "~/components/ImageUpload";
 import TourPreview from "~/components/TourPreview";
 import ItineraryBuilder from "~/components/ItineraryBuilder";
-import { ArrowLeft, CalendarIcon, ListOrdered } from "lucide-react";
+import { ArrowLeft, CalendarIcon, ListOrdered, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
 import { cn } from "~/lib/utils";
 import { format } from "date-fns";
+
+const PRESET_INCLUSIONS = [
+  "Professional English-speaking guide",
+  "Skip-the-line tickets to attractions",
+  "Water and snacks throughout the tour",
+];
+
+const COMMON_LANGUAGES = ["English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Arabic"];
 
 interface ItineraryItem {
   id: string;
@@ -52,6 +61,11 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
     tourData.tour?.thumbnailUrl ? [tourData.tour.thumbnailUrl, ...(tourData.tour.galleries ?? [])] : []
   );
   const [itinerary, setItinerary] = useState<ItineraryItem[]>(tourData.tour?.itineraries || []);
+  const [duration, setDuration] = useState(tourData.tour?.duration ?? 480);
+  const [groupSize, setGroupSize] = useState(tourData.tour?.groupSize ?? 15);
+  const [languages, setLanguages] = useState<string[]>(tourData.tour?.languages ?? ["English"]);
+  const [inclusions, setInclusions] = useState<string[]>(tourData.tour?.inclusions ?? []);
+  const [customInclusion, setCustomInclusion] = useState("");
 
   const updateTourMutation = api.tour.updateTour.useMutation({
     onSuccess: () => {
@@ -77,6 +91,19 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
       location: location,
       date: date.toISOString(),
       images: images,
+      tags: tags,
+      itineraries: itinerary.map((item, index) => ({
+        title: item.title,
+        location: item.location,
+        duration: item.duration,
+        activities: index + 1,
+        description: item.description,
+        time: item.time,
+      })),
+      duration: duration,
+      groupSize: groupSize,
+      languages: languages,
+      inclusions: inclusions,
     });
   };
 
@@ -197,6 +224,143 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
                   placeholder="Type a tag and press Enter (e.g., adventure, historical)"
                 />
               </div>
+
+              {/* Duration and Group Size */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Duration (minutes) *</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    value={duration}
+                    onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
+                    placeholder="480"
+                    min={1}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {duration >= 60
+                      ? `${Math.floor(duration / 60)} hour${Math.floor(duration / 60) !== 1 ? "s" : ""}${duration % 60 > 0 ? ` ${duration % 60} min` : ""}`
+                      : `${duration} minutes`}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="groupSize">Max Group Size *</Label>
+                  <Input
+                    id="groupSize"
+                    type="number"
+                    value={groupSize}
+                    onChange={(e) => setGroupSize(parseInt(e.target.value) || 1)}
+                    placeholder="15"
+                    min={1}
+                  />
+                </div>
+              </div>
+
+              {/* Languages */}
+              <div className="space-y-2">
+                <Label>Languages</Label>
+                <div className="flex flex-wrap gap-2">
+                  {COMMON_LANGUAGES.map((lang) => (
+                    <Button
+                      key={lang}
+                      type="button"
+                      variant={languages.includes(lang) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (languages.includes(lang)) {
+                          setLanguages(languages.filter((l) => l !== lang));
+                        } else {
+                          setLanguages([...languages, lang]);
+                        }
+                      }}
+                    >
+                      {lang}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* What's Included */}
+              <div className="space-y-2">
+                <Label>What&apos;s Included</Label>
+                <div className="space-y-2">
+                  {PRESET_INCLUSIONS.map((item) => (
+                    <div key={item} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`inclusion-${item}`}
+                        checked={inclusions.includes(item)}
+                        onCheckedChange={(checked: boolean) => {
+                          if (checked) {
+                            setInclusions([...inclusions, item]);
+                          } else {
+                            setInclusions(inclusions.filter((i) => i !== item));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={`inclusion-${item}`}
+                        className="text-sm cursor-pointer"
+                      >
+                        {item}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Input
+                    placeholder="Add custom inclusion..."
+                    value={customInclusion}
+                    onChange={(e) => setCustomInclusion(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && customInclusion.trim()) {
+                        e.preventDefault();
+                        if (!inclusions.includes(customInclusion.trim())) {
+                          setInclusions([...inclusions, customInclusion.trim()]);
+                        }
+                        setCustomInclusion("");
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      if (customInclusion.trim() && !inclusions.includes(customInclusion.trim())) {
+                        setInclusions([...inclusions, customInclusion.trim()]);
+                        setCustomInclusion("");
+                      }
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {/* Show custom inclusions (non-preset) */}
+                {inclusions.filter((i) => !PRESET_INCLUSIONS.includes(i)).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {inclusions
+                      .filter((i) => !PRESET_INCLUSIONS.includes(i))
+                      .map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-center gap-1 bg-secondary px-2 py-1 rounded-md text-sm"
+                        >
+                          {item}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-4 w-4 p-0"
+                            onClick={() => setInclusions(inclusions.filter((i) => i !== item))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Itinerary Section */}
@@ -224,7 +388,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
                 
                 {itinerary.length > 0 && (
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {itinerary.slice(0, 3).map((item, index) => (
+                    {itinerary.slice(0, 3).map((item) => (
                       <div key={item.id} className="flex items-center text-sm">
                         <span className="w-16 font-mono text-primary">{item.time}</span>
                         <span className="flex-1">{item.title}</span>
@@ -253,18 +417,20 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
 
           {/* Right Column: Preview */}
           <div className="hidden lg:block sticky top-6 h-[calc(100vh-250px)]">
-            <div className="h-full border rounded-lg overflow-hidden">
-              <div className="bg-primary text-primary-foreground px-4 py-2 font-semibold">
+            <div className="h-full border rounded-lg overflow-hidden flex flex-col">
+              <div className="bg-primary text-primary-foreground px-4 py-2 font-semibold shrink-0">
                 Preview (Traveler View)
               </div>
-              <TourPreview
-                title={title}
-                description={description}
-                images={images}
-                price={price}
-                location={location}
-                tags={tags}
-              />
+              <div className="flex-1 overflow-y-auto">
+                <TourPreview
+                  title={title}
+                  description={description}
+                  images={images}
+                  price={price}
+                  location={location}
+                  tags={tags}
+                />
+              </div>
             </div>
           </div>
         </div>

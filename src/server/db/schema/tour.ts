@@ -72,6 +72,14 @@ export const tours = pgTable("tours", {
 		onDelete: "set null",
 	}),
 	status: tourStatusEnum("status").notNull().default("PENDING"),
+	duration: integer("duration").default(480), // Duration in minutes
+	groupSize: integer("group_size").default(15), // Max group size
+	languages: text("languages")
+		.array()
+		.default(sql`'{English}'::text[]`),
+	inclusions: text("inclusions")
+		.array()
+		.default(sql`'{}'::text[]`),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
 		.$onUpdate(() => /* @__PURE__ */ new Date())

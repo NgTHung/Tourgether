@@ -19,8 +19,8 @@ interface TourPreviewProps {
 
 const TourPreview = ({ title, description, images, price, location, tags }: TourPreviewProps) => {
   return (
-    <div className="h-full overflow-y-auto bg-muted/30 rounded-lg p-6">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="bg-muted/30 p-6">
+      <div className="max-w-2xl mx-auto space-y-6 pb-6">
         <div>
           <h2 className="text-3xl font-bold mb-2">{title || "Tour Title"}</h2>
           <div className="flex items-center gap-4 text-muted-foreground">

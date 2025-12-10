@@ -20,7 +20,29 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Plus, Trash2, Clock } from "lucide-react";
+
+// Generate time options in 15-minute intervals
+const generateTimeOptions = () => {
+  const times: string[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const h = hour.toString().padStart(2, '0');
+      const m = minute.toString().padStart(2, '0');
+      times.push(`${h}:${m}`);
+    }
+  }
+  return times;
+};
+
+const TIME_OPTIONS = generateTimeOptions();
 
 interface ItineraryItem {
   id: string;
@@ -113,7 +135,7 @@ const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: Itinerary
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
@@ -125,17 +147,17 @@ const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: Itinerary
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-hidden overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead className="w-32">Time</TableHead>
-                  <TableHead className="w-48">Title</TableHead>
-                  <TableHead className="w-48">Location</TableHead>
-                  <TableHead className="w-24">Duration (min)</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="w-16"></TableHead>
+                  <TableHead className="w-10">#</TableHead>
+                  <TableHead className="w-52">Time</TableHead>
+                  <TableHead className="w-40">Title</TableHead>
+                  <TableHead className="w-40">Location</TableHead>
+                  <TableHead className="w-28">Duration (min)</TableHead>
+                  <TableHead className="min-w-48">Description</TableHead>
+                  <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -145,12 +167,30 @@ const ItineraryBuilder = ({ children, initialItinerary = [], onSave }: Itinerary
                       {index + 1}
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="time"
-                        value={item.time}
-                        onChange={(e) => updateRow(item.id, 'time', e.target.value)}
-                        className="w-full"
-                      />
+                      <div className="flex gap-2 items-center">
+                        <Select
+                          value={item.time}
+                          onValueChange={(value) => updateRow(item.id, 'time', value)}
+                        >
+                          <SelectTrigger className="w-[100px]">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60">
+                            {TIME_OPTIONS.map((time) => (
+                              <SelectItem key={time} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-muted-foreground text-sm">or</span>
+                        <Input
+                          type="time"
+                          value={item.time}
+                          onChange={(e) => updateRow(item.id, 'time', e.target.value)}
+                          className="w-[90px]"
+                        />
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Input

@@ -1,0 +1,1 @@
+ALTER TABLE "tours" ALTER COLUMN "duration" SET DEFAULT 480;

@@ -65,6 +65,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 		shouldGetOwner: true,
 		shouldGetGuide: true,
 		shouldGetItineraries: true,
+		shouldGetTags: true,
 	});
 	let appliedStudents;
 	const isOwner = tourData.tour.ownerUserID === session?.user?.id;
@@ -148,9 +149,24 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 									</div>
 									<div className="flex items-center text-muted-foreground">
 										<Clock className="w-5 h-5 mr-2 text-primary" />
-										<span>8 hours</span>
+										<span>
+											{tourData.tour.duration && tourData.tour.duration >= 60
+												? `${Math.floor(tourData.tour.duration / 60)} ${Math.floor(tourData.tour.duration / 60) === 1 ? "hour" : "hours"}${tourData.tour.duration % 60 > 0 ? ` ${tourData.tour.duration % 60} min` : ""}`
+												: `${tourData.tour.duration ?? 0} min`}
+										</span>
 									</div>
 								</div>
+
+								{/* Tags */}
+								{tourData.tags && tourData.tags.length > 0 && (
+									<div className="flex flex-wrap gap-2 mt-4">
+										{tourData.tags.map((tag) => (
+											<Badge key={tag} variant="secondary">
+												{tag}
+											</Badge>
+										))}
+									</div>
+								)}
 							</CardContent>
 						</Card>
 
@@ -220,7 +236,6 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 											</h3>
 											<div className="relative space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
 												{(tourData.tour.itineraries ?? [])
-													.slice(0, 4)
 													.map((item, index) => (
 														<div
 															key={index}
@@ -250,17 +265,6 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 															</div>
 														</div>
 													))}
-												{(tourData.tour.itineraries ?? [])
-													.length > 4 && (
-													<p className="text-sm text-muted-foreground pl-10">
-														And{" "}
-														{(
-															tourData.tour.itineraries ??
-															[]
-														).length - 4}{" "}
-														more stops...
-													</p>
-												)}
 											</div>
 										</div>
 
@@ -269,25 +273,18 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 												What&apos;s Included:
 											</h3>
 											<ul className="space-y-2 text-muted-foreground">
-												<li className="flex items-start">
-													<span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-3" />
-													Professional
-													English-speaking guide
-												</li>
-												<li className="flex items-start">
-													<span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-3" />
-													Skip-the-line tickets to
-													attractions
-												</li>
-												<li className="flex items-start">
-													<span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-3" />
-													Traditional Italian lunch
-												</li>
-												<li className="flex items-start">
-													<span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-3" />
-													Water and snacks throughout
-													the tour
-												</li>
+												{(tourData.tour.inclusions ?? []).length > 0 ? (
+													(tourData.tour.inclusions ?? []).map((item, index) => (
+														<li key={index} className="flex items-start">
+															<span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-3" />
+															{item}
+														</li>
+													))
+												) : (
+													<li className="text-sm italic">
+														No inclusions specified
+													</li>
+												)}
 											</ul>
 										</div>
 									</CardContent>
@@ -436,19 +433,6 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 								{userRole === "ORGANIZATION" && isOwner && (
 									<>
 										<Button
-											variant="gradient"
-											size="lg"
-											className="w-full mb-3"
-											onClick={() =>
-												router.push(
-													`/business/edit-tour/${id}`,
-												)
-											}
-										>
-											<Edit className="w-4 h-4 mr-2" />
-											Edit Tour
-										</Button>
-										<Button
 											variant="outline"
 											className="w-full mb-3"
 										>
@@ -487,7 +471,9 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 											Duration
 										</span>
 										<span className="font-semibold">
-											8 hours
+											{tourData.tour.duration && tourData.tour.duration >= 60
+												? `${Math.floor(tourData.tour.duration / 60)} ${Math.floor(tourData.tour.duration / 60) === 1 ? "hour" : "hours"}${tourData.tour.duration % 60 > 0 ? ` ${tourData.tour.duration % 60} min` : ""}`
+												: `${tourData.tour.duration ?? 0} min`}
 										</span>
 									</div>
 									<div className="flex justify-between">
@@ -495,7 +481,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 											Group Size
 										</span>
 										<span className="font-semibold">
-											Max 15 people
+											Max {tourData.tour.groupSize ?? 15} people
 										</span>
 									</div>
 									<div className="flex justify-between">
@@ -503,7 +489,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 											Languages
 										</span>
 										<span className="font-semibold">
-											English, Italian
+											{(tourData.tour.languages ?? ["English"]).join(", ")}
 										</span>
 									</div>
 									{userRole === "OGRANIZATION" && isOwner && (
@@ -512,7 +498,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 												Applicants
 											</span>
 											<span className="font-semibold text-primary">
-												{(appliedStudents!).data.size}{" "}
+												{appliedStudents!.data.size}{" "}
 												pending
 											</span>
 										</div>

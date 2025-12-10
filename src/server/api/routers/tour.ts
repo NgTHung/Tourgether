@@ -202,6 +202,19 @@ export const tourRouter = createTRPCRouter({
 				}),
 				guideID: z.string().nullable(),
 				images: z.array(z.string()).default([]),
+				tags: z.array(z.string()).default([]),
+				itineraries: z.array(z.object({
+					title: z.string(),
+					location: z.string(),
+					duration: z.number().int(),
+					activities: z.number().int(),
+					description: z.string(),
+					time: z.string(),
+				})).default([]),
+				duration: z.number().int().default(480),
+				groupSize: z.number().int().default(15),
+				languages: z.array(z.string()).default(["English"]),
+				inclusions: z.array(z.string()).default([]),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -223,12 +236,63 @@ export const tourRouter = createTRPCRouter({
 					price: input.price,
 					location: input.location,
 					date: new Date(input.date),
-					ownerUserID: ctx.session.user.id!,
+					ownerUserID: ctx.session.user.id,
 					guideID: input.guideID,
-					thumbnailUrl: input.images[0] || "",
+					thumbnailUrl: input.images[0] ?? "",
 					galleries: input.images,
+					duration: input.duration,
+					groupSize: input.groupSize,
+					languages: input.languages,
+					inclusions: input.inclusions,
 				})
 				.returning();
+
+			const tourId = newTour[0]!.id;
+
+			// Save tags
+			if (input.tags.length > 0) {
+				for (const tagName of input.tags) {
+					// Find or create tag
+					let existingTag = await ctx.db.query.tags.findFirst({
+						where: eq(tags.tags, tagName),
+					});
+					
+					if (!existingTag) {
+						const newTag = await ctx.db
+							.insert(tags)
+							.values({ tags: tagName })
+							.returning();
+						existingTag = newTag[0];
+					}
+
+					// Link tag to tour
+					if (existingTag) {
+						await ctx.db
+							.insert(tourToTags)
+							.values({
+								tourID: tourId,
+								tagID: existingTag.id,
+							})
+							.onConflictDoNothing();
+					}
+				}
+			}
+
+			// Save itineraries
+			if (input.itineraries.length > 0) {
+				for (const item of input.itineraries) {
+					await ctx.db.insert(itinerary).values({
+						ownTourID: tourId,
+						title: item.title,
+						location: item.location,
+						duration: item.duration,
+						activities: item.activities,
+						description: item.description,
+						time: item.time,
+					});
+				}
+			}
+
 			return newTour;
 		}),
 	updateTour: protectedProcedure
@@ -247,6 +311,19 @@ export const tourRouter = createTRPCRouter({
 					.optional(),
 				guideID: z.string().nullable().optional(),
 				images: z.array(z.string()).optional(),
+				tags: z.array(z.string()).optional(),
+				itineraries: z.array(z.object({
+					title: z.string(),
+					location: z.string(),
+					duration: z.number().int(),
+					activities: z.number().int(),
+					description: z.string(),
+					time: z.string(),
+				})).optional(),
+				duration: z.number().int().optional(),
+				groupSize: z.number().int().optional(),
+				languages: z.array(z.string()).optional(),
+				inclusions: z.array(z.string()).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -271,6 +348,10 @@ export const tourRouter = createTRPCRouter({
 					guideID: input.guideID,
 					thumbnailUrl: input.images ? input.images[0] : undefined,
 					galleries: input.images,
+					duration: input.duration,
+					groupSize: input.groupSize,
+					languages: input.languages,
+					inclusions: input.inclusions,
 				})
 				.where(
 					and(
@@ -285,6 +366,56 @@ export const tourRouter = createTRPCRouter({
 					code: "NOT_FOUND",
 					message: "Tour not found or unauthorized",
 				});
+			}
+
+			// Update tags if provided
+			if (input.tags !== undefined) {
+				// Delete existing tour-tag links
+				await ctx.db.delete(tourToTags).where(eq(tourToTags.tourID, input.id));
+
+				// Add new tags
+				for (const tagName of input.tags) {
+					let existingTag = await ctx.db.query.tags.findFirst({
+						where: eq(tags.tags, tagName),
+					});
+
+					if (!existingTag) {
+						const newTag = await ctx.db
+							.insert(tags)
+							.values({ tags: tagName })
+							.returning();
+						existingTag = newTag[0];
+					}
+
+					if (existingTag) {
+						await ctx.db
+							.insert(tourToTags)
+							.values({
+								tourID: input.id,
+								tagID: existingTag.id,
+							})
+							.onConflictDoNothing();
+					}
+				}
+			}
+
+			// Update itineraries if provided
+			if (input.itineraries !== undefined) {
+				// Delete existing itineraries
+				await ctx.db.delete(itinerary).where(eq(itinerary.ownTourID, input.id));
+
+				// Add new itineraries
+				for (const item of input.itineraries) {
+					await ctx.db.insert(itinerary).values({
+						ownTourID: input.id,
+						title: item.title,
+						location: item.location,
+						duration: item.duration,
+						activities: item.activities,
+						description: item.description,
+						time: item.time,
+					});
+				}
 			}
 
 			return updatedTour[0];

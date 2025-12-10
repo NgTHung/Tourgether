@@ -1,0 +1,167 @@
+[
+  {
+    "tour_title": "Hanoi Old Quarter & Hidden Gems Food Tour",
+    "tour_description": "Dive deep into the culinary heart of Hanoi. This walking tour takes you through the maze of the Old Quarter, sampling famous dishes like Bun Cha and Egg Coffee, while learning about the city's thousand-year history from a local perspective.",
+    "price_usd": 45,
+    "location_city": "Hanoi, Vietnam",
+    "schedule_date": "2025-10-15",
+    "tags_keywords": ["foodie", "culture", "walking", "history", "street food"],
+    "itinerary": [
+      { "time": "08:30 AM", "title": "Meet at St. Joseph's Cathedral", "location": "40 Nha Chung, Hang Trong, Hoan Kiem", "duration_min": 15, "description": "Gathering point and brief introduction to the French colonial architecture." },
+      { "time": "08:45 AM", "title": "Pho Breakfast", "location": "Pho Gia Truyen Bat Dan", "duration_min": 45, "description": "Start the day with Hanoi's most famous noodle soup at a legendary local spot." },
+      { "time": "09:45 AM", "title": "Old Quarter Alley Walk", "location": "Old Quarter streets", "duration_min": 60, "description": "Navigate narrow alleys, see local life, and visit a hidden communal temple." },
+      { "time": "11:00 AM", "title": "Banh Mi Tasting", "location": "Banh Mi 25", "duration_min": 30, "description": "Try a modern twist on the classic Vietnamese sandwich." },
+      { "time": "11:45 AM", "title": "Dong Xuan Market Visit", "location": "Dong Xuan Market", "duration_min": 45, "description": "Explore the bustling wholesale market and sample local dried fruits." },
+      { "time": "12:45 PM", "title": "Bun Cha Lunch (Obama's Spot)", "location": "Bun Cha Huong Lien", "duration_min": 60, "description": "Enjoy grilled pork and noodles at the famous restaurant visited by Anthony Bourdain." },
+      { "time": "02:00 PM", "title": "Famous Egg Coffee", "location": "Cafe Giang, Nguyen Huu Huan", "duration_min": 45, "description": "End the tour with the unique creamy egg coffee invented in Hanoi." }
+    ]
+  },
+  {
+    "tour_title": "Classic Ha Long Bay Day Cruise",
+    "tour_description": "Experience the UNESCO World Heritage site of Ha Long Bay on a traditional junk boat. Cruise past thousands of limestone islands, visit spectacular caves, and enjoy kayaking in emerald waters.",
+    "price_usd": 85,
+    "location_city": "Ha Long, Vietnam",
+    "schedule_date": "2025-10-18",
+    "tags_keywords": ["nature", "cruise", "kayaking", "unesco", "scenic"],
+    "itinerary": [
+      { "time": "08:00 AM", "title": "Hotel Pickup & Transfer", "location": "Hanoi Old Quarter Hotels", "duration_min": 150, "description": "Drive via the new expressway from Hanoi to Tuan Chau Marina." },
+      { "time": "11:30 AM", "title": "Boarding & Welcome Drink", "location": "Tuan Chau Marina", "duration_min": 30, "description": "Check-in on the boat and safety briefing while cruising out." },
+      { "time": "12:15 PM", "title": "Seafood Lunch on Board", "location": "Cruising Ha Long Bay", "duration_min": 75, "description": "Enjoy a multi-course Vietnamese seafood lunch while passing iconic islets." },
+      { "time": "02:00 PM", "title": "Explore Sung Sot (Surprise) Cave", "location": "Bo Hon Island", "duration_min": 60, "description": "Trek up to the largest and most magnificent cave in the bay." },
+      { "time": "03:15 PM", "title": "Kayaking at Luon Cave", "location": "Luon Cave area", "duration_min": 45, "description": "Kayak or take a bamboo boat through a water cave into a hidden lagoon." },
+      { "time": "04:15 PM", "title": "Ti Top Island Sunset View", "location": "Ti Top Island", "duration_min": 60, "description": "Climb 400 steps for panoramic views of the bay or swim at the beach." },
+      { "time": "05:30 PM", "title": "Return Cruise & Sunset Party", "location": "Cruising back to harbor", "duration_min": 90, "description": "Enjoy tea and fruits on the sundeck while sailing back to shore." }
+    ]
+  },
+  {
+    "tour_title": "Hoi An Ancient Town: Lanterns & History",
+    "tour_description": "Step back in time in the charming yellow streets of Hoi An. This walking tour covers historical houses, the iconic Japanese Bridge, and ends with a magical boat ride surrounded by colorful lanterns on the Thu Bon River.",
+    "price_usd": 35,
+    "location_city": "Hoi An, Vietnam",
+    "schedule_date": "2025-11-02",
+    "tags_keywords": ["heritage", "walking", "photography", "romantic", "architecture"],
+    "itinerary": [
+      { "time": "03:00 PM", "title": "Ticket Office Meeting", "location": "Hoi An Ticket Booth, Hoang Dieu St.", "duration_min": 15, "description": "Purchase entrance tickets and begin walking tour." },
+      { "time": "03:20 PM", "title": "Japanese Covered Bridge", "location": "Tran Phu Street", "duration_min": 30, "description": "Visit the iconic symbol of Hoi An built in the 16th century." },
+      { "time": "04:00 PM", "title": "Tan Ky Old House", "location": "101 Nguyen Thai Hoc", "duration_min": 45, "description": "Tour a 200-year-old merchant house combining Japanese, Chinese, and Vietnamese influences." },
+      { "time": "05:00 PM", "title": "Phuc Kien Assembly Hall", "location": "46 Tran Phu", "duration_min": 45, "description": "Visit the ornate Chinese assembly hall dedicated to the sea goddess." },
+      { "time": "06:00 PM", "title": "Dinner - Local Specialties", "location": "Morning Glory Restaurant", "duration_min": 75, "description": "Try Cao Lau noodles and White Rose dumplings." },
+      { "time": "07:30 PM", "title": "Lantern Boat Ride", "location": "Thu Bon River Bach Dang Wharf", "duration_min": 30, "description": "Take a small sampan boat on the river and release a paper lantern for good luck." },
+      { "time": "08:15 PM", "title": "Night Market Free Time", "location": "Nguyen Hoang Night Market", "duration_min": 45, "description": "Explore the bustling night market across the bridge for souvenirs." }
+    ]
+  },
+  {
+    "tour_title": "Saigon War History & Reunification Focus",
+    "tour_description": "An intense and educational look into the Vietnam War (American War) history in Ho Chi Minh City. Visit key historical sites to understand the conflict's impact on the city and country.",
+    "price_usd": 40,
+    "location_city": "Ho Chi Minh City, Vietnam",
+    "schedule_date": "2025-11-10",
+    "tags_keywords": ["history", "educational", "museum", "war history", "city tour"],
+    "itinerary": [
+      { "time": "08:00 AM", "title": "Hotel Pickup", "location": "District 1 Hotels", "duration_min": 30, "description": "Pickup by private van and guide." },
+      { "time": "08:45 AM", "title": "War Remnants Museum", "location": "28 Vo Van Tan, District 3", "duration_min": 120, "description": "Examine photographic exhibits and military equipment related to the Vietnam War. (Warning: Graphic content)." },
+      { "time": "11:00 AM", "title": "Reunification Palace", "location": "135 Nam Ky Khoi Nghia", "duration_min": 90, "description": "Tour the former presidential palace and see where the war officially ended in 1975." },
+      { "time": "12:45 PM", "title": "Local Vietnamese Lunch", "location": "Nha Hang Ngon, District 1", "duration_min": 60, "description": "Lunch break in a beautiful colonial-style villa setting." },
+      { "time": "02:00 PM", "title": "Notre Dame Cathedral & Post Office", "location": "Paris Commune Square", "duration_min": 45, "description": "Photo stop at these iconic French colonial landmarks nearby." },
+      { "time": "03:00 PM", "title": "CIA Building (Photo Stop)", "location": "22 Ly Tu Trong", "duration_min": 15, "description": "Quick look at the building famous for the rooftop helicopter evacuation photo." }
+    ]
+  },
+  {
+    "tour_title": "Mekong Delta: Ben Tre Coconut Kingdom",
+    "tour_description": "Escape the city bustle to the watery world of the Mekong Delta. This tour focuses on Ben Tre province, known for its coconut jungles. Experience boat rides, local workshops, and rural life.",
+    "price_usd": 60,
+    "location_city": "Ho Chi Minh City (Departure), Vietnam",
+    "schedule_date": "2025-11-15",
+    "tags_keywords": ["nature", "river", "boat trip", "rural life", "crafts"],
+    "itinerary": [
+      { "time": "07:30 AM", "title": "Depart HCMC", "location": "District 1 Meeting Point", "duration_min": 120, "description": "Drive southward out of the city towards the Delta region." },
+      { "time": "09:45 AM", "title": "Arrival at Hung Vuong Pier", "location": "Ben Tre Town", "duration_min": 15, "description": "Board a larger motorized boat to cross the main river." },
+      { "time": "10:15 AM", "title": "Brick Kiln Visit", "location": "Riverbank stop", "duration_min": 30, "description": "See how traditional bricks are made by hand using local clay." },
+      { "time": "11:00 AM", "title": "Coconut Candy Workshop", "location": "Local village workshop", "duration_min": 45, "description": "Watch the process of making coconut candy and sample warm candy right off the line." },
+      { "time": "12:00 PM", "title": "Tuk-Tuk Village Ride", "location": "Village paths", "duration_min": 30, "description": "Ride a motorized cart through fruit orchards and quiet village roads." },
+      { "time": "12:45 PM", "title": "Elephant Ear Fish Lunch", "location": "Riverside Garden Restaurant", "duration_min": 75, "description": "Enjoy special deep-fried fish wrapped in rice paper, a Delta specialty." },
+      { "time": "02:15 PM", "title": "Sampan Rowing Boat", "location": "Small canal", "duration_min": 40, "description": "Switch to small hand-rowed sampans to navigate narrow palm-lined canals." },
+      { "time": "03:15 PM", "title": "Return Journey", "location": "Bus back to HCMC", "duration_min": 120, "description": "Drive back to Ho Chi Minh City, arriving around 5:30 PM." }
+    ]
+  },
+  {
+    "tour_title": "Sapa Trekking & Ethnic Villages (Day Tour)",
+    "tour_description": "A full day of trekking through the stunning rice terraces of Sapa valley. Visit villages of the Black Hmong and Red Dao ethnic minorities, learn about their unique cultures, and witness breathtaking mountain scenery.",
+    "price_usd": 55,
+    "location_city": "Sapa, Vietnam",
+    "schedule_date": "2025-10-22",
+    "tags_keywords": ["trekking", "mountains", "culture", "scenic", "active"],
+    "itinerary": [
+      { "time": "08:30 AM", "title": "Meet Guide & Start Trek", "location": "Sapa Town Center", "duration_min": 30, "description": "Meet your local Hmong guide and begin walking down towards Muong Hoa valley." },
+      { "time": "09:30 AM", "title": "Y Linh Ho Village Viewpoint", "location": "Trekking trail", "duration_min": 60, "description": "Trek along steep paths with panoramic views of terraced rice fields." },
+      { "time": "11:00 AM", "title": "Lao Chai Village (Black Hmong)", "location": "Lao Chai", "duration_min": 60, "description": "Explore the village, observe daily life and traditional indigo dyeing techniques." },
+      { "time": "12:15 PM", "title": "Picnic Lunch by the River", "location": "Near Ta Van bridge", "duration_min": 60, "description": "Simple picnic lunch provided by the guide near the Muong Hoa stream." },
+      { "time": "01:30 PM", "title": "Ta Van Village (Giay Minority)", "location": "Ta Van", "duration_min": 90, "description": "Continue trekking to Ta Van village, home to the Giay people, known for different architecture and customs." },
+      { "time": "03:30 PM", "title": "Pickup & Return", "location": "Ta Van Bridge pickup point", "duration_min": 45, "description": "Meet the van for transfer back up the mountain to Sapa town." }
+    ]
+  },
+  {
+    "tour_title": "Imperial Hue: Citadel & Royal Tombs",
+    "tour_description": "Explore Vietnam's former capital and the seat of the Nguyen Dynasty. Visit the massive Imperial Citadel, the serene Thien Mu Pagoda, and the elaborate tombs of ancient Emperors.",
+    "price_usd": 50,
+    "location_city": "Hue, Vietnam",
+    "schedule_date": "2025-11-05",
+    "tags_keywords": ["history", "imperial", "architecture", "unesco", "culture"],
+    "itinerary": [
+      { "time": "08:00 AM", "title": "Pickup", "location": "Hue City Center Hotels", "duration_min": 20, "description": "Pickup by car and guide." },
+      { "time": "08:30 AM", "title": "The Imperial Citadel", "location": "Hue Citadel entrance", "duration_min": 150, "description": "Extensive walking tour of the Forbidden Purple City, royal palaces, and temples damaged during the war." },
+      { "time": "11:30 AM", "title": "Thien Mu Pagoda", "location": "Ha Khe Hill, Perfume River bank", "duration_min": 45, "description": "Visit the tallest pagoda in Vietnam and symbol of Hue city." },
+      { "time": "12:30 PM", "title": "Royal Style Lunch", "location": "Local Restaurant", "duration_min": 60, "description": "Enjoy Hue cuisine, famous for its delicate presentation." },
+      { "time": "02:00 PM", "title": "Tomb of Emperor Tu Duc", "location": "Thuy Xuan", "duration_min": 90, "description": "Visit the most poetic and expansive of the royal tombs, designed by the Emperor himself before his death." },
+      { "time": "04:00 PM", "title": "Incense Making Village", "location": "Thuy Xuan Village", "duration_min": 45, "description": "Quick stop to see colorful displays of incense sticks and learn how they are made by hand." }
+    ]
+  },
+  {
+    "tour_title": "Da Nang Highlights: Bridges, Mountains & Beach",
+    "tour_description": "Discover the modern coastal city of Da Nang. See the famous Dragon Bridge, explore the caves of the Marble Mountains, visit the giant Lady Buddha statue, and relax on My Khe beach.",
+    "price_usd": 45,
+    "location_city": "Da Nang, Vietnam",
+    "schedule_date": "2025-11-08",
+    "tags_keywords": ["city tour", "beach", "mountains", "modern", "scenic"],
+    "itinerary": [
+      { "time": "08:30 AM", "title": "Marble Mountains", "location": "Ngu Hanh Son District", "duration_min": 120, "description": "Climb the stone steps to explore caves, pagodas, and viewpoints on the Water Mountain." },
+      { "time": "11:00 AM", "title": "Son Tra Peninsula & Lady Buddha", "location": "Linh Ung Pagoda", "duration_min": 60, "description": "Drive up the peninsula to see the tallest Lady Buddha statue in Vietnam and enjoy coastal views." },
+      { "time": "12:30 PM", "title": "Seafood Lunch Near Beach", "location": "My Khe Beach restaurant", "duration_min": 75, "description": "Fresh seafood lunch by the famous My Khe beach." },
+      { "time": "02:00 PM", "title": "Cham Sculpture Museum", "location": "02 2 Thang 9 Street", "duration_min": 60, "description": "Learn about the ancient Champa kingdom that once ruled central Vietnam." },
+      { "time": "03:30 PM", "title": "Han Market Shopping", "location": "Han Market", "duration_min": 45, "description": "Experience the busy local market selling everything from dried foods to clothes." },
+      { "time": "04:30 PM", "title": "Dragon Bridge Photo Stop", "location": "Dragon Bridge", "duration_min": 30, "description": "Walk along the riverside to see the famous bridge shaped like a dragon before dropping off." }
+    ]
+  },
+  {
+    "tour_title": "Ninh Binh: Trang An & Mua Cave Adventure",
+    "tour_description": "Known as 'Ha Long Bay on Land', Ninh Binh offers spectacular karst scenery. Take a sampan boat through caves at Trang An complex and hike up Mua Cave for an iconic viewpoint.",
+    "price_usd": 70,
+    "location_city": "Ninh Binh, Vietnam",
+    "schedule_date": "2025-10-25",
+    "tags_keywords": ["nature", "boating", "hiking", "scenic", "unesco"],
+    "itinerary": [
+      { "time": "07:30 AM", "title": "Depart Hanoi", "location": "Hanoi Center", "duration_min": 120, "description": "Drive south from Hanoi to Ninh Binh province." },
+      { "time": "10:00 AM", "title": "Hoa Lu Ancient Capital", "location": "Truong Yen", "duration_min": 60, "description": "Visit the temples dedicated to the Dinh and Le dynasties of 10th century Vietnam." },
+      { "time": "11:30 AM", "title": "Mua Cave Hike (Dragon Mountain)", "location": "Mua Cave", "duration_min": 90, "description": "Challenge yourself with 500 steps to the top for the best panoramic view of the region." },
+      { "time": "01:15 PM", "title": "Local Goat Meat Lunch", "location": "Tam Coc Restaurant", "duration_min": 60, "description": "Lunch featuring local specialties, particularly mountain goat dishes." },
+      { "time": "02:30 PM", "title": "Trang An Boat Tour", "location": "Trang An Wharf", "duration_min": 150, "description": "A relaxing 2.5-hour rowboat trip through a UNESCO landscape of rivers, caves, and temples (Skull Island filming location)." },
+      { "time": "05:30 PM", "title": "Return to Hanoi", "location": "Bus transfer", "duration_min": 120, "description": "Drive back to Hanoi, arriving early evening." }
+    ]
+  },
+  {
+    "tour_title": "Phu Quoc South Island Snorkeling & Sunset",
+    "tour_description": "A relaxing day exploring the southern tip of Phu Quoc island. Visit a pearl farm, snorkel at coral reefs near smaller islets, relax on Sao Beach, and catch the sunset.",
+    "price_usd": 50,
+    "location_city": "Phu Quoc Island, Vietnam",
+    "schedule_date": "2025-12-01",
+    "tags_keywords": ["beach", "snorkeling", "island", "relax", "sunset"],
+    "itinerary": [
+      { "time": "09:00 AM", "title": "Hotel Pickup", "location": "Duong Dong Town hotels", "duration_min": 45, "description": "Drive to the southern port of An Thoi." },
+      { "time": "10:00 AM", "title": "Board Speedboat", "location": "An Thoi Port", "duration_min": 20, "description": "Head out to the archipelago." },
+      { "time": "10:30 AM", "title": "Snorkeling at Gam Ghi Island", "location": "Gam Ghi Island coral reef", "duration_min": 60, "description": "Snorkel in clear waters to see coral and colorful fish." },
+      { "time": "12:00 PM", "title": "Lunch & Relax on May Rut Island", "location": "May Rut Island", "duration_min": 90, "description": "BBQ seafood lunch on the island and free time to swim." },
+      { "time": "02:00 PM", "title": "Sao Beach Visit", "location": "Bai Sao", "duration_min": 90, "description": "Relax on one of Phu Quoc's most famous white sand beaches." },
+      { "time": "04:30 PM", "title": "Sunset Sanato Beach Club (Optional stop)", "location": "Sunset Sanato", "duration_min": 60, "description": "Famous spot for photos with art installations during sunset (entrance fee may be extra)." }
+    ]
+  }
+]
