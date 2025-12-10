@@ -1,10 +1,9 @@
 import z from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { user } from "~/server/db/schema/auth-schema";
-import { eq } from "drizzle-orm/sql/expressions";
+import { eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { organizations, tourGuide, tours } from "~/server/db/schema/tour";
-import { sql } from "drizzle-orm";
+import { organizations, tourGuide } from "~/server/db/schema/tour";
 
 export const userRouter = createTRPCRouter({
     getMyProfile: protectedProcedure.query(async ({ ctx }) => {
@@ -28,10 +27,10 @@ export const userRouter = createTRPCRouter({
                 phone: z.string().min(7).max(15).optional(),
                 address: z.string().optional(),
                 gender: z.string().optional(),
+                image: z.string().optional(),
                 // Guide specific
                 school: z.string().optional(),
                 certificates: z.array(z.string()).optional(),
-                workExperience: z.array(z.string()).optional(),
                 description: z.string().optional(),
                 cvUrl: z.string().optional(),
                 // Organization specific
@@ -49,6 +48,7 @@ export const userRouter = createTRPCRouter({
                     phonenumber: input.phone,
                     address: input.address,
                     gender: input.gender,
+                    image: input.image,
                 })
                 .where(eq(user.id, ctx.session.user.id))
                 .returning();
@@ -68,7 +68,6 @@ export const userRouter = createTRPCRouter({
                         userID: ctx.session.user.id,
                         school: input.school,
                         certificates: input.certificates,
-                        workExperience: input.workExperience,
                         description: input.description,
                         cvUrl: input.cvUrl,
                     })
@@ -77,7 +76,6 @@ export const userRouter = createTRPCRouter({
                         set: {
                             school: input.school,
                             certificates: input.certificates,
-                            workExperience: input.workExperience,
                             description: input.description,
                             cvUrl: input.cvUrl,
                         },

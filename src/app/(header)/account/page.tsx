@@ -9,10 +9,10 @@ import { Badge } from "~/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Label } from "~/components/ui/label";
 import UnsavedChangesModal from "~/components/UnsavedChangesModal";
+import FileUpload from "~/components/FileUpload";
 import { useRouter } from "next/navigation";
 import {
 	ArrowLeft,
-	User,
 	Mail,
 	Phone,
 	MapPin,
@@ -23,13 +23,22 @@ import {
 	Save,
 	X,
 	Plus,
+	FileText,
+	ExternalLink,
+	Trash2,
+	Camera,
+	Loader2,
+	User,
 } from "lucide-react";
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
 import type { organizations, tourGuide } from "~/server/db/schema/tour";
+import { getPresignedUrl } from "~/actions/upload";
 
 interface BaseUserData {
+	firstName: string;
+	surname: string;
 	name: string;
 	username: string;
 	email: string;
@@ -45,11 +54,8 @@ interface BaseUserData {
 
 interface StudentData extends BaseUserData {
 	university: string;
-	major: string;
 	toursCompleted: number;
 	certifications: string[];
-	workExperience: string[];
-	languages: string[];
 	cvUrl: string;
 }
 
@@ -57,10 +63,7 @@ interface BusinessData extends BaseUserData {
 	website: string;
 	taxId: string;
 	slogan: string;
-	companyType: string;
-	hotline: string;
 	toursOffered: number;
-	services: string[];
 }
 
 const Account = () => {
@@ -90,10 +93,26 @@ const Account = () => {
 
 	const userRole = session?.user?.role === "ORGANIZATION" ? "business" : "student";
 
+	// Helper to split name into first name and surname
+	const splitName = (fullName: string) => {
+		const parts = fullName.trim().split(" ");
+		if (parts.length === 1) {
+			return { firstName: parts[0] ?? "", surname: "" };
+		}
+		const surname = parts.pop() ?? "";
+		const firstName = parts.join(" ");
+		return { firstName, surname };
+	};
+
 	// Helper to safely get profile data based on role
 	const getInitialData = () => {
+		const fullName = session?.user?.name ?? "";
+		const { firstName, surname } = splitName(fullName);
+		
 		const baseData = {
-			name: session?.user?.name ?? "",
+			firstName,
+			surname,
+			name: fullName,
 			username: session?.user?.username ?? "",
 			email: session?.user?.email ?? "",
 			phone: session?.user?.phonenumber ?? "",
@@ -103,20 +122,17 @@ const Account = () => {
 			rating: session?.user?.rating ?? 0,
 			avatar: session?.user?.image ?? "",
 			gender: session?.user?.gender ?? "",
-			biography: "", // Will be overwritten by role specific data
+			biography: "",
 		};
 
 		if (userRole === "student") {
-			const guideProfile = profile.profile as Exclude<typeof profile.profile, typeof organizations.$inferSelect>; // Type assertion for easier access
+			const guideProfile = profile.profile as Exclude<typeof profile.profile, typeof organizations.$inferSelect>;
 			return {
 				student: {
 					...baseData,
 					university: guideProfile?.school ?? "",
-					major: "", // Not in schema
-					toursCompleted: 0, // Need to fetch or calculate
+					toursCompleted: 0,
 					certifications: guideProfile?.certificates ?? [],
-					workExperience: guideProfile?.workExperience ?? [],
-					languages: [], // Not in schema
 					biography: guideProfile?.description ?? "",
 					cvUrl: guideProfile?.cvUrl ?? "",
 				} as StudentData,
@@ -131,11 +147,8 @@ const Account = () => {
 					website: orgProfile?.websiteURL ?? "",
 					taxId: orgProfile?.taxID?.toString() ?? "",
 					slogan: orgProfile?.slogan ?? "",
-					companyType: "", // Not in schema
-					hotline: "", // Not in schema
-					toursOffered: 0, // Need to fetch or calculate
-					services: [], // Not in schema
-					biography: orgProfile?.slogan ?? "", // Use slogan as biography for business
+					toursOffered: 0,
+					biography: orgProfile?.slogan ?? "",
 				} as BusinessData,
 			};
 		}
@@ -146,27 +159,10 @@ const Account = () => {
 	// Update local state when profile data changes (e.g. after refetch)
 	useEffect(() => {
 		setEditableData(getInitialData());
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [profile, userRole]);
 
 	const userData = editableData[userRole];
-
-	const getRoleIcon = () => {
-		switch (userRole) {
-			case "student":
-				return <GraduationCap className="w-5 h-5" />;
-			case "business":
-				return <Building2 className="w-5 h-5" />;
-		}
-	};
-
-	const getRoleLabel = () => {
-		switch (userRole) {
-			case "student":
-				return "Tourism Student";
-			case "business":
-				return "Business Partner";
-		}
-	};
 
 	const handleNavigateAway = (path: string) => {
 		if (hasUnsavedChanges) {
@@ -178,12 +174,16 @@ const Account = () => {
 	};
 
 	const handleSaveChanges = () => {
+		// Combine firstName and surname for the full name
+		const fullName = `${userData.firstName} ${userData.surname}`.trim();
+		
 		const commonData = {
-			fullName: userData.name,
+			fullName,
 			email: userData.email,
 			phone: userData.phone,
 			address: userData.location,
 			gender: userData.gender,
+			image: userData.avatar,
 		};
 
 		if (userRole === "student") {
@@ -192,7 +192,6 @@ const Account = () => {
 				...commonData,
 				school: studentData.university,
 				certificates: studentData.certifications,
-				workExperience: studentData.workExperience,
 				description: studentData.biography,
 				cvUrl: studentData.cvUrl,
 			});
@@ -202,39 +201,47 @@ const Account = () => {
 				...commonData,
 				taxID: businessData.taxId,
 				websiteURL: businessData.website,
-				slogan: businessData.biography, // Using biography field for slogan
+				slogan: businessData.biography,
 			});
 		}
 	};
 
-	const addArrayItem = (field: string, newItem: string) => {
+	const addArrayItem = (field: keyof StudentData | keyof BusinessData, newItem: string) => {
 		if (!newItem.trim()) return;
 
-		const currentValue = (userData as any)[field];
-		if (Array.isArray(currentValue)) {
-			setEditableData((prev) => ({
-				...prev,
-				[userRole]: {
-					...prev[userRole],
-					[field]: [...currentValue, newItem],
-				},
-			}));
-			setHasUnsavedChanges(true);
-		}
+		setEditableData((prev) => {
+			const currentData = prev[userRole];
+			const currentValue = currentData[field as keyof typeof currentData];
+			if (Array.isArray(currentValue)) {
+				return {
+					...prev,
+					[userRole]: {
+						...currentData,
+						[field]: [...currentValue, newItem],
+					},
+				};
+			}
+			return prev;
+		});
+		setHasUnsavedChanges(true);
 	};
 
-	const removeArrayItem = (field: string, index: number) => {
-		const currentValue = (userData as any)[field];
-		if (Array.isArray(currentValue)) {
-			setEditableData((prev) => ({
-				...prev,
-				[userRole]: {
-					...prev[userRole],
-					[field]: currentValue.filter((_, i) => i !== index),
-				},
-			}));
-			setHasUnsavedChanges(true);
-		}
+	const removeArrayItem = (field: keyof StudentData | keyof BusinessData, index: number) => {
+		setEditableData((prev) => {
+			const currentData = prev[userRole];
+			const currentValue = currentData[field as keyof typeof currentData];
+			if (Array.isArray(currentValue)) {
+				return {
+					...prev,
+					[userRole]: {
+						...currentData,
+						[field]: currentValue.filter((_, i) => i !== index),
+					},
+				};
+			}
+			return prev;
+		});
+		setHasUnsavedChanges(true);
 	};
 
 	const updateField = (field: string, value: string) => {
@@ -306,45 +313,44 @@ const Account = () => {
 				<Card className="mb-8 shadow-elevated">
 					<CardContent className="pt-8">
 						<div className="flex flex-col md:flex-row items-start gap-8">
-							<div className="flex flex-col items-center">
-								<Avatar className="w-32 h-32 mb-4">
-									<AvatarImage
-										src={userData.avatar}
-										alt={userData.name}
-									/>
-									<AvatarFallback className="text-3xl bg-gradient-primary text-primary-foreground">
-										{userData.name
-											.split(" ")
-											.map((n) => n[0])
-											.join("")}
-									</AvatarFallback>
-								</Avatar>
-								<Badge
-									variant="secondary"
-									className="flex items-center gap-2"
-								>
-									{getRoleIcon()}
-									{getRoleLabel()}
-								</Badge>
-							</div>
+							<AvatarUploadSection
+								avatar={userData.avatar}
+								name={`${userData.firstName} ${userData.surname}`.trim()}
+								isEditMode={isEditMode}
+								onAvatarChange={(url: string) => updateField("avatar", url)}
+								userRole={userRole}
+							/>
 
 							<div className="flex-1 space-y-6">
 								<div>
 									{isEditMode ? (
-										<Input
-											value={userData.name}
-											onChange={(e) =>
-												updateField(
-													"name",
-													e.target.value,
-												)
-											}
-											className="text-3xl font-bold border-0 p-0 bg-transparent focus-visible:ring-1"
-											placeholder="Full Name"
-										/>
+										<div className="flex gap-4 mb-2">
+											<div className="flex-1">
+												<Label className="text-xs text-muted-foreground mb-1">First Name</Label>
+												<Input
+													value={userData.firstName}
+													onChange={(e) =>
+														updateField("firstName", e.target.value)
+													}
+													className="text-2xl font-bold"
+													placeholder="First Name"
+												/>
+											</div>
+											<div className="flex-1">
+												<Label className="text-xs text-muted-foreground mb-1">Surname</Label>
+												<Input
+													value={userData.surname}
+													onChange={(e) =>
+														updateField("surname", e.target.value)
+													}
+													className="text-2xl font-bold"
+													placeholder="Surname"
+												/>
+											</div>
+										</div>
 									) : (
 										<h1 className="text-3xl font-bold mb-2">
-											{userData.name}
+											{`${userData.firstName} ${userData.surname}`.trim() || "No Name"}
 										</h1>
 									)}
 
@@ -388,7 +394,7 @@ const Account = () => {
 															e.target.value,
 														)
 													}
-													className="border-0 p-0 bg-transparent focus-visible:ring-1 w-auto"
+													className="h-8 w-auto min-w-[200px]"
 													placeholder="email@example.com"
 												/>
 											) : (
@@ -406,7 +412,7 @@ const Account = () => {
 															e.target.value,
 														)
 													}
-													className="border-0 p-0 bg-transparent focus-visible:ring-1 w-auto"
+													className="h-8 w-auto min-w-[150px]"
 													placeholder="+1 (555) 000-0000"
 												/>
 											) : (
@@ -424,7 +430,7 @@ const Account = () => {
 															e.target.value,
 														)
 													}
-													className="border-0 p-0 bg-transparent focus-visible:ring-1 w-auto"
+													className="h-8 w-auto min-w-[150px]"
 													placeholder="City, Country"
 												/>
 											) : (
@@ -468,18 +474,8 @@ const Account = () => {
 					</CardContent>
 				</Card>
 
-				{/* Professional Details Grid */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-					{/* Contact Information */}
-					<ProfessionalSection
-						title="Contact Information"
-						icon={<User className="w-5 h-5" />}
-						isEditMode={isEditMode}
-						userData={userData}
-						updateField={updateField}
-					/>
-
-					{/* Role-specific Information */}
+				{/* Role-specific Information */}
+				<div className="mb-8">
 					<RoleSpecificSection
 						userRole={userRole}
 						userData={userData}
@@ -552,74 +548,14 @@ const Account = () => {
 };
 
 // Helper Components
-const ProfessionalSection = ({
-	title,
-	icon,
-	isEditMode,
-	userData,
-	updateField,
-}: {
-	title: string;
-	icon: React.ReactNode;
+interface RoleSpecificSectionProps {
+	userRole: "student" | "business";
+	userData: StudentData | BusinessData;
 	isEditMode: boolean;
-	userData: any;
 	updateField: (field: string, value: string) => void;
-}) => (
-	<Card>
-		<CardHeader>
-			<CardTitle className="flex items-center gap-2">
-				{icon}
-				{title}
-			</CardTitle>
-		</CardHeader>
-		<CardContent className="space-y-4">
-			<div>
-				<Label className="text-sm font-medium text-muted-foreground">
-					Phone
-				</Label>
-				{isEditMode ? (
-					<Input
-						value={userData.phone}
-						onChange={(e) => updateField("phone", e.target.value)}
-						className="mt-1"
-					/>
-				) : (
-					<p className="text-sm mt-1">{userData.phone}</p>
-				)}
-			</div>
-			<div>
-				<Label className="text-sm font-medium text-muted-foreground">
-					Email
-				</Label>
-				{isEditMode ? (
-					<Input
-						value={userData.email}
-						onChange={(e) => updateField("email", e.target.value)}
-						className="mt-1"
-					/>
-				) : (
-					<p className="text-sm mt-1">{userData.email}</p>
-				)}
-			</div>
-			<div>
-				<Label className="text-sm font-medium text-muted-foreground">
-					Location
-				</Label>
-				{isEditMode ? (
-					<Input
-						value={userData.location}
-						onChange={(e) =>
-							updateField("location", e.target.value)
-						}
-						className="mt-1"
-					/>
-				) : (
-					<p className="text-sm mt-1">{userData.location}</p>
-				)}
-			</div>
-		</CardContent>
-	</Card>
-);
+	addArrayItem: (field: keyof StudentData | keyof BusinessData, item: string) => void;
+	removeArrayItem: (field: keyof StudentData | keyof BusinessData, index: number) => void;
+}
 
 const RoleSpecificSection = ({
 	userRole,
@@ -628,16 +564,7 @@ const RoleSpecificSection = ({
 	updateField,
 	addArrayItem,
 	removeArrayItem,
-}: any) => {
-	const [newItem, setNewItem] = useState("");
-
-	const handleAddItem = (field: string) => {
-		if (newItem.trim()) {
-			addArrayItem(field, newItem.trim());
-			setNewItem("");
-		}
-	};
-
+}: RoleSpecificSectionProps) => {
 	return (
 		<Card>
 			<CardHeader>
@@ -648,79 +575,87 @@ const RoleSpecificSection = ({
 					{userRole === "business" && (
 						<Building2 className="w-5 h-5" />
 					)}
-					{userRole === "student" && "Academic Information"}
+					{userRole === "student" && "Academic & Professional Information"}
 					{userRole === "business" && "Business Information"}
 				</CardTitle>
 			</CardHeader>
-			<CardContent className="space-y-4">
+			<CardContent className="space-y-6">
 				{userRole === "student" && (
 					<>
+						{/* University */}
 						<div>
 							<Label className="text-sm font-medium text-muted-foreground">
-								University
+								University / School
 							</Label>
 							{isEditMode ? (
 								<Input
 									value={(userData as StudentData).university}
 									onChange={(e) =>
-										updateField(
-											"university",
-											e.target.value,
-										)
+										updateField("university", e.target.value)
 									}
 									className="mt-1"
 								/>
 							) : (
 								<p className="text-sm mt-1">
-									{(userData as StudentData).university}
+									{(userData as StudentData).university || "Not specified"}
 								</p>
 							)}
 						</div>
-						<div>
-							<Label className="text-sm font-medium text-muted-foreground">
-								Major
-							</Label>
-							{isEditMode ? (
-								<Input
-									value={(userData as StudentData).major}
-									onChange={(e) =>
-										updateField("major", e.target.value)
-									}
-									className="mt-1"
-								/>
-							) : (
-								<p className="text-sm mt-1">
-									{(userData as StudentData).major}
-								</p>
-							)}
-						</div>
+
+						{/* Gender */}
 						<div>
 							<Label className="text-sm font-medium text-muted-foreground">
 								Gender
 							</Label>
 							{isEditMode ? (
-								<Input
-									value={(userData as StudentData).gender}
-									onChange={(e) =>
-										updateField("gender", e.target.value)
-									}
-									className="mt-1"
-								/>
+								<div className="mt-1 space-y-2">
+									<div className="flex gap-2">
+										{["Male", "Female", "Other"].map((option) => (
+											<button
+												key={option}
+												type="button"
+												onClick={() => {
+													if (option === "Other") {
+														// If "Other" is selected, clear the field so user can type
+														if (userData.gender === "Male" || userData.gender === "Female") {
+															updateField("gender", "");
+														}
+													} else {
+														updateField("gender", option);
+													}
+												}}
+												className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+													option === "Other"
+														? userData.gender !== "Male" && userData.gender !== "Female"
+															? "bg-primary text-primary-foreground border-primary"
+															: "bg-background hover:bg-muted border-input"
+														: userData.gender === option
+															? "bg-primary text-primary-foreground border-primary"
+															: "bg-background hover:bg-muted border-input"
+												}`}
+											>
+												{option}
+											</button>
+										))}
+									</div>
+									{userData.gender !== "Male" && userData.gender !== "Female" && (
+										<Input
+											value={userData.gender}
+											onChange={(e) =>
+												updateField("gender", e.target.value)
+											}
+											placeholder="Enter your gender"
+										/>
+									)}
+								</div>
 							) : (
 								<p className="text-sm mt-1">
-									{(userData as StudentData).gender}
+									{userData.gender || "Not specified"}
 								</p>
 							)}
 						</div>
-						<ArrayField
-							label="Languages"
-							items={(userData as StudentData).languages}
-							isEditMode={isEditMode}
-							onAdd={(item: string) => addArrayItem("languages", item)}
-							onRemove={(index: number) =>
-								removeArrayItem("languages", index)
-							}
-						/>
+
+						{/* Certifications */}
 						<ArrayField
 							label="Certifications"
 							items={(userData as StudentData).certifications}
@@ -732,66 +667,19 @@ const RoleSpecificSection = ({
 								removeArrayItem("certifications", index)
 							}
 						/>
-						<ArrayField
-							label="Work Experience"
-							items={(userData as StudentData).workExperience}
+
+						{/* CV Upload Section */}
+						<CVUploadSection
+							cvUrl={(userData as StudentData).cvUrl}
 							isEditMode={isEditMode}
-							onAdd={(item: string) =>
-								addArrayItem("workExperience", item)
-							}
-							onRemove={(index: number) =>
-								removeArrayItem("workExperience", index)
-							}
+							onCvChange={(url: string) => updateField("cvUrl", url)}
 						/>
-						<div>
-							<Label className="text-sm font-medium text-muted-foreground">
-								CV / Resume
-							</Label>
-							{(userData as StudentData).cvUrl ? (
-								<div className="mt-1">
-									<a
-										href={(userData as StudentData).cvUrl}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-sm text-primary hover:underline"
-									>
-										View CV
-									</a>
-								</div>
-							) : (
-								<p className="text-sm mt-1 text-muted-foreground">
-									No CV uploaded
-								</p>
-							)}
-						</div>
 					</>
 				)}
 
 				{userRole === "business" && (
 					<>
-						<div>
-							<Label className="text-sm font-medium text-muted-foreground">
-								Company Type
-							</Label>
-							{isEditMode ? (
-								<Input
-									value={
-										(userData as BusinessData).companyType
-									}
-									onChange={(e) =>
-										updateField(
-											"companyType",
-											e.target.value,
-										)
-									}
-									className="mt-1"
-								/>
-							) : (
-								<p className="text-sm mt-1">
-									{(userData as BusinessData).companyType}
-								</p>
-							)}
-						</div>
+						{/* Website */}
 						<div>
 							<Label className="text-sm font-medium text-muted-foreground">
 								Website
@@ -803,31 +691,28 @@ const RoleSpecificSection = ({
 										updateField("website", e.target.value)
 									}
 									className="mt-1"
+									placeholder="https://example.com"
 								/>
 							) : (
 								<p className="text-sm mt-1">
-									{(userData as BusinessData).website}
+									{(userData as BusinessData).website ? (
+										<a
+											href={(userData as BusinessData).website}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-primary hover:underline flex items-center gap-1"
+										>
+											{(userData as BusinessData).website}
+											<ExternalLink className="w-3 h-3" />
+										</a>
+									) : (
+										"Not specified"
+									)}
 								</p>
 							)}
 						</div>
-						<div>
-							<Label className="text-sm font-medium text-muted-foreground">
-								Hotline
-							</Label>
-							{isEditMode ? (
-								<Input
-									value={(userData as BusinessData).hotline}
-									onChange={(e) =>
-										updateField("hotline", e.target.value)
-									}
-									className="mt-1"
-								/>
-							) : (
-								<p className="text-sm mt-1">
-									{(userData as BusinessData).hotline}
-								</p>
-							)}
-						</div>
+
+						{/* Tax ID */}
 						<div>
 							<Label className="text-sm font-medium text-muted-foreground">
 								Tax ID
@@ -842,19 +727,10 @@ const RoleSpecificSection = ({
 								/>
 							) : (
 								<p className="text-sm mt-1">
-									{(userData as BusinessData).taxId}
+									{(userData as BusinessData).taxId || "Not specified"}
 								</p>
 							)}
 						</div>
-						<ArrayField
-							label="Services"
-							items={(userData as BusinessData).services}
-							isEditMode={isEditMode}
-							onAdd={(item: string) => addArrayItem("services", item)}
-							onRemove={(index: number) =>
-								removeArrayItem("services", index)
-							}
-						/>
 					</>
 				)}
 			</CardContent>
@@ -862,7 +738,233 @@ const RoleSpecificSection = ({
 	);
 };
 
-const ArrayField = ({ label, items, isEditMode, onAdd, onRemove }: any) => {
+// Avatar Upload Section Component
+interface AvatarUploadSectionProps {
+	avatar: string;
+	name: string;
+	isEditMode: boolean;
+	onAvatarChange: (url: string) => void;
+	userRole: "student" | "business";
+}
+
+const AvatarUploadSection = ({ avatar, name, isEditMode, onAvatarChange, userRole }: AvatarUploadSectionProps) => {
+	const [isUploading, setIsUploading] = useState(false);
+
+	const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		// Validate file type
+		if (!file.type.startsWith('image/')) {
+			toast.error('Please upload an image file');
+			return;
+		}
+
+		// Validate file size (max 5MB)
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error('Image must be less than 5MB');
+			return;
+		}
+
+		setIsUploading(true);
+		try {
+			const { uploadUrl, fileUrl } = await getPresignedUrl(
+				file.name,
+				file.type,
+				file.size,
+				'image'
+			);
+
+			const response = await fetch(uploadUrl, {
+				method: 'PUT',
+				body: file,
+				headers: {
+					'Content-Type': file.type,
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error('Upload failed');
+			}
+
+			onAvatarChange(fileUrl);
+			toast.success('Avatar uploaded successfully');
+		} catch (error) {
+			console.error('Avatar upload failed:', error);
+			toast.error('Failed to upload avatar');
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
+	const getInitials = (name: string) => {
+		return name
+			.split(' ')
+			.map((n) => n[0])
+			.join('')
+			.toUpperCase()
+			.slice(0, 2);
+	};
+
+	const getRoleIcon = () => {
+		return userRole === "business" ? <Building2 className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />;
+	};
+
+	const getRoleLabel = () => {
+		return userRole === "business" ? "Business Partner" : "Tourism Student";
+	};
+
+	return (
+		<div className="flex flex-col items-center">
+			<div className="relative mb-4">
+				<Avatar className="w-32 h-32">
+					<AvatarImage src={avatar} alt={name} />
+					<AvatarFallback className="text-3xl bg-gradient-primary text-primary-foreground">
+						{name ? getInitials(name) : <User className="w-12 h-12" />}
+					</AvatarFallback>
+				</Avatar>
+				{isEditMode && (
+					<label className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md">
+						{isUploading ? (
+							<Loader2 className="w-4 h-4 animate-spin" />
+						) : (
+							<Camera className="w-4 h-4" />
+						)}
+						<input
+							type="file"
+							accept="image/*"
+							onChange={handleAvatarUpload}
+							disabled={isUploading}
+							className="hidden"
+						/>
+					</label>
+				)}
+			</div>
+			<Badge variant="secondary" className="flex items-center gap-2">
+				{getRoleIcon()}
+				{getRoleLabel()}
+			</Badge>
+		</div>
+	);
+};
+
+// CV Upload Section Component
+interface CVUploadSectionProps {
+	cvUrl: string;
+	isEditMode: boolean;
+	onCvChange: (url: string) => void;
+}
+
+const CVUploadSection = ({ cvUrl, isEditMode, onCvChange }: CVUploadSectionProps) => {
+	const isPdf = cvUrl?.toLowerCase().endsWith('.pdf');
+	const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(cvUrl ?? '');
+
+	return (
+		<div className="space-y-3">
+			<Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+				<FileText className="w-4 h-4" />
+				CV / Resume
+			</Label>
+
+			{cvUrl ? (
+				<div className="space-y-3">
+					{/* CV Preview */}
+					<div className="border rounded-lg overflow-hidden bg-muted/20">
+						{isPdf ? (
+							<div className="w-full h-[400px]">
+								<iframe
+									src={cvUrl}
+									className="w-full h-full"
+									title="CV Preview"
+								/>
+							</div>
+						) : isImage ? (
+							<div className="w-full max-h-[500px] overflow-auto">
+								{/* eslint-disable-next-line @next/next/no-img-element */}
+								<img
+									src={cvUrl}
+									alt="CV / Resume"
+									className="w-full h-auto object-contain"
+								/>
+							</div>
+						) : (
+							<div className="p-4 flex items-center gap-3">
+								<FileText className="w-8 h-8 text-primary" />
+								<div className="flex-1">
+									<p className="font-medium">CV Document</p>
+									<p className="text-sm text-muted-foreground">
+										Click to view or download
+									</p>
+								</div>
+							</div>
+						)}
+					</div>
+
+					{/* Actions */}
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							asChild
+						>
+							<a
+								href={cvUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<ExternalLink className="w-4 h-4 mr-2" />
+								Open in New Tab
+							</a>
+						</Button>
+						{isEditMode && (
+							<Button
+								variant="destructive"
+								size="sm"
+								onClick={() => onCvChange("")}
+							>
+								<Trash2 className="w-4 h-4 mr-2" />
+								Remove CV
+							</Button>
+						)}
+					</div>
+				</div>
+			) : (
+				<>
+					{isEditMode ? (
+						<FileUpload
+							accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,image/*"
+							onFileSelect={(url) => onCvChange(url)}
+							maxSize={10 * 1024 * 1024} // 10MB
+							label="Upload your CV / Resume"
+							description="PDF, DOC, DOCX, or Image (max 10MB)"
+						/>
+					) : (
+						<div className="p-4 border rounded-lg bg-muted/20 text-center">
+							<FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+							<p className="text-sm text-muted-foreground">
+								No CV uploaded yet
+							</p>
+							<p className="text-xs text-muted-foreground mt-1">
+								Edit your profile to upload a CV
+							</p>
+						</div>
+					)}
+				</>
+			)}
+		</div>
+	);
+};
+
+// Array Field Component
+interface ArrayFieldProps {
+	label: string;
+	items: string[];
+	isEditMode: boolean;
+	onAdd: (item: string) => void;
+	onRemove: (index: number) => void;
+}
+
+const ArrayField = ({ label, items, isEditMode, onAdd, onRemove }: ArrayFieldProps) => {
 	const [newItem, setNewItem] = useState("");
 
 	const handleAdd = () => {
@@ -878,23 +980,26 @@ const ArrayField = ({ label, items, isEditMode, onAdd, onRemove }: any) => {
 				{label}
 			</Label>
 			<div className="mt-1">
-				<div className="flex flex-wrap gap-2 mb-2">
-					{items.map((item: string, index: number) => (
-						<div key={index} className="flex items-center">
-							<Badge variant="outline" className="text-xs">
+				{items.length > 0 && (
+					<div className="flex flex-wrap gap-2 mb-2">
+						{items.map((item: string, index: number) => (
+							<Badge key={index} variant="outline" className="text-xs">
 								{item}
 								{isEditMode && (
 									<button
 										onClick={() => onRemove(index)}
-										className="m l-2 hover:text-destructive"
+										className="ml-2 hover:text-destructive"
 									>
 										<X className="w-3 h-3" />
 									</button>
 								)}
 							</Badge>
-						</div>
-					))}
-				</div>
+						))}
+					</div>
+				)}
+				{!isEditMode && items.length === 0 && (
+					<p className="text-sm text-muted-foreground">None specified</p>
+				)}
 				{isEditMode && (
 					<div className="flex gap-2">
 						<Input
@@ -902,7 +1007,12 @@ const ArrayField = ({ label, items, isEditMode, onAdd, onRemove }: any) => {
 							onChange={(e) => setNewItem(e.target.value)}
 							placeholder={`Add ${label.toLowerCase()}...`}
 							className="text-sm"
-							onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") {
+									e.preventDefault();
+									handleAdd();
+								}
+							}}
 						/>
 						<Button
 							size="sm"
