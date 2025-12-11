@@ -185,6 +185,13 @@ export const previousToursRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			const feedback = await ctx.db.query.previousTourFeedbacks.findFirst({
 				where: eq(previousTourFeedbacks.id, input),
+				with: {
+					previousTour: {
+						columns: {
+							ownerUserID: true,
+						},
+					},
+				},
 			});
 
 			if (!feedback) {
@@ -194,16 +201,71 @@ export const previousToursRouter = createTRPCRouter({
 				});
 			}
 
-			if (feedback.userID !== ctx.session.user.id) {
+			// Allow deletion if user owns the feedback OR owns the tour
+			const isOwner = feedback.userID === ctx.session.user.id;
+			const isTourOwner = feedback.previousTour?.ownerUserID === ctx.session.user.id;
+
+			if (!isOwner && !isTourOwner) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "You can only delete your own feedback",
+					message: "You can only delete your own feedback or feedbacks on tours you own",
 				});
 			}
 
 			await ctx.db
 				.delete(previousTourFeedbacks)
 				.where(eq(previousTourFeedbacks.id, input));
+
+			// Recalculate average rating if previousTourID exists
+			if (feedback.previousTourID) {
+				const allFeedbacks = await ctx.db.query.previousTourFeedbacks.findMany({
+					where: eq(previousTourFeedbacks.previousTourID, feedback.previousTourID),
+				});
+
+				const newAvgRating = allFeedbacks.length > 0
+					? (allFeedbacks.reduce((acc, f) => acc + f.rating, 0) / allFeedbacks.length).toFixed(2)
+					: null;
+
+				await ctx.db
+					.update(previousTours)
+					.set({ averageRating: newAvgRating })
+					.where(eq(previousTours.id, feedback.previousTourID));
+			}
+
+			return { success: true };
+		}),
+
+	// Update total travelers
+	updateTotalTravelers: protectedProcedure
+		.input(
+			z.object({
+				previousTourId: z.string(),
+				totalTravelers: z.number().min(0),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const previousTour = await ctx.db.query.previousTours.findFirst({
+				where: eq(previousTours.id, input.previousTourId),
+			});
+
+			if (!previousTour) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Previous tour not found",
+				});
+			}
+
+			if (previousTour.ownerUserID !== ctx.session.user.id) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only the tour owner can update total travelers",
+				});
+			}
+
+			await ctx.db
+				.update(previousTours)
+				.set({ totalTravelers: input.totalTravelers })
+				.where(eq(previousTours.id, input.previousTourId));
 
 			return { success: true };
 		}),

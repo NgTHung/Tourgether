@@ -87,8 +87,19 @@ export const tourRouter = createTRPCRouter({
 						: undefined,
 					eq(tours.status, "PENDING"),
 				),
+				with: {
+					guiderAppliedTours: {
+						columns: {
+							guideID: true,
+						},
+					},
+				},
 			});
-			return ownedTours;
+			// Add applicant count to each tour
+			return ownedTours.map((tour) => ({
+				...tour,
+				applicantsCount: tour.guiderAppliedTours?.length ?? 0,
+			}));
 		}),
 	getCompletedTours: protectedProcedure.query(async ({ ctx }) => {
 		const rows = await ctx.db.query.tours.findMany({
@@ -151,7 +162,11 @@ export const tourRouter = createTRPCRouter({
 				),
 				with: {
 					owner: input.shouldGetOwner ? true : undefined,
-					guide: input.shouldGetGuide ? true : undefined,
+					guide: input.shouldGetGuide ? {
+						with: {
+							user: true,
+						},
+					} : undefined,
 					itineraries: input.shouldGetItineraries ? true : undefined,
 				},
 			});

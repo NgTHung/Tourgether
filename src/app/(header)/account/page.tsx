@@ -275,13 +275,24 @@ const Account = () => {
 					</Button>
 
 					{!isEditMode ? (
-						<Button
-							onClick={() => setIsEditMode(true)}
-							variant="gradient"
-						>
-							<Edit className="w-4 h-4 mr-2" />
-							Edit Profile
-						</Button>
+						<div className="flex gap-2">
+							{userRole === "student" && session?.user?.id && (
+								<Button
+									variant="outline"
+									onClick={() => router.push(`/guide/${session.user.id}`)}
+								>
+									<User className="w-4 h-4 mr-2" />
+									View My Public Profile
+								</Button>
+							)}
+							<Button
+								onClick={() => setIsEditMode(true)}
+								variant="gradient"
+							>
+								<Edit className="w-4 h-4 mr-2" />
+								Edit Profile
+							</Button>
+						</div>
 					) : (
 						<div className="flex gap-2">
 							<Button

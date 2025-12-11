@@ -10,12 +10,31 @@ import {
 	Edit,
 	Camera,
 	CheckCircle,
+	Check,
+	X,
+	FileText,
+	ExternalLink,
+	GraduationCap,
+	Loader2,
+	LogOut,
+	AlertTriangle,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
+import { Textarea } from "~/components/ui/textarea";
+import { Label } from "~/components/ui/label";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "~/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
@@ -31,6 +50,8 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 	const id = use(params).id;
 	const router = useRouter();
 	const [activeTab, setActiveTab] = useState("details");
+	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+	const [leaveReason, setLeaveReason] = useState("");
 
 	const {
 		data: session,
@@ -42,9 +63,21 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 	const applyMutation = api.guide.applyAsGuideToTour.useMutation({
 		onSuccess: () => {
 			toast.success("Applied successfully!");
+			void tourQuery.refetch();
 		},
 		onError: (error) => {
 			toast.error(`Failed to apply: ${error.message}`);
+		},
+	});
+
+	const leaveTourMutation = api.guide.requestLeaveTour.useMutation({
+		onSuccess: () => {
+			toast.success("Leave request submitted! The organization will review it.");
+			setLeaveDialogOpen(false);
+			setLeaveReason("");
+		},
+		onError: (error) => {
+			toast.error(`Failed to submit leave request: ${error.message}`);
 		},
 	});
 
@@ -67,21 +100,40 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 		shouldGetItineraries: true,
 		shouldGetTags: true,
 	});
-	let appliedStudents;
+
 	const isOwner = tourData.tour.ownerUserID === session?.user?.id;
-	if (userRole === "ORGANIZATION" && isOwner) {
-		appliedStudents = api.tour.getAppliedGuidesForTour.useQuery(id);
-		if (appliedStudents.isLoading) return <div>Loading...</div>;
-		if (appliedStudents.error || !appliedStudents.data) {
-			return (
-				<div>
-					Error:{" "}
-					{appliedStudents.error?.message ||
-						"Failed to load applied guides"}
-				</div>
-			);
-		}
-	}
+	const isAssignedGuide = session?.user?.id === tourData.tour.guideID;
+
+	// Get applicants for this tour (only for organization owners)
+	const applicantsQuery = api.organization.getTourApplicants.useQuery(id, {
+		enabled: userRole === "ORGANIZATION" && isOwner,
+	});
+
+	// Approve mutation
+	const approveMutation = api.organization.approveGuiderApplication.useMutation({
+		onSuccess: () => {
+			toast.success("Guide approved successfully!");
+			void applicantsQuery.refetch();
+			void tourQuery.refetch();
+		},
+		onError: (error) => {
+			toast.error(`Failed to approve: ${error.message}`);
+		},
+	});
+
+	// Reject mutation
+	const rejectMutation = api.organization.rejectGuiderApplication.useMutation({
+		onSuccess: () => {
+			toast.success("Application rejected");
+			void applicantsQuery.refetch();
+		},
+		onError: (error) => {
+			toast.error(`Failed to reject: ${error.message}`);
+		},
+	});
+
+	const pendingApplicants = applicantsQuery.data?.applicants.filter(a => a.status === "PENDING") ?? [];
+	const reviewedApplicants = applicantsQuery.data?.applicants.filter(a => a.status !== "PENDING") ?? [];
 
 	return (
 		<>
@@ -296,90 +348,198 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 								<>
 									<TabsContent
 										value="students"
-										className="mt-6"
+										className="mt-6 space-y-6"
 									>
+										{/* Pending Applications */}
 										<Card>
 											<CardHeader>
-												<CardTitle>
-													Applied Students (
-													{(appliedStudents!).data.size})
+												<CardTitle className="flex items-center justify-between">
+													<span>Pending Applications ({pendingApplicants.length})</span>
+													{tourData.tour.guideID && (
+														<Badge variant="secondary" className="ml-2">
+															<Check className="w-3 h-3 mr-1" />
+															Guide Assigned
+														</Badge>
+													)}
 												</CardTitle>
 											</CardHeader>
 											<CardContent>
-												<div className="space-y-4">
-													{Array.from(
-														(appliedStudents!).data.values(),
-													).map((student) => (
-														<div
-															key={
-																student.user.id
-															}
-															className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-														>
-															<div className="flex items-center gap-4">
-																<Avatar className="w-12 h-12">
-																	<AvatarImage
-																		src={
-																			student
-																				.user
-																				.image ??
-																			undefined
-																		}
-																	/>
-																	<AvatarFallback>
-																		{
-																			student
-																				.user
-																				.name[0]
-																		}
-																	</AvatarFallback>
-																</Avatar>
-																<div>
-																	<p className="font-semibold">
-																		{
-																			student
-																				.user
-																				.name
-																		}
-																	</p>
-																	<div className="flex items-center gap-4 text-sm text-muted-foreground">
-																		<span className="flex items-center">
-																			<Star className="w-3 h-3 mr-1 fill-accent text-accent" />
-																			{
-																				student
-																					.user
-																					.rating
-																			}
-																		</span>
-																		<span>
-																			{
-																				student.tours
-																			}{" "}
-																			tours
-																			completed
-																		</span>
+												{applicantsQuery.isLoading ? (
+													<div className="flex items-center justify-center py-8">
+														<Loader2 className="w-6 h-6 animate-spin" />
+													</div>
+												) : pendingApplicants.length === 0 ? (
+													<p className="text-muted-foreground text-center py-8">
+														No pending applications
+													</p>
+												) : (
+													<div className="space-y-4">
+														{pendingApplicants.map((applicant) => (
+															<div
+																key={applicant.guideID}
+																className="flex flex-col lg:flex-row lg:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4"
+															>
+																<div className="flex items-start gap-4 flex-1">
+																	<Avatar className="w-12 h-12">
+																		<AvatarImage
+																			src={applicant.user.image ?? undefined}
+																		/>
+																		<AvatarFallback>
+																			{applicant.user.name?.[0] ?? "U"}
+																		</AvatarFallback>
+																	</Avatar>
+																	<div className="flex-1 min-w-0">
+																		<div className="flex items-center gap-2 mb-1">
+																			<p className="font-semibold truncate">
+																				{applicant.user.name}
+																			</p>
+																			<Badge variant="outline" className="text-xs">
+																				Applied {new Date(applicant.appliedAt).toLocaleDateString()}
+																			</Badge>
+																		</div>
+																		<p className="text-sm text-muted-foreground mb-2">
+																			{applicant.user.email}
+																		</p>
+																		
+																		{/* Guide Details */}
+																		<div className="space-y-2 text-sm">
+																			{applicant.guide.school && (
+																				<div className="flex items-center gap-2 text-muted-foreground">
+																					<GraduationCap className="w-4 h-4" />
+																					<span>{applicant.guide.school}</span>
+																				</div>
+																			)}
+																			{applicant.guide.description && (
+																				<p className="text-muted-foreground line-clamp-2">
+																					{applicant.guide.description}
+																				</p>
+																			)}
+																			{applicant.guide.certificates && applicant.guide.certificates.length > 0 && (
+																				<div className="flex flex-wrap gap-1">
+																					{applicant.guide.certificates.slice(0, 3).map((cert, idx) => (
+																						<Badge key={idx} variant="secondary" className="text-xs">
+																							{cert}
+																						</Badge>
+																					))}
+																					{applicant.guide.certificates.length > 3 && (
+																						<Badge variant="secondary" className="text-xs">
+																							+{applicant.guide.certificates.length - 3} more
+																						</Badge>
+																					)}
+																				</div>
+																			)}
+																			{applicant.guide.cvUrl && (
+																				<a
+																					href={applicant.guide.cvUrl}
+																					target="_blank"
+																					rel="noopener noreferrer"
+																					className="inline-flex items-center gap-1 text-primary hover:underline"
+																				>
+																					<FileText className="w-4 h-4" />
+																					View CV
+																					<ExternalLink className="w-3 h-3" />
+																				</a>
+																			)}
+																		</div>
 																	</div>
 																</div>
+																<div className="flex gap-2 lg:flex-col xl:flex-row">
+																	<Button
+																		variant="outline"
+																		size="sm"
+																		onClick={() => router.push(`/guide/${applicant.guideID}`)}
+																	>
+																		<User className="w-4 h-4 mr-1" />
+																		View Profile
+																	</Button>
+																	<Button
+																		variant="destructive"
+																		size="sm"
+																		disabled={rejectMutation.isPending || !!tourData.tour.guideID}
+																		onClick={() => rejectMutation.mutate({
+																			tourID: id,
+																			guideID: applicant.guideID!,
+																		})}
+																	>
+																		{rejectMutation.isPending ? (
+																			<Loader2 className="w-4 h-4 animate-spin" />
+																		) : (
+																			<>
+																				<X className="w-4 h-4 mr-1" />
+																				Reject
+																			</>
+																		)}
+																	</Button>
+																	<Button
+																		variant="default"
+																		size="sm"
+																		disabled={approveMutation.isPending || !!tourData.tour.guideID}
+																		onClick={() => approveMutation.mutate({
+																			tourID: id,
+																			guideID: applicant.guideID!,
+																		})}
+																	>
+																		{approveMutation.isPending ? (
+																			<Loader2 className="w-4 h-4 animate-spin" />
+																		) : (
+																			<>
+																				<Check className="w-4 h-4 mr-1" />
+																				Approve
+																			</>
+																		)}
+																	</Button>
+																</div>
 															</div>
-															<div className="flex gap-2">
-																<Button
-																	variant="outline"
-																	size="sm"
-																>
-																	View Profile
-																</Button>
-																<Button
-																	variant="gradient"
-																	size="sm"
-																>
-																	Accept
-																</Button>
-															</div>
-														</div>
-													))}
-												</div>
+														))}
+													</div>
+												)}
 											</CardContent>
 										</Card>
+
+										{/* Reviewed Applications */}
+										{reviewedApplicants.length > 0 && (
+											<Card>
+												<CardHeader>
+													<CardTitle>Previously Reviewed ({reviewedApplicants.length})</CardTitle>
+												</CardHeader>
+												<CardContent>
+													<div className="space-y-3">
+														{reviewedApplicants.map((applicant) => (
+															<div
+																key={applicant.guideID}
+																className="flex items-center justify-between p-3 border rounded-lg bg-muted/30"
+															>
+																<div className="flex items-center gap-3">
+																	<Avatar className="w-10 h-10">
+																		<AvatarImage
+																			src={applicant.user.image ?? undefined}
+																		/>
+																		<AvatarFallback>
+																			{applicant.user.name?.[0] ?? "U"}
+																		</AvatarFallback>
+																	</Avatar>
+																	<div>
+																		<p className="font-medium">{applicant.user.name}</p>
+																		<p className="text-xs text-muted-foreground">
+																			{applicant.guide.school}
+																		</p>
+																	</div>
+																</div>
+																<Badge
+																	variant={applicant.status === "APPROVED" ? "default" : "destructive"}
+																>
+																	{applicant.status === "APPROVED" ? (
+																		<><Check className="w-3 h-3 mr-1" /> Approved</>
+																	) : (
+																		<><X className="w-3 h-3 mr-1" /> Rejected</>
+																	)}
+																</Badge>
+															</div>
+														))}
+													</div>
+												</CardContent>
+											</Card>
+										)}
 									</TabsContent>
 								</>
 							)}
@@ -403,24 +563,115 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 								</div>
 
 								{/* Show different actions based on user role */}
-								{userRole === "student" && (
+								{userRole === "GUIDE" && !isAssignedGuide && (
 									<>
 										<Button
 											variant="gradient"
 											size="lg"
 											className="w-full mb-3"
 											disabled={
-												!!tourData.tour.guide ||
+												!!tourData.tour.guideID ||
 												applyMutation.isPending
 											}
 											onClick={() =>
 												applyMutation.mutate(tourData.tour.id)
 											}
 										>
-											{tourData.tour.guide
+											{tourData.tour.guideID
 												? "Guide Assigned"
-												: "Apply as Guide"}
+												: applyMutation.isPending
+													? "Applying..."
+													: "Apply as Guide"}
 										</Button>
+										<Button
+											variant="outline"
+											className="w-full"
+										>
+											Contact Business
+										</Button>
+									</>
+								)}
+
+								{/* Assigned Guide Actions */}
+								{userRole === "GUIDE" && isAssignedGuide && (
+									<>
+										<Badge className="w-full justify-center py-2 mb-3" variant="default">
+											<CheckCircle className="w-4 h-4 mr-2" />
+											You are assigned to this tour
+										</Badge>
+										<Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
+											<DialogTrigger asChild>
+												<Button
+													variant="destructive"
+													size="lg"
+													className="w-full mb-3"
+												>
+													<LogOut className="w-4 h-4 mr-2" />
+													Request to Leave
+												</Button>
+											</DialogTrigger>
+											<DialogContent>
+												<DialogHeader>
+													<DialogTitle className="flex items-center gap-2">
+														<AlertTriangle className="w-5 h-5 text-destructive" />
+														Request to Leave Tour
+													</DialogTitle>
+													<DialogDescription>
+														Please provide a valid reason for leaving this tour.
+														The organization will review your request and may
+														criticize your departure if the reason is not valid,
+														which could affect your rating.
+													</DialogDescription>
+												</DialogHeader>
+												<div className="space-y-4 py-4">
+													<div className="space-y-2">
+														<Label htmlFor="leave-reason">
+															Reason for leaving (minimum 20 characters)
+														</Label>
+														<Textarea
+															id="leave-reason"
+															placeholder="Explain why you need to leave this tour..."
+															value={leaveReason}
+															onChange={(e) => setLeaveReason(e.target.value)}
+															rows={4}
+														/>
+														<p className="text-xs text-muted-foreground">
+															{leaveReason.length}/20 characters minimum
+														</p>
+													</div>
+												</div>
+												<DialogFooter>
+													<Button
+														variant="outline"
+														onClick={() => {
+															setLeaveDialogOpen(false);
+															setLeaveReason("");
+														}}
+													>
+														Cancel
+													</Button>
+													<Button
+														variant="destructive"
+														disabled={leaveReason.length < 20 || leaveTourMutation.isPending}
+														onClick={() =>
+															leaveTourMutation.mutate({
+																tourID: id,
+																reason: leaveReason,
+															})
+														}
+													>
+														{leaveTourMutation.isPending ? (
+															<>
+																<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+																Submitting...
+															</>
+														) : (
+															"Submit Request"
+														)}
+													</Button>
+												</DialogFooter>
+											</DialogContent>
+										</Dialog>
 										<Button
 											variant="outline"
 											className="w-full"
@@ -492,18 +743,104 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 											{(tourData.tour.languages ?? ["English"]).join(", ")}
 										</span>
 									</div>
-									{userRole === "OGRANIZATION" && isOwner && (
+									{userRole === "ORGANIZATION" && isOwner && (
 										<div className="flex justify-between">
 											<span className="text-muted-foreground">
 												Applicants
 											</span>
 											<span className="font-semibold text-primary">
-												{appliedStudents!.data.size}{" "}
-												pending
+												{pendingApplicants.length} pending
 											</span>
 										</div>
 									)}
 								</div>
+
+								{/* Assigned Guide Section - Only visible when guide is assigned and for organization owners */}
+								{userRole === "ORGANIZATION" && isOwner && tourData.tour.guide && (
+									<div className="mt-6 pt-6 border-t">
+										<h3 className="font-semibold mb-3 flex items-center gap-2">
+											<User className="w-4 h-4" />
+											Assigned Guide
+										</h3>
+										<div className="space-y-3">
+											<div className="flex items-center gap-3">
+												<Avatar className="w-12 h-12">
+													<AvatarImage
+														src={"user" in tourData.tour.guide ? tourData.tour.guide.user?.image ?? undefined : undefined}
+													/>
+													<AvatarFallback>
+														{"user" in tourData.tour.guide ? tourData.tour.guide.user?.name?.[0] ?? "G" : "G"}
+													</AvatarFallback>
+												</Avatar>
+												<div className="flex-1 min-w-0">
+													<p className="font-semibold truncate">
+														{"user" in tourData.tour.guide ? tourData.tour.guide.user?.name ?? "Unknown Guide" : "Unknown Guide"}
+													</p>
+													<p className="text-sm text-muted-foreground truncate">
+														{"user" in tourData.tour.guide ? tourData.tour.guide.user?.email : ""}
+													</p>
+												</div>
+											</div>
+											
+											{tourData.tour.guide.school && (
+												<div className="flex items-center gap-2 text-sm text-muted-foreground">
+													<GraduationCap className="w-4 h-4" />
+													<span>{tourData.tour.guide.school}</span>
+												</div>
+											)}
+
+											{tourData.tour.guide.description && (
+												<p className="text-sm text-muted-foreground line-clamp-2">
+													{tourData.tour.guide.description}
+												</p>
+											)}
+
+											{tourData.tour.guide.certificates && tourData.tour.guide.certificates.length > 0 && (
+												<div className="flex flex-wrap gap-1">
+													{tourData.tour.guide.certificates.slice(0, 2).map((cert, idx) => (
+														<Badge key={idx} variant="secondary" className="text-xs">
+															{cert}
+														</Badge>
+													))}
+													{tourData.tour.guide.certificates.length > 2 && (
+														<Badge variant="secondary" className="text-xs">
+															+{tourData.tour.guide.certificates.length - 2} more
+														</Badge>
+													)}
+												</div>
+											)}
+
+											<div className="flex gap-2 pt-2">
+												{tourData.tour.guide.cvUrl && (
+													<Button
+														variant="outline"
+														size="sm"
+														className="flex-1"
+														asChild
+													>
+														<a
+															href={tourData.tour.guide.cvUrl}
+															target="_blank"
+															rel="noopener noreferrer"
+														>
+															<FileText className="w-4 h-4 mr-1" />
+															View CV
+														</a>
+													</Button>
+												)}
+												<Button
+													variant="outline"
+													size="sm"
+													className="flex-1"
+													onClick={() => router.push(`/guide/${tourData.tour.guideID}`)}
+												>
+													<User className="w-4 h-4 mr-1" />
+													Full Profile
+												</Button>
+											</div>
+										</div>
+									</div>
+								)}
 							</CardContent>
 						</Card>
 					</div>

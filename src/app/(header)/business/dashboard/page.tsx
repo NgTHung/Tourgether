@@ -147,6 +147,7 @@ const BusinessDashboard = () => {
 													session?.user.name ||
 													"Your Business"
 												}
+												applicants={tour.applicantsCount}
 												action={{
 													label: "View Tour",
 													variant: "default",

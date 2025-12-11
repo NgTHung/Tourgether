@@ -227,6 +227,8 @@ export const tourReviewsRelations = relations(tourReviews, ({ one }) => ({
 	user: one(user, { fields: [tourReviews.userID], references: [user.id] }),
 }));
 
+export const applicationStatusEnum = pgEnum("application_status", ["PENDING", "APPROVED", "REJECTED"]);
+
 export const guiderAppliedTours = pgTable("guider_applied_tours", {
 	guideID: text("guide_id").references(() => tourGuide.userID, {
 		onDelete: "cascade",
@@ -234,7 +236,9 @@ export const guiderAppliedTours = pgTable("guider_applied_tours", {
 	tourID: uuid("tour_id").references(() => tours.id, {
 		onDelete: "cascade",
 	}),
+	status: applicationStatusEnum("status").notNull().default("PENDING"),
 	appliedAt: timestamp("applied_at").defaultNow().notNull(),
+	reviewedAt: timestamp("reviewed_at"),
 });
 export const guiderAppliedToursRelations = relations(guiderAppliedTours, ({ one }) => ({
 	guide: one(tourGuide, {
@@ -243,6 +247,38 @@ export const guiderAppliedToursRelations = relations(guiderAppliedTours, ({ one 
 	}),
 	tour: one(tours, {
 		fields: [guiderAppliedTours.tourID],
+		references: [tours.id],
+	}),
+}));
+
+// Tour Leave Requests - When a guide wants to leave an assigned tour
+export const leaveRequestStatusEnum = pgEnum("leave_request_status", ["PENDING", "APPROVED", "REJECTED", "CRITICIZED"]);
+
+export const tourLeaveRequests = pgTable("tour_leave_requests", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	tourID: uuid("tour_id").references(() => tours.id, {
+		onDelete: "cascade",
+	}),
+	guideID: text("guide_id").references(() => tourGuide.userID, {
+		onDelete: "cascade",
+	}),
+	reason: text("reason").notNull(),
+	status: leaveRequestStatusEnum("status").notNull().default("PENDING"),
+	// Organization response
+	organizationResponse: text("organization_response"),
+	criticismRating: integer("criticism_rating"), // 1-5, affects guide's rating negatively
+	criticismReason: text("criticism_reason"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	reviewedAt: timestamp("reviewed_at"),
+});
+
+export const tourLeaveRequestsRelations = relations(tourLeaveRequests, ({ one }) => ({
+	guide: one(tourGuide, {
+		fields: [tourLeaveRequests.guideID],
+		references: [tourGuide.userID],
+	}),
+	tour: one(tours, {
+		fields: [tourLeaveRequests.tourID],
 		references: [tours.id],
 	}),
 }));

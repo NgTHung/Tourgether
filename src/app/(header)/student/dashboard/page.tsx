@@ -5,9 +5,10 @@ import Header from "~/components/Header";
 import TourCard from "~/components/TourCard";
 import FilterBar, { type FilterState } from "~/components/FilterBar";
 import { Button } from "~/components/ui/button";
-import { GraduationCap, History } from "lucide-react";
+import { GraduationCap, History, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
+import { useSession } from "~/components/AuthProvider";
 
 const StudentDashboard = () => {
 	const router = useRouter();
@@ -15,6 +16,8 @@ const StudentDashboard = () => {
 	const [activeTab, setActiveTab] = useState<"available" | "previous">(
 		"available",
 	);
+	
+	const { data: session } = useSession();
 
 	const handleApplyFilters = (newFilters: FilterState) => {
 		setFilters(newFilters);
@@ -30,17 +33,31 @@ const StudentDashboard = () => {
 			<main className="container mx-auto py-8 px-4">
 				{/* Page Header */}
 				<div className="mb-8">
-					<div className="flex items-center gap-3 mb-2">
-						<div className="p-2 bg-primary/10 rounded-lg">
-							<GraduationCap className="w-6 h-6 text-primary" />
+					<div className="flex items-center justify-between">
+						<div>
+							<div className="flex items-center gap-3 mb-2">
+								<div className="p-2 bg-primary/10 rounded-lg">
+									<GraduationCap className="w-6 h-6 text-primary" />
+								</div>
+								<h1 className="text-3xl font-bold">
+									Student Dashboard
+								</h1>
+							</div>
+							<p className="text-muted-foreground">
+								Browse opportunities and manage your tour guide career
+							</p>
 						</div>
-						<h1 className="text-3xl font-bold">
-							Student Dashboard
-						</h1>
+						{session?.user?.id && (
+							<Button
+								variant="outline"
+								onClick={() => router.push(`/guide/${session.user.id}`)}
+								className="flex items-center gap-2"
+							>
+								<User className="w-4 h-4" />
+								View My Profile
+							</Button>
+						)}
 					</div>
-					<p className="text-muted-foreground">
-						Browse opportunities and manage your tour guide career
-					</p>
 				</div>
 
 				{/* 2-Column Layout */}
