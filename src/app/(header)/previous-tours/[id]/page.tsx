@@ -17,8 +17,8 @@ import {
 	Loader2,
 	RefreshCw,
 	Trash2,
+	AlertTriangle,
 	Pencil,
-	Check,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -27,13 +27,21 @@ import { Badge } from "~/components/ui/badge";
 import {
 	Dialog,
 	DialogTrigger,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogFooter,
 } from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
+import { getPresignedUrl } from "~/actions/upload";
+import type { FeedbackAnalysis } from "~/lib/gemini";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
 	month: "2-digit",
@@ -47,9 +55,10 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 	const [feedbackOpen, setFeedbackOpen] = useState(false);
 	const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 	const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-	const [aiGeneratedFeedback, setAiGeneratedFeedback] = useState<string | null>(null);
-	const [isEditingTravelers, setIsEditingTravelers] = useState(false);
-	const [editTravelersValue, setEditTravelersValue] = useState<string>("");
+	const [aiGeneratedFeedback, setAiGeneratedFeedback] = useState<FeedbackAnalysis | null>(null);
+	const [activeTab, setActiveTab] = useState("details");
+	const [editDialogOpen, setEditDialogOpen] = useState(false);
+	const [editTotalTravelers, setEditTotalTravelers] = useState<number>(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const {
@@ -57,6 +66,16 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 	} = useSession();
 
 	const [tourData, { refetch }] = api.previousTours.getPreviousTourById.useSuspenseQuery(id);
+
+	const generateAIMutation = api.aiFeedback.generateSummary.useMutation({
+		onSuccess: (data) => {
+			setAiGeneratedFeedback(data);
+			toast.success("AI feedback generated successfully!");
+		},
+		onError: (error) => {
+			toast.error(error.message ?? "Failed to generate AI feedback");
+		},
+	});
 
 	const deleteFeedbackMutation = api.previousTours.deleteFeedback.useMutation({
 		onSuccess: () => {
@@ -68,10 +87,20 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 		},
 	});
 
-	const updateTravelersMutation = api.previousTours.updateTotalTravelers.useMutation({
+	const addFeedbackMutation = api.previousTours.addFeedback.useMutation({
 		onSuccess: () => {
-			toast.success("Total travelers updated");
-			setIsEditingTravelers(false);
+			toast.success("AI summary pushed to feedbacks successfully!");
+			void refetch();
+		},
+		onError: (error) => {
+			toast.error(error.message ?? "Failed to push feedback");
+		},
+	});
+
+	const updateTotalTravelersMutation = api.previousTours.updateTotalTravelers.useMutation({
+		onSuccess: () => {
+			toast.success("Total travelers updated successfully!");
+			setEditDialogOpen(false);
 			void refetch();
 		},
 		onError: (error) => {
@@ -79,21 +108,32 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 		},
 	});
 
-	const handleSaveTravelers = () => {
-		const value = parseInt(editTravelersValue, 10);
-		if (isNaN(value) || value < 0) {
-			toast.error("Please enter a valid number");
-			return;
-		}
-		updateTravelersMutation.mutate({
+	const handleOpenEditDialog = () => {
+		setEditTotalTravelers(tourData.totalTravelers ?? 0);
+		setEditDialogOpen(true);
+	};
+
+	const handleSaveTotalTravelers = () => {
+		updateTotalTravelersMutation.mutate({
 			previousTourId: id,
-			totalTravelers: value,
+			totalTravelers: editTotalTravelers,
 		});
 	};
 
-	const handleStartEditTravelers = () => {
-		setEditTravelersValue(String(tourData.totalTravelers ?? 0));
-		setIsEditingTravelers(true);
+	const handlePushAIFeedback = () => {
+		if (!aiGeneratedFeedback) return;
+		
+		// Create a formatted feedback from the AI summary
+		const feedbackText = `[AI Summary] ${aiGeneratedFeedback.summary}\n\nStrengths: ${aiGeneratedFeedback.strengths.join(", ")}\n\nAreas for Improvement: ${aiGeneratedFeedback.improvements}`;
+		
+		// Use the sentiment score to determine rating (convert from 0-100 to 1-5)
+		const rating = Math.max(1, Math.min(5, Math.round(aiGeneratedFeedback.sentiment_score / 20)));
+		
+		addFeedbackMutation.mutate({
+			previousTourId: id,
+			rating,
+			feedback: feedbackText,
+		});
 	};
 
 	const userRole = session?.user?.role ?? "GUIDE";
@@ -124,35 +164,59 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 		if (file.type.startsWith("image/")) return "🖼️";
 		if (file.type === "application/pdf") return "📄";
 		if (file.type.includes("word")) return "📝";
+		if (file.type === "text/plain") return "📝";
 		return "📎";
 	};
 
-	// AI Feedback Generation (placeholder)
+	// AI Feedback Generation
 	const handleGenerateAIFeedback = async () => {
-		if (uploadedFiles.length === 0 && tourData.feedbacks?.length === 0) {
+		if (uploadedFiles.length === 0 && (!tourData.feedbacks || tourData.feedbacks.length === 0)) {
 			toast.error("Please upload feedback files or ensure there are existing feedbacks");
 			return;
 		}
 
 		setIsGeneratingAI(true);
-		// TODO: Integrate with Gemini API
-		// This is a placeholder that simulates the API call
-		await new Promise((resolve) => setTimeout(resolve, 2000));
 		
-		setAiGeneratedFeedback(
-			`Based on the ${tourData.feedbacks?.length ?? 0} feedback(s) and ${uploadedFiles.length} uploaded file(s), here's the AI-generated summary:\n\n` +
-			`**Overall Performance:** Excellent\n` +
-			`**Key Highlights:**\n` +
-			`• Professional tour guidance with strong communication skills\n` +
-			`• Well-organized itinerary that met expectations\n` +
-			`• Positive customer experiences noted across all feedback sources\n\n` +
-			`**Areas for Improvement:**\n` +
-			`• Consider providing more detailed historical context\n` +
-			`• Time management could be optimized for photo stops\n\n` +
-			`**Recommendation:** This tour demonstrates high quality service and is recommended for future assignments.`
-		);
-		setIsGeneratingAI(false);
-		toast.success("AI feedback generated successfully!");
+		try {
+			// Upload files to S3 and get URLs
+			const fileUrls: string[] = [];
+			for (const file of uploadedFiles) {
+				const { uploadUrl, fileUrl } = await getPresignedUrl(
+					file.name,
+					file.type,
+					file.size,
+					"document"
+				);
+				
+				// Upload file to S3
+				await fetch(uploadUrl, {
+					method: "PUT",
+					body: file,
+					headers: {
+						"Content-Type": file.type,
+					},
+				});
+				
+				fileUrls.push(fileUrl);
+			}
+
+			// Get feedback texts from existing feedbacks
+			const feedbackTexts = tourData.feedbacks?.map((f) => 
+				`Rating: ${f.rating}/5\nFeedback: ${f.feedback}`
+			) ?? [];
+
+			// Call AI mutation
+			generateAIMutation.mutate({
+				tourId: id,
+				fileUrls: fileUrls.length > 0 ? fileUrls : undefined,
+				feedbackTexts: feedbackTexts.length > 0 ? feedbackTexts : undefined,
+			});
+		} catch (error) {
+			console.error("Error generating AI feedback:", error);
+			toast.error("Failed to generate AI feedback");
+		} finally {
+			setIsGeneratingAI(false);
+		}
 	};
 
 	const StarRating = ({
@@ -245,45 +309,63 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 							</CardContent>
 						</Card>
 
-						{/* Photo Gallery */}
-						<Card>
-							<CardHeader>
-								<CardTitle className="flex items-center gap-2">
-									<Camera className="w-5 h-5" />
-									Photo Gallery
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-									{(tourData.galleries ?? []).map((image, index) => (
-										<div
-											key={index}
-											className="relative aspect-video rounded-lg overflow-hidden"
-										>
-											<img
-												src={image}
-												alt={`Tour photo ${index + 1}`}
-												className="w-full h-full object-cover"
-											/>
+						{/* Tabs for Details vs Feedbacks */}
+						<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+							<TabsList className="grid w-full grid-cols-2">
+								<TabsTrigger value="details">Tour Details</TabsTrigger>
+								<TabsTrigger value="feedbacks">
+									Feedbacks & AI
+									{(tourData.feedbacks?.length ?? 0) > 0 && (
+										<Badge variant="secondary" className="ml-2 text-xs">
+											{tourData.feedbacks?.length}
+										</Badge>
+									)}
+								</TabsTrigger>
+							</TabsList>
+
+							{/* Tour Details Tab */}
+							<TabsContent value="details" className="space-y-6 mt-6">
+								{/* Photo Gallery */}
+								<Card>
+									<CardHeader>
+										<CardTitle className="flex items-center gap-2">
+											<Camera className="w-5 h-5" />
+											Photo Gallery
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+											{(tourData.galleries ?? []).map((image, index) => (
+												<div
+													key={index}
+													className="relative aspect-video rounded-lg overflow-hidden"
+												>
+													<img
+														src={image}
+														alt={`Tour photo ${index + 1}`}
+														className="w-full h-full object-cover"
+													/>
+												</div>
+											))}
 										</div>
-									))}
-								</div>
-							</CardContent>
-						</Card>
+									</CardContent>
+								</Card>
 
-						{/* About This Tour */}
-						<Card>
-							<CardHeader>
-								<CardTitle>About This Tour</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<p className="text-muted-foreground leading-relaxed">
-									{tourData.description}
-								</p>
-							</CardContent>
-						</Card>
+								{/* About This Tour */}
+								<Card>
+									<CardHeader>
+										<CardTitle>About This Tour</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<p className="text-muted-foreground leading-relaxed">
+											{tourData.description}
+										</p>
+									</CardContent>
+								</Card>
+							</TabsContent>
 
-						{/* Feedbacks Section */}
+							{/* Feedbacks Tab */}
+							<TabsContent value="feedbacks" className="space-y-6 mt-6">
 						<Card>
 							<CardHeader>
 								<CardTitle>
@@ -344,6 +426,178 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 								)}
 							</CardContent>
 						</Card>
+
+						{/* AI-Generated Feedback Summary Section */}
+						{userRole === "ORGANIZATION" && isOwner && (
+							<Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+								<CardHeader>
+									<CardTitle className="flex items-center gap-2">
+										<Sparkles className="w-5 h-5 text-primary" />
+										AI Feedback Summary
+										<Badge variant="secondary" className="ml-auto text-xs">
+											Beta
+										</Badge>
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									<p className="text-sm text-muted-foreground">
+										Upload feedback documents and use AI to generate a comprehensive summary.
+									</p>
+
+									{/* File Upload for AI Analysis */}
+									<div
+										onClick={() => fileInputRef.current?.click()}
+										className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-colors"
+									>
+										<Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+										<p className="text-sm font-medium">Drop files or click to upload</p>
+										<p className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT, JPG, PNG</p>
+										<input
+											ref={fileInputRef}
+											type="file"
+											multiple
+											accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+											onChange={handleFileSelect}
+											className="hidden"
+										/>
+									</div>
+
+									{/* Uploaded Files for AI */}
+									{uploadedFiles.length > 0 && (
+										<div className="flex flex-wrap gap-2">
+											{uploadedFiles.map((file, index) => (
+												<Badge
+													key={index}
+													variant="outline"
+													className="flex items-center gap-1.5 py-1 px-2"
+												>
+													<span>{getFileIcon(file)}</span>
+													<span className="max-w-[120px] truncate text-sm">
+														{file.name}
+													</span>
+													<button
+														onClick={() => removeFile(index)}
+														className="ml-1 hover:text-destructive"
+													>
+														<X className="h-3.5 w-3.5" />
+													</button>
+												</Badge>
+											))}
+										</div>
+									)}
+
+									{/* Generate Button */}
+									<Button
+										variant="gradient"
+										className="w-full"
+										onClick={handleGenerateAIFeedback}
+										disabled={isGeneratingAI || generateAIMutation.isPending}
+									>
+										{isGeneratingAI || generateAIMutation.isPending ? (
+											<>
+												<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+												Analyzing...
+											</>
+										) : (
+											<>
+												<Sparkles className="w-4 h-4 mr-2" />
+												Generate Summary
+											</>
+										)}
+									</Button>
+
+									{/* AI Generated Result */}
+									{aiGeneratedFeedback && (
+										<div className="space-y-4 pt-4 border-t">
+											<div className="flex items-center justify-between">
+												<Label className="text-sm font-medium flex items-center gap-2">
+													<FileText className="w-4 h-4" />
+													AI Summary
+												</Label>
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={handleGenerateAIFeedback}
+													disabled={isGeneratingAI || generateAIMutation.isPending}
+												>
+													<RefreshCw className={`w-4 h-4 mr-1 ${isGeneratingAI || generateAIMutation.isPending ? "animate-spin" : ""}`} />
+													Redo
+												</Button>
+											</div>
+											
+											{/* Sentiment Score */}
+											<div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+												<span className="text-sm text-muted-foreground">Sentiment Score</span>
+												<Badge 
+													variant={aiGeneratedFeedback.sentiment_score >= 70 ? "default" : aiGeneratedFeedback.sentiment_score >= 40 ? "secondary" : "destructive"}
+												>
+													{aiGeneratedFeedback.sentiment_score}/100
+												</Badge>
+											</div>
+
+											{/* Red Flags Warning */}
+											{aiGeneratedFeedback.red_flags && (
+												<div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg border border-destructive/30">
+													<AlertTriangle className="w-5 h-5 text-destructive" />
+													<span className="text-sm text-destructive font-medium">Safety concerns detected</span>
+												</div>
+											)}
+
+											{/* Summary */}
+											<div className="p-4 bg-muted/50 rounded-lg border">
+												<p className="text-sm text-muted-foreground mb-2 font-medium">Summary</p>
+												<p className="text-sm">{aiGeneratedFeedback.summary}</p>
+											</div>
+
+											{/* Strengths */}
+											<div className="space-y-2">
+												<p className="text-sm text-muted-foreground font-medium">Strengths</p>
+												<div className="flex flex-wrap gap-2">
+													{aiGeneratedFeedback.strengths.map((strength, index) => (
+														<Badge key={index} variant="secondary">
+															{strength}
+														</Badge>
+													))}
+												</div>
+											</div>
+
+											{/* Improvements */}
+											<div className="p-4 bg-muted/50 rounded-lg border">
+												<p className="text-sm text-muted-foreground mb-2 font-medium">Areas for Improvement</p>
+												<p className="text-sm">{aiGeneratedFeedback.improvements}</p>
+											</div>
+
+											<div className="flex flex-col gap-3">
+												<Button 
+													variant="gradient" 
+													className="w-full"
+													onClick={handlePushAIFeedback}
+													disabled={addFeedbackMutation.isPending}
+												>
+													{addFeedbackMutation.isPending ? (
+														<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+													) : (
+														<MessageSquarePlus className="w-4 h-4 mr-2" />
+													)}
+													Push to Feedbacks
+												</Button>
+												<div className="flex gap-3">
+													<Button variant="outline" className="flex-1">
+														<FileText className="w-4 h-4 mr-2" />
+														Export PDF
+													</Button>
+													<Button variant="outline" className="flex-1">
+														Save
+													</Button>
+												</div>
+											</div>
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						)}
+							</TabsContent>
+						</Tabs>
 					</div>
 
 					{/* Sidebar - Analytics Card */}
@@ -366,50 +620,9 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 									</div>
 									<div className="flex justify-between items-center">
 										<span className="text-muted-foreground">Total Travelers</span>
-										{isEditingTravelers ? (
-											<div className="flex items-center gap-1">
-												<Input
-													type="number"
-													min="0"
-													value={editTravelersValue}
-													onChange={(e) => setEditTravelersValue(e.target.value)}
-													className="w-20 h-7 text-right text-sm"
-												/>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="h-7 w-7 text-green-600 hover:text-green-700"
-													onClick={handleSaveTravelers}
-													disabled={updateTravelersMutation.isPending}
-												>
-													<Check className="w-4 h-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="h-7 w-7 text-muted-foreground hover:text-destructive"
-													onClick={() => setIsEditingTravelers(false)}
-												>
-													<X className="w-4 h-4" />
-												</Button>
-											</div>
-										) : (
-											<div className="flex items-center gap-1">
-												<span className="font-semibold">
-													{tourData.totalTravelers ?? 0}
-												</span>
-												{isOwner && (
-													<Button
-														variant="ghost"
-														size="icon"
-														className="h-6 w-6 text-muted-foreground hover:text-primary"
-														onClick={handleStartEditTravelers}
-													>
-														<Pencil className="w-3 h-3" />
-													</Button>
-												)}
-											</div>
-										)}
+										<span className="font-semibold">
+											{tourData.totalTravelers ?? 0}
+										</span>
 									</div>
 									<div className="flex justify-between items-center">
 										<span className="text-muted-foreground">Average Rating</span>
@@ -428,8 +641,56 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 									</div>
 								</div>
 
-								<div className="pt-4 border-t">
-									<Button variant="outline" className="w-full mb-3">
+								<div className="pt-4 border-t space-y-3">
+									{userRole === "ORGANIZATION" && isOwner && (
+										<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+											<DialogTrigger asChild>
+												<Button variant="outline" className="w-full" onClick={handleOpenEditDialog}>
+													<Pencil className="w-4 h-4 mr-2" />
+													Edit Tour Details
+												</Button>
+											</DialogTrigger>
+											<DialogContent>
+												<DialogHeader>
+													<DialogTitle>Edit Tour Details</DialogTitle>
+													<DialogDescription>
+														Update the details for this previous tour.
+													</DialogDescription>
+												</DialogHeader>
+												<div className="space-y-4 py-4">
+													<div className="space-y-2">
+														<Label htmlFor="totalTravelers">Total Travelers</Label>
+														<Input
+															id="totalTravelers"
+															type="number"
+															min={0}
+															value={editTotalTravelers}
+															onChange={(e) => setEditTotalTravelers(Number(e.target.value))}
+															placeholder="Enter total number of travelers"
+														/>
+														<p className="text-xs text-muted-foreground">
+															The total number of travelers who joined this tour.
+														</p>
+													</div>
+												</div>
+												<DialogFooter>
+													<Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+														Cancel
+													</Button>
+													<Button 
+														onClick={handleSaveTotalTravelers}
+														disabled={updateTotalTravelersMutation.isPending}
+													>
+														{updateTotalTravelersMutation.isPending ? (
+															<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+														) : null}
+														Save Changes
+													</Button>
+												</DialogFooter>
+											</DialogContent>
+										</Dialog>
+									)}
+									<Button variant="outline" className="w-full">
 										<BarChart3 className="w-4 h-4 mr-2" />
 										View Full Analytics
 									</Button>
@@ -446,134 +707,6 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 								</div>
 							</CardContent>
 						</Card>
-
-						{/* AI-Generated Feedback Summary Section */}
-						{userRole === "ORGANIZATION" && isOwner && (
-							<Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-								<CardHeader>
-									<CardTitle className="flex items-center gap-2 text-base">
-										<Sparkles className="w-5 h-5 text-primary" />
-										AI Feedback Summary
-										<Badge variant="secondary" className="ml-auto text-xs">
-											Beta
-										</Badge>
-									</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<p className="text-xs text-muted-foreground">
-										Upload feedback documents and use AI to generate a comprehensive summary.
-									</p>
-
-									{/* File Upload for AI Analysis */}
-									<div
-										onClick={() => fileInputRef.current?.click()}
-										className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-3 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-colors"
-									>
-										<Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-										<p className="text-xs">Drop files or click to upload</p>
-										<input
-											ref={fileInputRef}
-											type="file"
-											multiple
-											accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-											onChange={handleFileSelect}
-											className="hidden"
-										/>
-									</div>
-
-									{/* Uploaded Files for AI */}
-									{uploadedFiles.length > 0 && (
-										<div className="flex flex-wrap gap-1">
-											{uploadedFiles.map((file, index) => (
-												<Badge
-													key={index}
-													variant="outline"
-													className="flex items-center gap-1 py-0.5 text-xs"
-												>
-													<span>{getFileIcon(file)}</span>
-													<span className="max-w-[60px] truncate">
-														{file.name}
-													</span>
-													<button
-														onClick={() => removeFile(index)}
-														className="ml-1 hover:text-destructive"
-													>
-														<X className="h-3 w-3" />
-													</button>
-												</Badge>
-											))}
-										</div>
-									)}
-
-									{/* Generate Button */}
-									<Button
-										variant="gradient"
-										className="w-full"
-										size="sm"
-										onClick={handleGenerateAIFeedback}
-										disabled={isGeneratingAI}
-									>
-										{isGeneratingAI ? (
-											<>
-												<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-												Analyzing...
-											</>
-										) : (
-											<>
-												<Sparkles className="w-4 h-4 mr-2" />
-												Generate Summary
-											</>
-										)}
-									</Button>
-
-									{/* AI Generated Result */}
-									{aiGeneratedFeedback && (
-										<div className="space-y-2">
-											<div className="flex items-center justify-between">
-												<Label className="text-xs font-medium flex items-center gap-1">
-													<FileText className="w-3 h-3" />
-													Summary
-												</Label>
-												<Button
-													variant="ghost"
-													size="sm"
-													className="h-6 px-2 text-xs"
-													onClick={handleGenerateAIFeedback}
-													disabled={isGeneratingAI}
-												>
-													<RefreshCw className={`w-3 h-3 mr-1 ${isGeneratingAI ? "animate-spin" : ""}`} />
-													Redo
-												</Button>
-											</div>
-											<div className="p-3 bg-muted/50 rounded-lg border max-h-48 overflow-y-auto">
-												<div className="prose prose-sm dark:prose-invert max-w-none">
-													{aiGeneratedFeedback.split("\n").map((line, index) => (
-														<p key={index} className="text-xs mb-1 last:mb-0">
-															{line.startsWith("**") ? (
-																<strong>{line.replace(/\*\*/g, "")}</strong>
-															) : line.startsWith("•") ? (
-																<span className="pl-2">{line}</span>
-															) : (
-																line
-															)}
-														</p>
-													))}
-												</div>
-											</div>
-											<div className="flex gap-2">
-												<Button variant="outline" size="sm" className="flex-1 text-xs h-7">
-													<FileText className="w-3 h-3 mr-1" />
-													Export PDF
-												</Button>
-												<Button variant="outline" size="sm" className="flex-1 text-xs h-7">
-													Save
-												</Button>
-											</div>
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						)}
 					</div>
 				</div>
 			</main>

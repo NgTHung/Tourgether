@@ -17,6 +17,7 @@ const ALLOWED_DOCUMENT_TYPES = [
 	"application/pdf",
 	"application/msword",
 	"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+	"text/plain",
 ];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
