@@ -38,7 +38,8 @@ const Auth = () => {
 			} else if (session.user.role === "ORGANIZATION") {
 				router.push("/business/dashboard");
 			} else {
-				router.push("/feed");
+				// Default fallback to student dashboard
+				router.push("/student/dashboard");
 			}
 		}
 	}, [isSessionPending, session, router]);

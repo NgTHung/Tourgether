@@ -60,7 +60,7 @@ const Index = () => {
 							<ArrowRight className="w-5 h-5 ml-2" />
 						</Button>
 						<Button
-							onClick={() => router.push("/feed")}
+							onClick={() => router.push("/signin")}
 							variant="outline"
 							size="lg"
 							className="text-lg"
