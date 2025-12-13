@@ -2,6 +2,7 @@
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 import { analyzeFeedback } from "~/lib/gemini";
+import { processFileFromUrl, type ProcessedFile } from "~/lib/file-processor";
 
 export const aiFeedbackRouter = createTRPCRouter({
   generateSummary: protectedProcedure
@@ -11,35 +12,48 @@ export const aiFeedbackRouter = createTRPCRouter({
       feedbackTexts: z.array(z.string()).optional(), // Direct feedback texts (optional)
     }))
     .mutation(async ({ input }) => {
-      const allContents: string[] = [];
+      const textContents: string[] = [];
+      const imageContents: { base64: string; mimeType: string }[] = [];
 
-      // 1. Fetch file contents from S3 URLs if provided
+      // 1. Process files from S3 URLs if provided
       if (input.fileUrls && input.fileUrls.length > 0) {
-        const fileContents = await Promise.all(
-          input.fileUrls.map(async (url) => {
+        const processedFiles = await Promise.all(
+          input.fileUrls.map(async (url): Promise<ProcessedFile | null> => {
             try {
-              const response = await fetch(url);
-              return await response.text();
+              return await processFileFromUrl(url);
             } catch (error) {
-              console.error(`Failed to fetch file from ${url}:`, error);
-              return "";
+              console.error(`Failed to process file from ${url}:`, error);
+              return null;
             }
           })
         );
-        allContents.push(...fileContents.filter(content => content.length > 0));
+
+        // Separate text and image content
+        for (const file of processedFiles) {
+          if (!file) continue;
+          
+          if (file.type === "text") {
+            textContents.push(file.content);
+          } else if (file.type === "image") {
+            imageContents.push({
+              base64: file.content,
+              mimeType: file.mimeType,
+            });
+          }
+        }
       }
 
       // 2. Add direct feedback texts if provided
       if (input.feedbackTexts && input.feedbackTexts.length > 0) {
-        allContents.push(...input.feedbackTexts);
+        textContents.push(...input.feedbackTexts);
       }
 
-      if (allContents.length === 0) {
+      if (textContents.length === 0 && imageContents.length === 0) {
         throw new Error("No feedback content provided");
       }
 
-      // 3. Send to Gemini
-      const analysis = await analyzeFeedback(allContents);
+      // 3. Send to Gemini with both text and images
+      const analysis = await analyzeFeedback(textContents, imageContents);
 
       return analysis;
     }),

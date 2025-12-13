@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import { GoogleGenerativeAI, type Part } from "@google/generative-ai"
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -15,13 +15,21 @@ export interface FeedbackAnalysis {
     red_flags: boolean;
 }
 
-export const analyzeFeedback = async (reviewsContent: string[]): Promise<FeedbackAnalysis> => {
+export interface ImageContent {
+    base64: string;
+    mimeType: string;
+}
+
+export const analyzeFeedback = async (
+    reviewsContent: string[],
+    imageContents: ImageContent[] = []
+): Promise<FeedbackAnalysis> => {
     const combinedReviews = reviewsContent.join("\n\n--- NEXT REVIEW ---\n\n")
 
     const prompt = `
         You are a Senior Performance Analyst for a tourism recruitment platform.
             
-        Here are ${reviewsContent.length} reviews from travelers for a specific Tour Guide.
+        Here are ${reviewsContent.length} text reviews${imageContents.length > 0 ? ` and ${imageContents.length} image(s) containing feedback` : ""} from travelers for a specific Tour Guide.
         Your goal is to extract the "Producer Surplus" - the specific value the GUIDE added, separate from the tour logistics (bus, weather, itinerary).
     
         Analyze these reviews and output a JSON object with the following structure:
@@ -33,12 +41,25 @@ export const analyzeFeedback = async (reviewsContent: string[]): Promise<Feedbac
             "red_flags": false // Boolean: set to true ONLY if there are safety concerns or harassment reported.
         }
         
-        Here are the reviews:
-        ${combinedReviews}
+        ${reviewsContent.length > 0 ? `Here are the text reviews:\n${combinedReviews}` : ""}
+        ${imageContents.length > 0 ? "\nPlease also analyze any text or feedback visible in the attached images." : ""}
     `;
 
     try {
-        const result = await model.generateContent(prompt);
+        // Build the content parts array
+        const parts: Part[] = [{ text: prompt }];
+
+        // Add image parts if any
+        for (const image of imageContents) {
+            parts.push({
+                inlineData: {
+                    data: image.base64,
+                    mimeType: image.mimeType,
+                },
+            });
+        }
+
+        const result = await model.generateContent(parts);
         const response = result.response;
         const text = response.text();
         

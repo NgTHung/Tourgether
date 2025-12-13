@@ -44,8 +44,8 @@ import { getPresignedUrl } from "~/actions/upload";
 import type { FeedbackAnalysis } from "~/lib/gemini";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
-	month: "2-digit",
 	day: "2-digit",
+	month: "2-digit",
 	year: "numeric",
 });
 
@@ -123,8 +123,18 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 	const handlePushAIFeedback = () => {
 		if (!aiGeneratedFeedback) return;
 		
-		// Create a formatted feedback from the AI summary
-		const feedbackText = `[AI Summary] ${aiGeneratedFeedback.summary}\n\nStrengths: ${aiGeneratedFeedback.strengths.join(", ")}\n\nAreas for Improvement: ${aiGeneratedFeedback.improvements}`;
+		// Create a formatted feedback from the AI summary with clear sections
+		const feedbackText = `📊 **AI-Generated Summary**
+
+${aiGeneratedFeedback.summary}
+
+✅ **Strengths:**
+${aiGeneratedFeedback.strengths.map(s => `• ${s}`).join("\n")}
+
+💡 **Areas for Improvement:**
+${aiGeneratedFeedback.improvements}
+
+📈 Sentiment Score: ${aiGeneratedFeedback.sentiment_score}/100${aiGeneratedFeedback.red_flags ? "\n\n⚠️ Red Flags Detected" : ""}`;
 		
 		// Use the sentiment score to determine rating (convert from 0-100 to 1-5)
 		const rating = Math.max(1, Math.min(5, Math.round(aiGeneratedFeedback.sentiment_score / 20)));
@@ -690,10 +700,6 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 											</DialogContent>
 										</Dialog>
 									)}
-									<Button variant="outline" className="w-full">
-										<BarChart3 className="w-4 h-4 mr-2" />
-										View Full Analytics
-									</Button>
 									{userRole === "ORGANIZATION" && isOwner && (
 										<Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
 											<DialogTrigger asChild>
