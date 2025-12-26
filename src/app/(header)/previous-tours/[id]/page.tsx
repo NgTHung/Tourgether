@@ -19,6 +19,7 @@ import {
 	Trash2,
 	AlertTriangle,
 	Pencil,
+	UserPlus,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -42,6 +43,7 @@ import { api } from "~/trpc/react";
 import { toast } from "sonner";
 import { getPresignedUrl } from "~/actions/upload";
 import type { FeedbackAnalysis } from "~/lib/gemini";
+import ReactMarkdown from "react-markdown";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
 	day: "2-digit",
@@ -108,6 +110,16 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 		},
 	});
 
+	const pushReviewToGuideMutation = api.previousTours.pushReviewToGuide.useMutation({
+		onSuccess: (data) => {
+			toast.success(`Review pushed to guide's profile! New rating: ${data.newRating} (${data.totalReviews} reviews)`);
+			void refetch();
+		},
+		onError: (error) => {
+			toast.error(error.message ?? "Failed to push review to guide");
+		},
+	});
+
 	const handleOpenEditDialog = () => {
 		setEditTotalTravelers(tourData.totalTravelers ?? 0);
 		setEditDialogOpen(true);
@@ -143,6 +155,31 @@ ${aiGeneratedFeedback.improvements}
 			previousTourId: id,
 			rating,
 			feedback: feedbackText,
+		});
+	};
+
+	const handlePushReviewToGuide = () => {
+		if (!aiGeneratedFeedback) return;
+		if (!tourData.guideID) {
+			toast.error("No guide assigned to this tour");
+			return;
+		}
+		
+		// Convert sentiment score (0-100) to rating (1-5)
+		const rating = Math.max(1, Math.min(5, Math.round(aiGeneratedFeedback.sentiment_score / 20)));
+		
+		pushReviewToGuideMutation.mutate({
+			previousTourId: id,
+			guideId: tourData.guideID,
+			summary: aiGeneratedFeedback.summary,
+			strengths: aiGeneratedFeedback.strengths,
+			improvements: aiGeneratedFeedback.improvements,
+			sentimentScore: aiGeneratedFeedback.sentiment_score,
+			rating,
+			redFlags: aiGeneratedFeedback.red_flags ? 1 : 0,
+			tourName: tourData.name,
+			tourLocation: tourData.location ?? undefined,
+			tourDate: tourData.date ?? undefined,
 		});
 	};
 
@@ -407,9 +444,11 @@ ${aiGeneratedFeedback.improvements}
 															</span>
 															<StarRating rating={feedback.rating} />
 														</div>
-														<p className="text-muted-foreground text-sm">
-															{feedback.feedback}
-														</p>
+														<div className="text-muted-foreground text-sm prose prose-sm dark:prose-invert max-w-none">
+															<ReactMarkdown>
+																{feedback.feedback}
+															</ReactMarkdown>
+														</div>
 														<p className="text-xs text-muted-foreground mt-2">
 															{formatter.format(feedback.createdAt)}
 														</p>
@@ -578,19 +617,36 @@ ${aiGeneratedFeedback.improvements}
 											</div>
 
 											<div className="flex flex-col gap-3">
-												<Button 
-													variant="gradient" 
-													className="w-full"
-													onClick={handlePushAIFeedback}
-													disabled={addFeedbackMutation.isPending}
-												>
-													{addFeedbackMutation.isPending ? (
-														<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-													) : (
-														<MessageSquarePlus className="w-4 h-4 mr-2" />
+												<div className="flex gap-3">
+													<Button 
+														variant="gradient" 
+														className="flex-1"
+														onClick={handlePushAIFeedback}
+														disabled={addFeedbackMutation.isPending}
+													>
+														{addFeedbackMutation.isPending ? (
+															<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+														) : (
+															<MessageSquarePlus className="w-4 h-4 mr-2" />
+														)}
+														Push to Feedbacks
+													</Button>
+													{tourData.guideID && (
+														<Button 
+															variant="default" 
+															className="flex-1"
+															onClick={handlePushReviewToGuide}
+															disabled={pushReviewToGuideMutation.isPending}
+														>
+															{pushReviewToGuideMutation.isPending ? (
+																<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+															) : (
+																<UserPlus className="w-4 h-4 mr-2" />
+															)}
+															Push to Guide Profile
+														</Button>
 													)}
-													Push to Feedbacks
-												</Button>
+												</div>
 												<div className="flex gap-3">
 													<Button variant="outline" className="flex-1">
 														<FileText className="w-4 h-4 mr-2" />

@@ -1,6 +1,8 @@
 import {
 	previousTours,
 	previousTourFeedbacks,
+	guidePerformanceReviews,
+	tourGuide,
 } from "~/server/db/schema/tour";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod/v4";
@@ -268,5 +270,108 @@ export const previousToursRouter = createTRPCRouter({
 				.where(eq(previousTours.id, input.previousTourId));
 
 			return { success: true };
+		}),
+
+	// Push AI review to guide's public profile
+	pushReviewToGuide: protectedProcedure
+		.input(
+			z.object({
+				previousTourId: z.string(),
+				guideId: z.string(),
+				summary: z.string(),
+				strengths: z.array(z.string()),
+				improvements: z.string().optional(),
+				sentimentScore: z.number().min(0).max(100),
+				rating: z.number().min(1).max(5),
+				redFlags: z.number().min(0).max(1), // 0 = false, 1 = true
+				tourName: z.string(),
+				tourLocation: z.string().optional(),
+				tourDate: z.date().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			// Check if the previous tour exists
+			const previousTour = await ctx.db.query.previousTours.findFirst({
+				where: eq(previousTours.id, input.previousTourId),
+			});
+
+			if (!previousTour) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Previous tour not found",
+				});
+			}
+
+			// Only the tour owner can push reviews
+			if (previousTour.ownerUserID !== ctx.session.user.id) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only the tour owner can push reviews to guides",
+				});
+			}
+
+			// Check if the guide exists
+			const guide = await ctx.db.query.tourGuide.findFirst({
+				where: eq(tourGuide.userID, input.guideId),
+			});
+
+			if (!guide) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Tour guide not found",
+				});
+			}
+
+			// Check if a review already exists for this tour
+			const existingReview = await ctx.db.query.guidePerformanceReviews.findFirst({
+				where: eq(guidePerformanceReviews.previousTourID, input.previousTourId),
+			});
+
+			if (existingReview) {
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "A review has already been pushed for this tour",
+				});
+			}
+
+			// Insert the performance review
+			await ctx.db.insert(guidePerformanceReviews).values({
+				previousTourID: input.previousTourId,
+				guideID: input.guideId,
+				organizationID: ctx.session.user.id,
+				summary: input.summary,
+				strengths: input.strengths,
+				improvements: input.improvements,
+				sentimentScore: input.sentimentScore,
+				rating: input.rating.toFixed(1), // Convert to string with 1 decimal
+				redFlags: input.redFlags,
+				tourName: input.tourName,
+				tourLocation: input.tourLocation,
+				tourDate: input.tourDate,
+			});
+
+			// Calculate new average rating for the guide
+			const allReviews = await ctx.db.query.guidePerformanceReviews.findMany({
+				where: eq(guidePerformanceReviews.guideID, input.guideId),
+			});
+
+			const totalRating = allReviews.reduce((sum, review) => sum + parseFloat(review.rating), 0);
+			const averageRating = totalRating / allReviews.length;
+			const roundedRating = Math.round(averageRating * 10) / 10;
+
+			// Update the guide's rating and total reviews count
+			await ctx.db
+				.update(tourGuide)
+				.set({ 
+					averageRating: roundedRating.toFixed(1),
+					totalReviews: allReviews.length,
+				})
+				.where(eq(tourGuide.userID, input.guideId));
+
+			return { 
+				success: true, 
+				newRating: roundedRating,
+				totalReviews: allReviews.length,
+			};
 		}),
 });

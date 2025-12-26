@@ -148,6 +148,13 @@
       "when": 1765418034418,
       "tag": "0020_fat_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1766733545490,
+      "tag": "0021_gifted_typhoid_mary",
+      "breakpoints": true
     }
   ]
 }

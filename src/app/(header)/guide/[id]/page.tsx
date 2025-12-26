@@ -13,6 +13,9 @@ import {
 	Mail,
 	Clock,
 	CheckCircle,
+	Building2,
+	TrendingUp,
+	AlertTriangle,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -34,12 +37,16 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 
 	const [guideData] = api.guide.getGuideProfileById.useSuspenseQuery(id);
 
-	// Calculate average rating from reviews (points is stored as decimal string)
-	const averageRating =
-		guideData.reviews.length > 0
+	// Use the stored average rating from performance reviews if available, 
+	// otherwise calculate from user reviews
+	const averageRating = guideData.guide.averageRating 
+		? parseFloat(guideData.guide.averageRating)
+		: guideData.reviews.length > 0
 			? guideData.reviews.reduce((sum, r) => sum + parseFloat(r.review.points), 0) /
 			  guideData.reviews.length
 			: 0;
+
+	const totalReviewsCount = guideData.guide.totalReviews ?? 0;
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -132,6 +139,14 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 						<TabsTrigger value="experience">Experience</TabsTrigger>
 						<TabsTrigger value="tours">Current Tours</TabsTrigger>
 						<TabsTrigger value="reviews">Reviews</TabsTrigger>
+						<TabsTrigger value="performance">
+							Performance Reviews
+							{totalReviewsCount > 0 && (
+								<Badge variant="secondary" className="ml-2">
+									{totalReviewsCount}
+								</Badge>
+							)}
+						</TabsTrigger>
 					</TabsList>
 
 					{/* About Tab */}
@@ -355,6 +370,129 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 							<Card>
 								<CardContent className="py-12 text-center">
 									<p className="text-muted-foreground">No reviews yet</p>
+								</CardContent>
+							</Card>
+						)}
+					</TabsContent>
+
+					{/* Performance Reviews Tab */}
+					<TabsContent value="performance" className="space-y-6">
+						{guideData.performanceReviews.length > 0 ? (
+							<div className="space-y-4">
+								{guideData.performanceReviews.map((review) => (
+									<Card key={review.id} className="overflow-hidden">
+										<CardHeader className="pb-3">
+											<div className="flex items-start justify-between">
+												<div className="flex items-center gap-3">
+													<Avatar className="size-10">
+														<AvatarImage src={review.organization.image ?? ""} />
+														<AvatarFallback>
+															<Building2 className="size-5" />
+														</AvatarFallback>
+													</Avatar>
+													<div>
+														<p className="font-medium flex items-center gap-2">
+															{review.organization.name ?? "Organization"}
+															<Badge variant="outline" className="text-xs">
+																Verified Business
+															</Badge>
+														</p>
+														<p className="text-sm text-muted-foreground">
+															{review.tourName}
+															{review.tourLocation && ` • ${review.tourLocation}`}
+														</p>
+													</div>
+												</div>
+												<div className="text-right">
+													<div className="flex items-center gap-1">
+														<Star className="size-4 fill-yellow-400 text-yellow-400" />
+														<span className="font-semibold">
+															{parseFloat(review.rating).toFixed(1)}
+														</span>
+													</div>
+													<p className="text-xs text-muted-foreground">
+														{review.tourDate 
+															? formatter.format(new Date(review.tourDate))
+															: formatter.format(new Date(review.createdAt))
+														}
+													</p>
+												</div>
+											</div>
+										</CardHeader>
+										<CardContent className="space-y-4">
+											{/* Sentiment Score */}
+											<div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+												<TrendingUp className="size-5 text-primary" />
+												<div className="flex-1">
+													<div className="flex items-center justify-between mb-1">
+														<span className="text-sm font-medium">Sentiment Score</span>
+														<Badge 
+															variant={review.sentimentScore >= 70 ? "default" : review.sentimentScore >= 40 ? "secondary" : "destructive"}
+														>
+															{review.sentimentScore}/100
+														</Badge>
+													</div>
+													<div className="w-full bg-muted rounded-full h-2">
+														<div 
+															className={`h-2 rounded-full transition-all ${
+																review.sentimentScore >= 70 ? "bg-green-500" : 
+																review.sentimentScore >= 40 ? "bg-yellow-500" : "bg-red-500"
+															}`}
+															style={{ width: `${review.sentimentScore}%` }}
+														/>
+													</div>
+												</div>
+											</div>
+
+											{/* Red Flags Warning */}
+											{review.redFlags === 1 && (
+												<div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg border border-destructive/30">
+													<AlertTriangle className="size-5 text-destructive" />
+													<span className="text-sm text-destructive font-medium">
+														Safety concerns were noted
+													</span>
+												</div>
+											)}
+
+											{/* Summary */}
+											<div>
+												<p className="text-sm font-medium mb-2">Summary</p>
+												<p className="text-sm text-muted-foreground">{review.summary}</p>
+											</div>
+
+											{/* Strengths */}
+											{review.strengths && review.strengths.length > 0 && (
+												<div>
+													<p className="text-sm font-medium mb-2">Strengths</p>
+													<div className="flex flex-wrap gap-2">
+														{review.strengths.map((strength, index) => (
+															<Badge key={index} variant="secondary" className="bg-green-500/10 text-green-700 dark:text-green-400">
+																{strength}
+															</Badge>
+														))}
+													</div>
+												</div>
+											)}
+
+											{/* Areas for Improvement */}
+											{review.improvements && (
+												<div>
+													<p className="text-sm font-medium mb-2">Areas for Improvement</p>
+													<p className="text-sm text-muted-foreground">{review.improvements}</p>
+												</div>
+											)}
+										</CardContent>
+									</Card>
+								))}
+							</div>
+						) : (
+							<Card>
+								<CardContent className="py-12 text-center">
+									<Building2 className="size-12 mx-auto mb-4 text-muted-foreground/50" />
+									<p className="text-muted-foreground">No performance reviews from organizations yet</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										Performance reviews are added by verified businesses after completing tours
+									</p>
 								</CardContent>
 							</Card>
 						)}

@@ -1,7 +1,7 @@
 import z from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { and, eq, desc, count } from "drizzle-orm";
-import { guiderAppliedTours, guideToTags, tags, tourGuide, tours, tourLeaveRequests, previousTours, review } from "~/server/db/schema/tour";
+import { guiderAppliedTours, guideToTags, tags, tourGuide, tours, tourLeaveRequests, previousTours, review, guidePerformanceReviews } from "~/server/db/schema/tour";
 import { user } from "~/server/db/schema/auth-schema";
 import { TRPCError } from "@trpc/server";
 
@@ -15,7 +15,7 @@ export const tourGuideRouter = createTRPCRouter({
 				.select({
 					guide: tourGuide,
 					user: {
-						id: user.id,
+						id: user.id, 
 						name: user.name,
 						email: user.email,
 						image: user.image,
@@ -74,12 +74,39 @@ export const tourGuideRouter = createTRPCRouter({
 				.orderBy(desc(review.createdAt))
 				.limit(10);
 
+			// Get performance reviews (from organizations)
+			const performanceReviews = await ctx.db
+				.select({
+					id: guidePerformanceReviews.id,
+					summary: guidePerformanceReviews.summary,
+					strengths: guidePerformanceReviews.strengths,
+					improvements: guidePerformanceReviews.improvements,
+					sentimentScore: guidePerformanceReviews.sentimentScore,
+					rating: guidePerformanceReviews.rating,
+					redFlags: guidePerformanceReviews.redFlags,
+					tourName: guidePerformanceReviews.tourName,
+					tourLocation: guidePerformanceReviews.tourLocation,
+					tourDate: guidePerformanceReviews.tourDate,
+					createdAt: guidePerformanceReviews.createdAt,
+					organization: {
+						id: user.id,
+						name: user.name,
+						image: user.image,
+					},
+				})
+				.from(guidePerformanceReviews)
+				.innerJoin(user, eq(guidePerformanceReviews.organizationID, user.id))
+				.where(eq(guidePerformanceReviews.guideID, input))
+				.orderBy(desc(guidePerformanceReviews.createdAt))
+				.limit(20);
+
 			return {
 				...guideData[0],
 				tags: guideTags,
 				completedToursCount: completedToursCount[0]?.count ?? 0,
 				currentTours,
 				reviews: guideReviews,
+				performanceReviews,
 			};
 		}),
 

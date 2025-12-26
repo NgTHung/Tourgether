@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
+import ReactMarkdown from "react-markdown";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
 	month: "2-digit",
@@ -137,9 +138,11 @@ const PreviousTours = () => {
                                 </span>
                                 <StarRating rating={feedback.rating} />
                               </div>
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {feedback.feedback}
-                              </p>
+                              <div className="text-sm text-muted-foreground line-clamp-2 prose prose-sm dark:prose-invert max-w-none">
+                                <ReactMarkdown>
+                                  {feedback.feedback}
+                                </ReactMarkdown>
+                              </div>
                             </div>
                           </div>
                         ))}

@@ -124,6 +124,8 @@ export const tourGuide = pgTable("tour_guide", {
 		.default(sql`'{}'::text[]`),
 	description: text("description"),
 	cvUrl: text("cv_url"),
+	averageRating: decimal("average_rating", { precision: 2, scale: 1 }), // Calculated from performance reviews
+	totalReviews: integer("total_reviews").default(0), // Count of performance reviews
 });
 
 export const tourGuideRelations = relations(tourGuide, ({ many, one }) => ({
@@ -131,6 +133,7 @@ export const tourGuideRelations = relations(tourGuide, ({ many, one }) => ({
 	tours: many(tours),
 	user: one(user, { fields: [tourGuide.userID], references: [user.id] }),
 	guiderAppliedTours: many(guiderAppliedTours),
+	performanceReviews: many(guidePerformanceReviews),
 }));
 
 export const tags = pgTable("tags", {
@@ -336,4 +339,38 @@ export const previousTourFeedbacks = pgTable("previous_tour_feedbacks", {
 export const previousTourFeedbacksRelations = relations(previousTourFeedbacks, ({ one }) => ({
 	previousTour: one(previousTours, { fields: [previousTourFeedbacks.previousTourID], references: [previousTours.id] }),
 	user: one(user, { fields: [previousTourFeedbacks.userID], references: [user.id] }),
+}));
+
+// Guide Performance Reviews - Reviews pushed to guide's public profile
+export const guidePerformanceReviews = pgTable("guide_performance_reviews", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	guideID: text("guide_id").references(() => tourGuide.userID, { onDelete: "cascade" }).notNull(),
+	previousTourID: uuid("previous_tour_id").references(() => previousTours.id, { onDelete: "set null" }),
+	organizationID: text("organization_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+	// Separate fields for the review
+	summary: text("summary").notNull(),
+	strengths: text("strengths").array().default(sql`'{}'::text[]`),
+	improvements: text("improvements"),
+	sentimentScore: integer("sentiment_score").notNull(), // 0-100
+	rating: decimal("rating", { precision: 2, scale: 1 }).notNull(), // 1.0-5.0
+	redFlags: integer("red_flags").default(0).notNull(), // boolean as 0/1
+	tourName: text("tour_name").notNull(), // Store tour name for reference
+	tourLocation: text("tour_location"),
+	tourDate: timestamp("tour_date"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const guidePerformanceReviewsRelations = relations(guidePerformanceReviews, ({ one }) => ({
+	guide: one(tourGuide, {
+		fields: [guidePerformanceReviews.guideID],
+		references: [tourGuide.userID],
+	}),
+	previousTour: one(previousTours, {
+		fields: [guidePerformanceReviews.previousTourID],
+		references: [previousTours.id],
+	}),
+	organization: one(user, {
+		fields: [guidePerformanceReviews.organizationID],
+		references: [user.id],
+	}),
 }));
