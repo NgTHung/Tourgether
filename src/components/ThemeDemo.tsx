@@ -1,6 +1,6 @@
-import { useTheme } from "@/hooks/useTheme";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTheme } from "~/hooks/useTheme";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Sun, Moon, Monitor } from "lucide-react";
 
 const ThemeDemo = () => {

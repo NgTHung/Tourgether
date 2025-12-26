@@ -1,0 +1,1 @@
+ALTER TABLE "tours" ADD COLUMN "guides_needed" integer DEFAULT 1;

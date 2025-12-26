@@ -1,7 +1,7 @@
 import { MapPin, Calendar, DollarSign, Star, Users } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardFooter } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
 
 interface TourCardProps {
   id: string;
@@ -50,7 +50,7 @@ const TourCard = ({
       </div>
       <CardContent className="p-4 space-y-3">
         <div>
-          <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
             {title}
           </h3>
           {businessName && (

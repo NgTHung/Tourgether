@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react";
 import {
   Dialog,
@@ -6,13 +8,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp";
+} from "~/components/ui/input-otp";
 
 interface EmailVerificationModalProps {
   open: boolean;
@@ -42,7 +44,7 @@ const EmailVerificationModal = ({
         <DialogHeader>
           <DialogTitle>Verify Your Email</DialogTitle>
           <DialogDescription>
-            To protect your account, we've sent a 6-digit verification code to{" "}
+            To protect your account, we&apos;ve sent a 6-digit verification code to{" "}
             <strong>{email}</strong>. Please enter it below to save your changes.
           </DialogDescription>
         </DialogHeader>

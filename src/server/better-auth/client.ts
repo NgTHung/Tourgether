@@ -7,43 +7,48 @@ export const authClient = createAuthClient({
 			user: {
 				role: {
 					type: "string",
-					enum: ["ADMIN", "USER", "GUIDE", "ORGANIZATION"],
+					enum: ["GUIDE", "ORGANIZATION"],
 					required: true,
-					input: false,
+					input: true,
 				},
 				phonenumber: {
 					type: "string",
-					required: true,
+					required: false,
 					input: true,
 				},
 				address: {
 					type: "string",
-					required: true,
+					required: false,
 					input: true,
 				},
 				gender: {
 					type: "string",
-					required: true,
+					required: false,
 					input: true,
 				},
 				birthday: {
 					type: "string",
-					required: true,
+					required: false,
 					input: true,
 				},
 				verificationID: {
 					type: "string",
-					required: true,
+					required: false,
 					input: true,
 				},
 				rating: {
 					type: "number",
-					required: true,
+					required: false,
 					input: false,
 				},
 				mediapage: {
 					type: "string",
-					required: true,
+					required: false,
+					input: false,
+				},
+				finishedOnboardings: {
+					type: "boolean",
+					required: false,
 					input: false,
 				},
 			},

@@ -4,6 +4,9 @@ import { tourGuideRouter } from "./routers/tourGuide";
 import { organizationRouter } from "./routers/organizations";
 import { reviewRouter } from "./routers/reviews";
 import { socialRouter } from "./routers/socialNetwork";
+import { userRouter } from "./routers/users";
+import { previousToursRouter } from "./routers/previousTours";
+import { aiFeedbackRouter } from "./routers/ai-feedback";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +19,9 @@ export const appRouter = createTRPCRouter({
     organization: organizationRouter,
     social: socialRouter,
     reviews: reviewRouter,
+    user: userRouter,
+    previousTours: previousToursRouter,
+    aiFeedback: aiFeedbackRouter,
 });
 
 // export type definition of API

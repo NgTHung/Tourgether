@@ -7,6 +7,6 @@ export default {
 	dialect: "postgresql",
 	dbCredentials: {
 		url: env.DATABASE_URL,
-	},
-	tablesFilter: ["tourgether_*"],
+		ssl: true
+	}
 } satisfies Config;

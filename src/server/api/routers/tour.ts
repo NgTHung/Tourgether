@@ -1,74 +1,208 @@
-import { tags, tours, tourToTags, userToTours } from "~/server/db/schema/tour";
+import {
+	itinerary,
+	tags,
+	tours,
+	tourToTags,
+	tourReviews,
+	guiderAppliedTours,
+	previousTours,
+	tourGuide,
+} from "~/server/db/schema/tour";
+import { user } from "~/server/db/schema/auth-schema";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
-import z from "zod";
-import { and, eq, or } from "drizzle-orm";
+import { z } from "zod/v4";
+import { and, avg, eq, or, isNull, gte, lte } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+// import { zFilterState } from "~/components/FilterBar";
+
+export const zFilterState = z.object({
+  city: z.string(),
+  dateRange: z
+	.object({
+	  from: z.union([z.date(), z.undefined()]),
+	  to: z.date().optional(),
+	})
+	.optional(),
+});
 
 export const tourRouter = createTRPCRouter({
-	getAccessibleTours: protectedProcedure.query(async ({ ctx }) => {
-		const ownedTours = await ctx.db
-			.select()
-			.from(tours)
-			.where(eq(tours.ownerUserID, ctx.session.user.id));
-
-		const joinedToursData = await ctx.db
-			.select({
-				tour: tours,
-				joinedAt: userToTours.joinedAt,
-			})
-			.from(userToTours)
-			.innerJoin(tours, eq(userToTours.tourID, tours.id))
-			.where(eq(userToTours.userID, ctx.session.user.id));
-
-		return {
-			ownedTours,
-			joinedTours: joinedToursData.map((item) => ({
-				...item.tour,
-				joinedAt: item.joinedAt,
-			})),
-		};
+	getAccessibleTours: protectedProcedure
+		.input(zFilterState)
+		.query(async ({ ctx, input }) => {
+			const availableTours = await ctx.db.query.tours.findMany({
+				where: and(
+					input.city ? eq(tours.location, input.city) : undefined,
+					input.dateRange
+						? and(
+								input.dateRange.from
+									? gte(
+											tours.date,
+											new Date(input.dateRange.from),
+										)
+									: undefined,
+								input.dateRange.to
+									? lte(
+											tours.date,
+											new Date(input.dateRange.to),
+										)
+									: undefined,
+							)
+						: undefined,
+					eq(tours.status, "PENDING"),
+				),
+				with: {
+					owner: {
+						columns: {
+							id: true,
+							name: true,
+							rating: true,
+						},
+					},
+				},
+			});
+			return availableTours;
+		}),
+	getOwnedTours: protectedProcedure
+		.input(zFilterState)
+		.query(async ({ ctx, input }) => {
+			const ownedTours = await ctx.db.query.tours.findMany({
+				where: and(
+					eq(tours.ownerUserID, ctx.session.user.id),
+					input.city ? eq(tours.location, input.city) : undefined,
+					input.dateRange
+						? and(
+								input.dateRange.from
+									? gte(
+											tours.date,
+											new Date(input.dateRange.from),
+										)
+									: undefined,
+								input.dateRange.to
+									? lte(
+											tours.date,
+											new Date(input.dateRange.to),
+										)
+									: undefined,
+							)
+						: undefined,
+					eq(tours.status, "PENDING"),
+				),
+				with: {
+					guiderAppliedTours: {
+						columns: {
+							guideID: true,
+						},
+					},
+				},
+			});
+			// Add applicant count to each tour
+			return ownedTours.map((tour) => ({
+				...tour,
+				applicantsCount: tour.guiderAppliedTours?.length ?? 0,
+			}));
+		}),
+	getCompletedTours: protectedProcedure.query(async ({ ctx }) => {
+		const rows = await ctx.db.query.tours.findMany({
+			where: and(
+				eq(tours.ownerUserID, ctx.session.user.id),
+				eq(tours.status, "COMPLETED"),
+			),
+			with: {
+				guide: {
+					columns: {},
+					with: {
+						user: {
+							columns: {
+								name: true,
+							},
+						},
+					},
+				},
+				reviews: {
+					with: {
+						user: {},
+					},
+				},
+			},
+		});
+		const completedTours = rows.map((tour) => {
+			const rating =
+				tour.reviews.length > 0
+					? tour.reviews.reduce(
+							(acc, review) => acc + review.rating,
+							0,
+						) / tour.reviews.length
+					: null;
+			const newTour = Object.assign({}, tour, { rating: rating });
+			return newTour;
+		});
+		return completedTours;
 	}),
 	getTourById: protectedProcedure
-		.input(z.string())
+		.input(
+			z.object({
+				id: z.string(),
+				shouldGetOwner: z.boolean().default(false),
+				shouldGetGuide: z.boolean().default(false),
+				shouldGetItineraries: z.boolean().default(false),
+				shouldGetRatings: z.boolean().default(false),
+				shouldGetTags: z.boolean().default(false),
+			}),
+		)
 		.query(async ({ ctx, input }) => {
-			// Check if user owns the tour
-			const tour = await ctx.db
-				.select()
-				.from(tours)
-				.where(
-					and(
-						eq(tours.id, input),
+			const tour = await ctx.db.query.tours.findFirst({
+				where: and(
+					eq(tours.id, input.id),
+					or(
 						eq(tours.ownerUserID, ctx.session.user.id),
+						eq(tours.guideID, ctx.session.user.id),
+						// Allow students to view PENDING tours (available for application)
+						eq(tours.status, "PENDING"),
 					),
-				)
-				.limit(1);
-
-			if (tour[0]) {
-				return tour[0];
+				),
+				with: {
+					owner: input.shouldGetOwner ? true : undefined,
+					guide: input.shouldGetGuide ? {
+						with: {
+							user: true,
+						},
+					} : undefined,
+					itineraries: input.shouldGetItineraries ? true : undefined,
+				},
+			});
+			if (!tour) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Tour not found or unauthorized",
+				});
 			}
-
-			// If not owner, check if user has joined the tour
-			const joinedTour = await ctx.db
-				.select({
-					tour: tours,
-					joinedAt: userToTours.joinedAt,
-				})
-				.from(userToTours)
-				.innerJoin(tours, eq(userToTours.tourID, tours.id))
-				.where(
-					and(
-						eq(userToTours.tourID, input),
-						eq(userToTours.userID, ctx.session.user.id),
-					),
-				)
-				.limit(1);
-
-			if (!joinedTour[0]) {
-				throw new Error("Tour not found or unauthorized");
+			let averageRating: string | null = null;
+			if (input.shouldGetRatings) {
+				const avgResult = await ctx.db
+					.select({
+						average: avg(tourReviews.rating),
+					})
+					.from(tourReviews)
+					.where(eq(tourReviews.tourID, input.id))
+					.groupBy(tourReviews.tourID);
+				averageRating = avgResult[0]?.average ?? null;
 			}
-
+			let tagings: string[] = [];
+			if (input.shouldGetTags) {
+				const rows = await ctx.db
+					.select({
+						id: tags.id,
+						name: tags.tags,
+					})
+					.from(tourToTags)
+					.innerJoin(tags, eq(tourToTags.tagID, tags.id))
+					.where(eq(tourToTags.tourID, input.id));
+				tagings = rows.map((tag) => tag.name);
+			}
 			return {
-				...joinedTour[0].tour,
-				joinedAt: joinedTour[0].joinedAt,
+				tour: tour,
+				averageRating: averageRating,
+				tags: tagings,
 			};
 		}),
 	createTour: protectedProcedure
@@ -82,14 +216,31 @@ export const tourRouter = createTRPCRouter({
 					message: "Invalid date format",
 				}),
 				guideID: z.string().nullable(),
+				images: z.array(z.string()).default([]),
+				tags: z.array(z.string()).default([]),
+				itineraries: z.array(z.object({
+					title: z.string(),
+					location: z.string(),
+					duration: z.number().int(),
+					activities: z.number().int(),
+					description: z.string(),
+					time: z.string(),
+				})).default([]),
+				duration: z.number().int().default(480),
+				groupSize: z.number().int().default(15),
+				languages: z.array(z.string()).default(["English"]),
+				inclusions: z.array(z.string()).default([]),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
 			if (
 				ctx.session.user.role !== "ORGANIZATION" &&
-				ctx.session.user.role !== "TOUR_GUIDE"
+				ctx.session.user.role !== "GUIDE"
 			) {
-				throw new Error("Unauthorized");
+				return new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only organizations or guides can create tours",
+				});
 			}
 
 			const newTour = await ctx.db
@@ -100,10 +251,63 @@ export const tourRouter = createTRPCRouter({
 					price: input.price,
 					location: input.location,
 					date: new Date(input.date),
-					ownerUserID: ctx.session.user.id!,
+					ownerUserID: ctx.session.user.id,
 					guideID: input.guideID,
+					thumbnailUrl: input.images[0] ?? "",
+					galleries: input.images,
+					duration: input.duration,
+					groupSize: input.groupSize,
+					languages: input.languages,
+					inclusions: input.inclusions,
 				})
 				.returning();
+
+			const tourId = newTour[0]!.id;
+
+			// Save tags
+			if (input.tags.length > 0) {
+				for (const tagName of input.tags) {
+					// Find or create tag
+					let existingTag = await ctx.db.query.tags.findFirst({
+						where: eq(tags.tags, tagName),
+					});
+					
+					if (!existingTag) {
+						const newTag = await ctx.db
+							.insert(tags)
+							.values({ tags: tagName })
+							.returning();
+						existingTag = newTag[0];
+					}
+
+					// Link tag to tour
+					if (existingTag) {
+						await ctx.db
+							.insert(tourToTags)
+							.values({
+								tourID: tourId,
+								tagID: existingTag.id,
+							})
+							.onConflictDoNothing();
+					}
+				}
+			}
+
+			// Save itineraries
+			if (input.itineraries.length > 0) {
+				for (const item of input.itineraries) {
+					await ctx.db.insert(itinerary).values({
+						ownTourID: tourId,
+						title: item.title,
+						location: item.location,
+						duration: item.duration,
+						activities: item.activities,
+						description: item.description,
+						time: item.time,
+					});
+				}
+			}
+
 			return newTour;
 		}),
 	updateTour: protectedProcedure
@@ -121,14 +325,31 @@ export const tourRouter = createTRPCRouter({
 					})
 					.optional(),
 				guideID: z.string().nullable().optional(),
+				images: z.array(z.string()).optional(),
+				tags: z.array(z.string()).optional(),
+				itineraries: z.array(z.object({
+					title: z.string(),
+					location: z.string(),
+					duration: z.number().int(),
+					activities: z.number().int(),
+					description: z.string(),
+					time: z.string(),
+				})).optional(),
+				duration: z.number().int().optional(),
+				groupSize: z.number().int().optional(),
+				languages: z.array(z.string()).optional(),
+				inclusions: z.array(z.string()).optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
 			if (
 				ctx.session.user.role !== "ORGANIZATION" &&
-				ctx.session.user.role !== "TOUR_GUIDE"
+				ctx.session.user.role !== "GUIDE"
 			) {
-				throw new Error("Unauthorized");
+				return new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only organizations or guides can create tours",
+				});
 			}
 
 			const updatedTour = await ctx.db
@@ -140,6 +361,12 @@ export const tourRouter = createTRPCRouter({
 					location: input.location,
 					date: input.date ? new Date(input.date) : undefined,
 					guideID: input.guideID,
+					thumbnailUrl: input.images ? input.images[0] : undefined,
+					galleries: input.images,
+					duration: input.duration,
+					groupSize: input.groupSize,
+					languages: input.languages,
+					inclusions: input.inclusions,
 				})
 				.where(
 					and(
@@ -150,7 +377,60 @@ export const tourRouter = createTRPCRouter({
 				.returning();
 
 			if (updatedTour.length === 0) {
-				throw new Error("Tour not found or unauthorized");
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Tour not found or unauthorized",
+				});
+			}
+
+			// Update tags if provided
+			if (input.tags !== undefined) {
+				// Delete existing tour-tag links
+				await ctx.db.delete(tourToTags).where(eq(tourToTags.tourID, input.id));
+
+				// Add new tags
+				for (const tagName of input.tags) {
+					let existingTag = await ctx.db.query.tags.findFirst({
+						where: eq(tags.tags, tagName),
+					});
+
+					if (!existingTag) {
+						const newTag = await ctx.db
+							.insert(tags)
+							.values({ tags: tagName })
+							.returning();
+						existingTag = newTag[0];
+					}
+
+					if (existingTag) {
+						await ctx.db
+							.insert(tourToTags)
+							.values({
+								tourID: input.id,
+								tagID: existingTag.id,
+							})
+							.onConflictDoNothing();
+					}
+				}
+			}
+
+			// Update itineraries if provided
+			if (input.itineraries !== undefined) {
+				// Delete existing itineraries
+				await ctx.db.delete(itinerary).where(eq(itinerary.ownTourID, input.id));
+
+				// Add new itineraries
+				for (const item of input.itineraries) {
+					await ctx.db.insert(itinerary).values({
+						ownTourID: input.id,
+						title: item.title,
+						location: item.location,
+						duration: item.duration,
+						activities: item.activities,
+						description: item.description,
+						time: item.time,
+					});
+				}
 			}
 
 			return updatedTour[0];
@@ -168,9 +448,77 @@ export const tourRouter = createTRPCRouter({
 				)
 				.returning();
 			if (deletedTour.length === 0) {
-				throw new Error("Tour not found or unauthorized");
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Tour not found or unauthorized",
+				});
 			}
 			return deletedTour[0];
+		}),
+	markTourAsCompleted: protectedProcedure
+		.input(z.string())
+		.mutation(async ({ ctx, input }) => {
+			if (ctx.session.user.role !== "ORGANIZATION") {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only organizations can mark tours as completed",
+				});
+			}
+
+			// Get the tour with guide info
+			const tour = await ctx.db.query.tours.findFirst({
+				where: and(
+					eq(tours.id, input),
+					eq(tours.ownerUserID, ctx.session.user.id),
+				),
+				with: {
+					guide: {
+						with: {
+							user: true,
+						},
+					},
+					reviews: true,
+				},
+			});
+
+			if (!tour) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Tour not found or unauthorized",
+				});
+			}
+
+			// Calculate average rating from reviews
+			const avgRating = tour.reviews.length > 0
+				? (tour.reviews.reduce((acc, r) => acc + r.rating, 0) / tour.reviews.length).toFixed(2)
+				: null;
+
+			// Create the previous tour entry
+			const newPreviousTour = await ctx.db
+				.insert(previousTours)
+				.values({
+					originalTourId: tour.id,
+					name: tour.name,
+					description: tour.description,
+					price: tour.price,
+					location: tour.location,
+					date: tour.date,
+					thumbnailUrl: tour.thumbnailUrl,
+					galleries: tour.galleries,
+					ownerUserID: tour.ownerUserID,
+					guideID: tour.guideID,
+					guideName: tour.guide?.user?.name ?? null,
+					createdAt: tour.createdAt,
+					averageRating: avgRating,
+				})
+				.returning();
+
+			// Delete the original tour (this will cascade delete related records)
+			await ctx.db
+				.delete(tours)
+				.where(eq(tours.id, input));
+
+			return newPreviousTour[0];
 		}),
 	getTags: protectedProcedure
 		.input(z.string())
@@ -186,22 +534,22 @@ export const tourRouter = createTRPCRouter({
 					),
 				)
 				.limit(1);
-
-			// If not owner, check if user has joined the tour
-			if (isOwner.length === 0) {
-				const hasJoined = await ctx.db
-					.select({ tourID: userToTours.tourID })
-					.from(userToTours)
+			if (!isOwner[0]) {
+				const isGuiding = await ctx.db
+					.select({ id: tours.id })
+					.from(tours)
 					.where(
 						and(
-							eq(userToTours.tourID, input),
-							eq(userToTours.userID, ctx.session.user.id),
+							eq(tours.id, input),
+							eq(tours.guideID, ctx.session.user.id),
 						),
 					)
 					.limit(1);
-
-				if (hasJoined.length === 0) {
-					throw new Error("Tour not found or unauthorized");
+				if (!isGuiding[0]) {
+					throw new TRPCError({
+						code: "UNAUTHORIZED",
+						message: "Only tour owners or guides can view tags",
+					});
 				}
 			}
 
@@ -216,5 +564,120 @@ export const tourRouter = createTRPCRouter({
 				.where(eq(tourToTags.tourID, input));
 
 			return tourTags;
+		}),
+	getIternaries: protectedProcedure
+		.input(z.string())
+		.query(async ({ ctx, input }) => {
+			// Check if user owns the tour
+			const isOwner = await ctx.db
+				.select({ id: tours.id })
+				.from(tours)
+				.where(
+					and(
+						eq(tours.id, input),
+						eq(tours.ownerUserID, ctx.session.user.id),
+					),
+				)
+				.limit(1);
+			if (!isOwner[0]) {
+				const isGuiding = await ctx.db
+					.select({ id: tours.id })
+					.from(tours)
+					.where(
+						and(
+							eq(tours.id, input),
+							eq(tours.guideID, ctx.session.user.id),
+						),
+					)
+					.limit(1);
+				if (!isGuiding[0]) {
+					throw new TRPCError({
+						code: "UNAUTHORIZED",
+						message:
+							"Only tour owners or guides can view itineraries",
+					});
+				}
+			}
+
+			// User is authorized, get the itineraries
+			const itineraries = await ctx.db
+				.select()
+				.from(itinerary)
+				.where(eq(itinerary.ownTourID, input));
+
+			return itineraries;
+		}),
+	addItinerary: protectedProcedure
+		.input(
+			z.object({
+				ownTourID: z.string(),
+				title: z.string(),
+				description: z.string(),
+				duration: z.number().int(),
+				activities: z.number().int(),
+				location: z.string(),
+				time: z.iso.time(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			if (
+				ctx.session.user.role !== "ORGANIZATION" &&
+				ctx.session.user.role !== "GUIDE"
+			) {
+				return new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only organizations or guides can create tours",
+				});
+			}
+
+			const newItinerary = await ctx.db
+				.insert(itinerary)
+				.values({
+					ownTourID: input.ownTourID,
+					title: input.title,
+					description: input.description,
+					duration: input.duration,
+					activities: input.activities,
+					location: input.location,
+					time: input.time,
+				})
+				.returning();
+
+			return newItinerary[0];
+		}),
+	getAppliedGuidesForTour: protectedProcedure
+		.input(z.string())
+		.query(async ({ ctx, input }) => {
+			if (ctx.session.user.role !== "ORGANIZATION") {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only tour owners can view applied guides",
+				});
+			}
+			const rows = await ctx.db
+				.select()
+				.from(tours)
+				.where(eq(tours.id, input))
+				.innerJoin(
+					guiderAppliedTours,
+					eq(tours.id, guiderAppliedTours.tourID),
+				)
+				.innerJoin(user, eq(guiderAppliedTours.guideID, user.id));
+			const appliedGuides = rows.reduce<
+				Map<string, { user: typeof user.$inferSelect; tours: number }>
+			>((acc, row) => {
+				if (row.guider_applied_tours?.guideID) {
+					if (!acc.has(row.guider_applied_tours.guideID)) {
+						acc.set(row.guider_applied_tours.guideID, {
+							user: row.user,
+							tours: 0,
+						});
+					}
+					acc.get(row.guider_applied_tours.guideID)!.tours += 1;
+				}
+				return acc;
+			}, new Map());
+
+			return appliedGuides;
 		}),
 });

@@ -1,45 +1,50 @@
+"use client";
+
 import { Search, User, Settings, LogOut, Compass } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
-import SettingsModal from "@/components/SettingsModal";
+} from "~/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import SettingsModal from "~/components/SettingsModal";
+import { useSession } from "./AuthProvider";
+import { authClient } from "~/server/better-auth/client";
 
-interface HeaderProps {
-  userRole?: "student" | "business" | "traveler";
-}
-
-const Header = ({ userRole }: HeaderProps) => {
-  const navigate = useNavigate();
+const Header = () => {
+  const router = useRouter();
 
   const handleLogout = () => {
-    navigate("/auth");
+    authClient.signOut()
   };
+
+  const {
+      data: session,
+      isPending, //loading state
+      error, //error object
+      refetch, //refetch the session
+    } = useSession();
 
   const handleLogoClick = () => {
     // Navigate to appropriate dashboard based on user role
-    if (userRole === "student") {
-      navigate("/student/dashboard");
-    } else if (userRole === "business") {
-      navigate("/business/dashboard");
-    } else if (userRole === "traveler") {
-      navigate("/traveler/dashboard");
+    if (session?.user.role === "GUIDE") {
+      router.push("/student/dashboard");
+    } else if (session?.user.role === "ORGANIZATION") {
+      router.push("/business/dashboard");
     } else {
-      navigate("/");
+      router.push("/");
     }
   };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-soft">{" "}
-      <div className="container flex h-16 items-center px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Left Column - Logo */}
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0">
           <button
             onClick={handleLogoClick}
             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
@@ -52,8 +57,8 @@ const Header = ({ userRole }: HeaderProps) => {
         </div>
 
         {/* Center Column - Search Bar */}
-        <div className="flex-1 flex justify-center px-4">
-          <div className="w-full max-w-2xl relative">
+        <div className="flex-1 flex justify-center px-4 max-w-2xl mx-auto">
+          <div className="w-full relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="search"
@@ -64,7 +69,7 @@ const Header = ({ userRole }: HeaderProps) => {
         </div>
 
         {/* Right Column - User Profile */}
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -74,14 +79,12 @@ const Header = ({ userRole }: HeaderProps) => {
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium">
-                  {userRole === "student" && "Student Account"}
-                  {userRole === "business" && "Business Account"}
-                  {userRole === "traveler" && "Traveler Account"}
+                  {session?.user.name}
                 </p>
-                <p className="text-xs text-muted-foreground">user@example.com</p>
+                <p className="text-xs text-muted-foreground">{session?.user.email}</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/account")}>
+              <DropdownMenuItem onClick={() => router.push("/account")}>
                 <User className="w-4 h-4 mr-2" />
                 View My Account
               </DropdownMenuItem>

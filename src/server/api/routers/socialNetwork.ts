@@ -2,6 +2,7 @@ import { posts, likes, comments } from "~/server/db/schema/social-media";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import z from "zod";
 import { and, eq, desc, sql } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const socialRouter = createTRPCRouter({
 	getAllPosts: publicProcedure
@@ -16,13 +17,21 @@ export const socialRouter = createTRPCRouter({
 		.query(async ({ ctx, input }) => {
 			const { limit = 20, offset = 0 } = input ?? {};
 
-			const postsList = await ctx.db
-				.select()
-				.from(posts)
-				.orderBy(desc(posts.createdAt))
-				.limit(limit)
-				.offset(offset);
-
+			const postsList = await ctx.db.query.posts.findMany({
+				orderBy: (post) => [desc(post.createdAt)],
+				limit: limit,
+				offset: offset,
+				with: {
+					postedBy: {
+						columns: { id: true, name: true, image: true },
+					},
+				},
+				extras: {
+					likesCount: sql`(SELECT COUNT(*) FROM "likes" WHERE "likes"."post_id" = "posts"."id")`.as("likesCount"),
+					commentsCount: sql`(SELECT COUNT(*) FROM "comments" WHERE "comments"."post_id" = "posts"."id")`.as("commentsCount"),
+					likedByCurrentUser: sql`(SELECT EXISTS(SELECT 1 FROM "likes" WHERE "likes"."post_id" = "posts"."id" AND "likes"."user_id" = ${ctx.session?.user.id ?? ""}))`.as("likedByCurrentUser"),
+				}
+			});
 			return postsList;
 		}),
 
@@ -36,7 +45,7 @@ export const socialRouter = createTRPCRouter({
 				.limit(1);
 
 			if (!post[0]) {
-				throw new Error("Post not found");
+				throw new TRPCError({ message: "Post not found", code: "NOT_FOUND" });
 			}
 
 			return post[0];
@@ -45,7 +54,6 @@ export const socialRouter = createTRPCRouter({
 	createPost: protectedProcedure
 		.input(
 			z.object({
-				title: z.string().min(1).max(200),
 				content: z.string().min(1).max(5000),
 			}),
 		)
@@ -53,8 +61,9 @@ export const socialRouter = createTRPCRouter({
 			const newPost = await ctx.db
 				.insert(posts)
 				.values({
-					title: input.title,
 					content: input.content,
+					postedById: ctx.session.user.id,
+
 				})
 				.returning();
 
@@ -65,7 +74,6 @@ export const socialRouter = createTRPCRouter({
 		.input(
 			z.object({
 				postID: z.string(),
-				title: z.string().min(1).max(200).optional(),
 				content: z.string().min(1).max(5000).optional(),
 			}),
 		)
@@ -73,14 +81,13 @@ export const socialRouter = createTRPCRouter({
 			const updatedPost = await ctx.db
 				.update(posts)
 				.set({
-					title: input.title,
 					content: input.content,
 				})
 				.where(eq(posts.id, input.postID))
 				.returning();
 
 			if (updatedPost.length === 0) {
-				throw new Error("Post not found");
+				throw new TRPCError({ message: "Post not found", code: "NOT_FOUND" });
 			}
 
 			return updatedPost[0];
@@ -95,7 +102,7 @@ export const socialRouter = createTRPCRouter({
 				.returning();
 
 			if (deletedPost.length === 0) {
-				throw new Error("Post not found");
+				throw new TRPCError({ message: "Post not found", code: "NOT_FOUND" });
 			}
 
 			return deletedPost[0];
@@ -104,14 +111,11 @@ export const socialRouter = createTRPCRouter({
 	getPostLikes: publicProcedure
 		.input(z.string())
 		.query(async ({ ctx, input }) => {
-			const likesCount = await ctx.db
-				.select({ count: sql<number>`count(*)` })
-				.from(likes)
-				.where(eq(likes.postID, input));
+			const likesCount = await ctx.db.$count(likes, eq(likes.postID, input));
 
 			return {
 				postID: input,
-				likesCount: Number(likesCount[0]?.count ?? 0),
+				likesCount: Number(likesCount),
 			};
 		}),
 
@@ -145,7 +149,7 @@ export const socialRouter = createTRPCRouter({
 				.limit(1);
 
 			if (!post[0]) {
-				throw new Error("Post not found");
+				throw new TRPCError({ message: "Post not found", code: "NOT_FOUND" });
 			}
 
 			const existingLike = await ctx.db
@@ -160,13 +164,20 @@ export const socialRouter = createTRPCRouter({
 				.limit(1);
 
 			if (existingLike[0]) {
-				throw new Error("Post already liked");
+				await ctx.db
+					.delete(likes)
+					.where(
+						and(
+							eq(likes.postID, input),
+							eq(likes.userID, ctx.session.user.id),
+						),
+					);
+			} else {
+				await ctx.db.insert(likes).values({
+					postID: input,
+					userID: ctx.session.user.id,
+				});
 			}
-
-			await ctx.db.insert(likes).values({
-				postID: input,
-				userID: ctx.session.user.id,
-			});
 
 			return { success: true, postID: input };
 		}),
@@ -208,7 +219,7 @@ export const socialRouter = createTRPCRouter({
 				.limit(1);
 
 			if (!comment[0]) {
-				throw new Error("Comment not found");
+				throw new TRPCError({ message: "Comment not found", code: "NOT_FOUND" });
 			}
 
 			return comment[0];
@@ -229,7 +240,7 @@ export const socialRouter = createTRPCRouter({
 				.limit(1);
 
 			if (!post[0]) {
-				throw new Error("Post not found");
+				throw new TRPCError({ message: "Post not found", code: "NOT_FOUND" });
 			}
 
 			const newComment = await ctx.db
@@ -266,7 +277,7 @@ export const socialRouter = createTRPCRouter({
 				.returning();
 
 			if (updatedComment.length === 0) {
-				throw new Error("Comment not found or unauthorized");
+				throw new TRPCError({ message: "Comment not found or unauthorized", code: "NOT_FOUND" });
 			}
 
 			return updatedComment[0];
@@ -286,7 +297,7 @@ export const socialRouter = createTRPCRouter({
 				.returning();
 
 			if (deletedComment.length === 0) {
-				throw new Error("Comment not found or unauthorized");
+				throw new TRPCError({ message: "Comment not found or unauthorized", code: "NOT_FOUND" });
 			}
 
 			return deletedComment[0];

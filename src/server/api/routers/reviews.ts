@@ -2,7 +2,6 @@ import {
 	review,
 	tourReviews,
 	tours,
-	userToTours,
 } from "~/server/db/schema/tour";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import z from "zod";
@@ -157,17 +156,6 @@ export const reviewRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const [joinedTour] = await ctx.db
-				.select()
-				.from(userToTours)
-				.where(
-					and(
-						eq(userToTours.tourID, input.tourID),
-						eq(userToTours.userID, ctx.session.user.id),
-					),
-				)
-				.limit(1);
-
 			const [ownedTour] = await ctx.db
 				.select()
 				.from(tours)
@@ -179,8 +167,8 @@ export const reviewRouter = createTRPCRouter({
 				)
 				.limit(1);
 
-			if (!joinedTour && !ownedTour) {
-				throw new Error("You must join or own the tour to review it");
+			if (!ownedTour) {
+				throw new Error("You must own the tour to review it");
 			}
 
 			const existingReview = await ctx.db

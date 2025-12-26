@@ -1,48 +1,54 @@
+"use client";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Calendar } from "~/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "~/components/ui/popover";
 import { Calendar as CalendarIcon, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { DateRange } from "react-day-picker";
+import { cn } from "~/lib/utils";
+import { type DateRange } from "react-day-picker";
+import z from "zod";
 
 interface FilterBarProps {
-  userRole: "student" | "business" | "traveler";
   onApplyFilters: (filters: FilterState) => void;
 }
 
 export interface FilterState {
   dateRange?: DateRange;
   city: string;
-  priceRange?: [number, number];
 }
 
-const FilterBar = ({ userRole, onApplyFilters }: FilterBarProps) => {
+export const zFilterState = z.object({
+  city: z.string(),
+  dateRange: z
+    .object({
+      from: z.union([z.date(), z.undefined()]),
+      to: z.date().optional(),
+    })
+    .optional(),
+}) satisfies z.ZodType<FilterState>;
+
+const FilterBar = ({ onApplyFilters }: FilterBarProps) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [city, setCity] = useState("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
   const [showFilters, setShowFilters] = useState(false);
 
   const handleApply = () => {
     onApplyFilters({
       dateRange,
       city,
-      ...(userRole === "traveler" && { priceRange }),
     });
   };
 
   const handleReset = () => {
     setDateRange(undefined);
     setCity("");
-    setPriceRange([0, 500]);
   };
 
   return (
@@ -113,23 +119,6 @@ const FilterBar = ({ userRole, onApplyFilters }: FilterBarProps) => {
             placeholder="e.g., Rome, Italy"
           />
         </div>
-
-        {/* Price Range Filter (Traveler only) - Row 3 */}
-        {userRole === "traveler" && (
-          <div className="space-y-2">
-            <Label>
-              Price Range: ${priceRange[0]} - ${priceRange[1]}
-            </Label>
-            <Slider
-              min={0}
-              max={1000}
-              step={10}
-              value={priceRange}
-              onValueChange={(value) => setPriceRange(value as [number, number])}
-              className="mt-2"
-            />
-          </div>
-        )}
 
         <div className="flex gap-2">
           <Button onClick={handleApply} className="flex-1" variant="default">

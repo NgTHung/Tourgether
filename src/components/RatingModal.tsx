@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import {
   Dialog,
@@ -6,10 +7,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+} from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
+import { Textarea } from "~/components/ui/textarea";
+import { Label } from "~/components/ui/label";
 import { Star } from "lucide-react";
 
 interface RatingModalProps {
