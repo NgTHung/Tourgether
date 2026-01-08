@@ -43,6 +43,7 @@ import { api } from "~/trpc/react";
 import { toast } from "sonner";
 import { getPresignedUrl } from "~/actions/upload";
 import type { FeedbackAnalysis } from "~/lib/gemini";
+import { ratingToSentimentScore, sentimentScoreToRating, toInteger } from "~/lib/rating-utils";
 import ReactMarkdown from "react-markdown";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
@@ -166,7 +167,7 @@ ${aiGeneratedFeedback.improvements}
 		}
 		
 		// Convert sentiment score (0-100) to rating (1-5)
-		const rating = Math.max(1, Math.min(5, Math.round(aiGeneratedFeedback.sentiment_score / 20)));
+		const rating = sentimentScoreToRating(aiGeneratedFeedback.sentiment_score);
 		
 		pushReviewToGuideMutation.mutate({
 			previousTourId: id,
@@ -174,9 +175,33 @@ ${aiGeneratedFeedback.improvements}
 			summary: aiGeneratedFeedback.summary,
 			strengths: aiGeneratedFeedback.strengths,
 			improvements: aiGeneratedFeedback.improvements,
-			sentimentScore: aiGeneratedFeedback.sentiment_score,
+			sentimentScore: toInteger(aiGeneratedFeedback.sentiment_score),
 			rating,
 			redFlags: aiGeneratedFeedback.red_flags ? 1 : 0,
+			tourName: tourData.name,
+			tourLocation: tourData.location ?? undefined,
+			tourDate: tourData.date ?? undefined,
+		});
+	};
+
+	const handlePushFeedbackToGuide = (feedback: { rating: number; feedback: string }) => {
+		if (!tourData.guideID) {
+			toast.error("No guide assigned to this tour");
+			return;
+		}
+		
+		// Convert rating (1-5) to sentiment score (0-100) as integer
+		const sentimentScore = ratingToSentimentScore(feedback.rating);
+		
+		pushReviewToGuideMutation.mutate({
+			previousTourId: id,
+			guideId: tourData.guideID,
+			summary: feedback.feedback,
+			strengths: [],
+			improvements: undefined,
+			sentimentScore,
+			rating: feedback.rating,
+			redFlags: 0,
 			tourName: tourData.name,
 			tourLocation: tourData.location ?? undefined,
 			tourDate: tourData.date ?? undefined,
@@ -453,17 +478,32 @@ ${aiGeneratedFeedback.improvements}
 															{formatter.format(feedback.createdAt)}
 														</p>
 													</div>
-													{canDelete && (
-														<Button
-															variant="ghost"
-															size="icon"
-															className="h-8 w-8 text-muted-foreground hover:text-destructive"
-															onClick={() => deleteFeedbackMutation.mutate(feedback.id)}
-															disabled={deleteFeedbackMutation.isPending}
-														>
-															<Trash2 className="w-4 h-4" />
-														</Button>
-													)}
+													<div className="flex flex-col gap-1">
+														{isOwner && tourData.guideID && (
+															<Button
+																variant="ghost"
+																size="icon"
+																className="h-8 w-8 text-muted-foreground hover:text-primary"
+																onClick={() => handlePushFeedbackToGuide(feedback)}
+																disabled={pushReviewToGuideMutation.isPending}
+																title="Push to Guide Profile"
+															>
+																<UserPlus className="w-4 h-4" />
+															</Button>
+														)}
+														{canDelete && (
+															<Button
+																variant="ghost"
+																size="icon"
+																className="h-8 w-8 text-muted-foreground hover:text-destructive"
+																onClick={() => deleteFeedbackMutation.mutate(feedback.id)}
+																disabled={deleteFeedbackMutation.isPending}
+																title="Delete Feedback"
+															>
+																<Trash2 className="w-4 h-4" />
+															</Button>
+														)}
+													</div>
 												</div>
 											);
 										})}
