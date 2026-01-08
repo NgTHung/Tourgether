@@ -7,8 +7,8 @@ import {
 	type FormState,
 } from "~/lib/definitions";
 import { auth } from "~/auth";
-import type { TRPCError } from "@trpc/server";
 import z from "zod/v4";
+import type { TRPCError } from "@trpc/server";
 
 export async function studentSignup(
 	state: unknown,
@@ -62,9 +62,9 @@ export async function studentSignup(
 			},
 		});
 	}
-	catch(err: TRPCError | any){
+	catch(err){
 		return {
-			message: err.message,
+			message: (err as TRPCError).message,
 			data
 		}
 	}
@@ -125,9 +125,9 @@ export async function businessSignup(
 			},
 		});
 	}
-	catch(err: TRPCError | any){
+	catch(err){
 		return {
-			message: err.message,
+			message: (err as TRPCError).message,
 			data
 		}
 	}
@@ -153,7 +153,7 @@ export async function login(
 		};
 	}
 	try{
-		const res = await auth.api.signInEmail({
+		await auth.api.signInEmail({
 			body: {
 				email: validatedFields.data.email,
 				password: validatedFields.data.password,
@@ -161,9 +161,9 @@ export async function login(
 			},
 		});
 	}
-	catch(err: TRPCError | any){
+	catch(err){
 		return {
-			message: err.message,
+			message: (err as TRPCError).message,
 			data: { email: validatedFields.data.email, password: ""}
 		}
 	}

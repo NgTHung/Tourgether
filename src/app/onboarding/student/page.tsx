@@ -86,7 +86,7 @@ const StudentOnboarding = () => {
 						<input
 							type="hidden"
 							name="callbackUrl"
-							value={callbackUrl || ""}
+							value={callbackUrl ?? ""}
 						/>
 						<input
 							type="hidden"
@@ -156,7 +156,7 @@ const StudentOnboarding = () => {
 								value={description}
 								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Tell us about your interests, experience, and what makes you a great tour guide..."
-								className={`min-h-[120px] ${state?.errors?.description ? "border-destructive" : ""}`}
+								className={`min-h-30 ${state?.errors?.description ? "border-destructive" : ""}`}
 							/>
 							<p className="text-xs text-muted-foreground">
 								{description.length}/2000 characters (minimum

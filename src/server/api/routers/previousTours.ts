@@ -290,6 +290,17 @@ export const previousToursRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
+			console.log("[Push to Guide] Received JSON:", JSON.stringify({
+				summary: input.summary,
+				strengths: input.strengths,
+				improvements: input.improvements,
+				sentimentScore: input.sentimentScore,
+				rating: input.rating,
+				redFlags: input.redFlags,
+				tourName: input.tourName,
+				tourLocation: input.tourLocation,
+				tourDate: input.tourDate,
+			}, null, 2));
 			// Check if the previous tour exists
 			const previousTour = await ctx.db.query.previousTours.findFirst({
 				where: eq(previousTours.id, input.previousTourId),

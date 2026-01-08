@@ -18,6 +18,7 @@ import {
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
 import ReactMarkdown from "react-markdown";
+import Image from "next/image";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
 	month: "2-digit",
@@ -76,7 +77,7 @@ const PreviousTours = () => {
           <Card key={tour.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex gap-6">
-                <img
+                <Image
                   src={tour.thumbnailUrl}
                   alt={tour.name}
                   className="w-32 h-32 rounded-lg object-cover"
@@ -178,7 +179,7 @@ const PreviousTours = () => {
           <Card key={tour.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex gap-6">
-                <img
+                <Image
                   src={tour.thumbnailUrl}
                   alt={tour.name}
                   className="w-32 h-32 rounded-lg object-cover"

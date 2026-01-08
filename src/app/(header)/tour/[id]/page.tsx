@@ -39,6 +39,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
 	month: "2-digit",
@@ -54,10 +55,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 	const [leaveReason, setLeaveReason] = useState("");
 
 	const {
-		data: session,
-		isPending, //loading state
-		error, //error object
-		refetch, //refetch the session
+		data: session, //refetch the session
 	} = useSession();
 
 	const applyMutation = api.guide.applyAsGuideToTour.useMutation({
@@ -139,7 +137,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 		<>
 			{/* Hero Image */}
 			<div className="relative h-96 w-full overflow-hidden">
-				<img
+				<Image
 					src={tourData.tour.thumbnailUrl}
 					alt={tourData.tour.name}
 					className="w-full h-full object-cover"
@@ -259,7 +257,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 														key={index}
 														className="relative aspect-video rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
 													>
-														<img
+														<Image
 															src={image}
 															alt={`Tour photo ${index + 1}`}
 															className="w-full h-full object-cover"

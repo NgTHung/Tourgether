@@ -15,8 +15,7 @@ export default function HeaderLayout({
 	const {
 		data: session,
 		isPending, //loading state
-		error, //error object
-		refetch, //refetch the session
+		error, //refetch the session
 	} = sessionQuery;
 
 	const router = useRouter();
@@ -39,7 +38,7 @@ export default function HeaderLayout({
 				}
 			}
 		}
-	}, [isPending, session, router, pathname]);
+	}, [isPending, session, router, pathname, error]);
 
 	if (isPending) {
 		return (

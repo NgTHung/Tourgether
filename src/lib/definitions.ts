@@ -9,7 +9,7 @@ export const SignupFormSchema = z.object({
 		.regex(/[0-9]/, "Contain at least one number.")
 		.regex(/[^a-zA-Z0-9]/, "Contain at least one special character.")
 		.trim(),
-    confirmPassword: z.string().trim(),
+	confirmPassword: z.string().trim(),
 });
 
 export const StudentSignupFormSchema = SignupFormSchema.extend({
@@ -25,7 +25,10 @@ export const StudentSignupFormSchema = SignupFormSchema.extend({
 export const BusinessSignupFormSchema = SignupFormSchema.extend({
 	phonenumber: z.string().min(1, "Phone number is required.").trim(),
 	// address: z.string().min(1, "Address is required.").trim(),
-	organizationName: z.string().min(1, "Organization name is required.").trim(),
+	organizationName: z
+		.string()
+		.min(1, "Organization name is required.")
+		.trim(),
 	username: z.string().min(1, "Username is required.").trim(),
 	website: z.string().url("Please enter a valid URL.").optional(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -33,9 +36,31 @@ export const BusinessSignupFormSchema = SignupFormSchema.extend({
 });
 
 export const LoginFormSchema = z.object({
-    email: z.string().email("Please enter a valid email.").trim(),
-    password: z.string().trim(),
+	email: z.email("Please enter a valid email.").trim(),
+	password: z.string().trim(),
 });
+
+export type StudentData = {
+	fullname?: string;
+	email?: string;
+	username?: string;
+	gender?: string;
+	phonePrefix?: string;
+	phone?: string;
+};
+
+export type LoginData = {
+	email?: string;
+	password?: string;
+};
+
+export type OrganizationData = {
+	email?: string;
+	organizationName?: string;
+	username?: string;
+	hotlinePrefix?: string;
+	hotline?: string;
+};
 
 export type FormState =
 	| {
@@ -53,6 +78,6 @@ export type FormState =
 				gender?: string[];
 			};
 			message?: string;
-			data?: any;
+			data?: StudentData | LoginData | OrganizationData;
 	  }
 	| undefined;

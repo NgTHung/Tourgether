@@ -2,6 +2,7 @@ import { MapPin, Calendar, DollarSign, Star, Users } from "lucide-react";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import Image from "next/image";
 
 interface TourCardProps {
   id: string;
@@ -36,7 +37,7 @@ const TourCard = ({
   return (
     <Card className="overflow-hidden cursor-pointer group hover:shadow-elevated transition-all duration-300">{" "}
       <div className="relative h-48 overflow-hidden">
-        <img
+        <Image
           src={imageUrl}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -83,7 +84,7 @@ const TourCard = ({
       <CardFooter className="p-4 pt-0">
         <Button
           onClick={action.onClick}
-          variant={action.variant || "default"}
+          variant={action.variant ?? "default"}
           className="w-full"
         >
           {action.label}

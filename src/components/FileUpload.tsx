@@ -89,7 +89,7 @@ const FileUpload = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleFile(file);
+      void handleFile(file);
     }
     // Reset input so same file can be selected again if needed
     if (inputRef.current) {
@@ -113,7 +113,7 @@ const FileUpload = ({
     
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      handleFile(file);
+      void handleFile(file);
     }
   };
 

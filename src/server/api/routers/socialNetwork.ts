@@ -185,7 +185,7 @@ export const socialRouter = createTRPCRouter({
 	unlikePost: protectedProcedure
 		.input(z.string())
 		.mutation(async ({ ctx, input }) => {
-			const result = await ctx.db
+			await ctx.db
 				.delete(likes)
 				.where(
 					and(

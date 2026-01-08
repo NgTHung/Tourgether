@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 
 const businessSchema = z.object({
   taxId: z.string().transform((val) => parseInt(val, 10)).pipe(z.number().int().positive("Tax ID must be a positive number")),
-  website: z.string().url("Invalid URL").optional().or(z.literal("")),
+  website: z.url("Invalid URL").optional().or(z.literal("")),
   slogan: z.string().min(1, "Slogan is required").max(500, "Slogan is too long"),
 });
 
@@ -22,7 +22,7 @@ const studentSchema = z.object({
   cvUrl: z.string().optional(),
 });
 
-export async function updateBusinessProfile(prevState: any, formData: FormData) {
+export async function updateBusinessProfile(prevState: { error: string; errors?: undefined; } | { errors: { taxId?: string[] | undefined; slogan?: string[] | undefined; website?: string[] | undefined; }; error?: undefined; } | null, formData: FormData) {
   const session = await getSession();
   if (!session) {
     return { error: "Unauthorized" };
@@ -62,7 +62,7 @@ export async function updateBusinessProfile(prevState: any, formData: FormData) 
         await db.update(organizations)
             .set({
                 taxID: validated.data.taxId,
-                websiteURL: validated.data.website || null,
+                websiteURL: validated.data.website ?? null,
                 slogan: validated.data.slogan,
             })
             .where(eq(organizations.userID, session.user.id));
@@ -70,7 +70,7 @@ export async function updateBusinessProfile(prevState: any, formData: FormData) 
         await db.insert(organizations).values({
             userID: session.user.id,
             taxID: validated.data.taxId,
-            websiteURL: validated.data.website || null,
+            websiteURL: validated.data.website ?? null,
             slogan: validated.data.slogan,
         });
     }
@@ -88,7 +88,7 @@ export async function updateBusinessProfile(prevState: any, formData: FormData) 
   redirect("/business/dashboard");
 }
 
-export async function updateStudentProfile(prevState: any, formData: FormData) {
+export async function updateStudentProfile(prevState: { error: string; errors?: undefined; } | { errors: { school?: string[] | undefined; description?: string[] | undefined; certificates?: string[] | undefined; workExperience?: string[] | undefined; cvUrl?: string[] | undefined; }; error?: undefined; } | null, formData: FormData) {
   const session = await getSession();
   if (!session) {
     return { error: "Unauthorized" };
@@ -137,8 +137,8 @@ export async function updateStudentProfile(prevState: any, formData: FormData) {
   }
 
   try {
-    const certificates = validated.data.certificates ? JSON.parse(validated.data.certificates) : [];
-    const workExperience = validated.data.workExperience ? JSON.parse(validated.data.workExperience) : [];
+    const certificates = validated.data.certificates ? (JSON.parse(validated.data.certificates) as Array<string>) : [];
+    const workExperience = validated.data.workExperience ? (JSON.parse(validated.data.workExperience) as Array<string>): [];
 
     const existing = await db.query.tourGuide.findFirst({
         where: eq(tourGuide.userID, session.user.id)

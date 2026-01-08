@@ -38,7 +38,8 @@
 		"**/*.cjs",
 		"**/*.js",
 		".next/types/**/*.ts",
-		"postcss.config.mjs"
+		"postcss.config.mjs",
+		"eslint.config.js"
 	],
-	"exclude": ["node_modules", "generated"]
+	"exclude": ["node_modules", "generated", "public", "build"]
 }

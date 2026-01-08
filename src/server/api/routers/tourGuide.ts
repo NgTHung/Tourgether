@@ -315,7 +315,7 @@ export const tourGuideRouter = createTRPCRouter({
 				throw new TRPCError({ message: "Unauthorized: Only guides can remove tags", code: "UNAUTHORIZED" });
 			}
 
-			const result = await ctx.db
+			await ctx.db
 				.delete(guideToTags)
 				.where(
 					and(

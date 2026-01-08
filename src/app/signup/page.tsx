@@ -17,6 +17,7 @@ import { studentSignup, businessSignup } from "~/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { authClient } from "~/server/better-auth/client";
+import type { OrganizationData, StudentData } from "~/lib/definitions";
 
 type UserRole = "student" | "business";
 
@@ -200,7 +201,7 @@ const Signup = () => {
 											type="text"
 											placeholder="John Doe"
 											required
-											defaultValue={state?.data?.fullname}
+											defaultValue={(state?.data as StudentData)?.fullname}
 											className={cn(
 												state?.errors?.fullname &&
 													"border-destructive focus-visible:ring-destructive",
@@ -232,7 +233,7 @@ const Signup = () => {
 											type="text"
 											placeholder="johndoe"
 											required
-											defaultValue={state?.data?.username}
+											defaultValue={(state?.data as StudentData)?.username}
 											className={cn(
 												state?.errors?.username &&
 													"border-destructive focus-visible:ring-destructive",
@@ -264,7 +265,7 @@ const Signup = () => {
 											type="email"
 											placeholder="john.doe@university.edu"
 											required
-											defaultValue={state?.data?.email}
+											defaultValue={(state?.data as StudentData)?.email}
 											className={cn(
 												state?.errors?.email &&
 													"border-destructive focus-visible:ring-destructive",
@@ -290,7 +291,7 @@ const Signup = () => {
 											Gender <span className="text-destructive">*</span>
 										</Label>
 										<RadioGroup
-											defaultValue={state?.data?.gender || "male"}
+											defaultValue={(state?.data as StudentData)?.gender ?? "male"}
 											className="flex gap-4"
 											name="gender"
 										>
@@ -344,7 +345,7 @@ const Signup = () => {
 													state?.errors?.phonenumber &&
 														"border-destructive focus-visible:ring-destructive",
 												)}
-												defaultValue={state?.data?.phonePrefix || "+1"}
+												defaultValue={(state?.data as StudentData)?.phonePrefix ?? "+1"}
 												required
 											/>
 											<Input
@@ -358,7 +359,7 @@ const Signup = () => {
 														"border-destructive focus-visible:ring-destructive",
 												)}
 												required
-												defaultValue={state?.data?.phone}
+												defaultValue={(state?.data as StudentData)?.phone}
 											/>
 										</div>
 										{state?.errors?.phonenumber && (
@@ -394,7 +395,7 @@ const Signup = () => {
 											type="text"
 											placeholder="Rome Adventures Co."
 											required
-											defaultValue={state?.data?.organizationName}
+											defaultValue={(state?.data as OrganizationData)?.organizationName}
 											className={cn(
 												state?.errors?.organizationName &&
 													"border-destructive focus-visible:ring-destructive",
@@ -426,7 +427,7 @@ const Signup = () => {
 											type="text"
 											placeholder="romeadventures"
 											required
-											defaultValue={state?.data?.username}
+											defaultValue={(state?.data as OrganizationData)?.username}
 											className={cn(
 												state?.errors?.username &&
 													"border-destructive focus-visible:ring-destructive",
@@ -458,7 +459,7 @@ const Signup = () => {
 											type="email"
 											placeholder="contact@romeadventures.com"
 											required
-											defaultValue={state?.data?.email}
+											defaultValue={(state?.data as OrganizationData)?.email}
 											className={cn(
 												state?.errors?.email &&
 													"border-destructive focus-visible:ring-destructive",
@@ -495,7 +496,7 @@ const Signup = () => {
 													state?.errors?.phonenumber &&
 														"border-destructive focus-visible:ring-destructive",
 												)}
-												defaultValue={state?.data?.hotlinePrefix || "+1"}
+												defaultValue={(state?.data as OrganizationData)?.hotlinePrefix ?? "+1"}
 												required
 											/>
 											<Input
@@ -509,7 +510,7 @@ const Signup = () => {
 														"border-destructive focus-visible:ring-destructive",
 												)}
 												required
-												defaultValue={state?.data?.hotline}
+												defaultValue={(state?.data as OrganizationData)?.hotline}
 											/>
 										</div>
 										{state?.errors?.phonenumber && (

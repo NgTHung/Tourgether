@@ -34,12 +34,14 @@ export const analyzeFeedback = async (
     
         Analyze these reviews and output a JSON object with the following structure:
         {
-            "summary": A professional executive summary of the guide's performance (3-4 sentences). Focus on soft skills and problem solving.",
+            "summary": "A concise professional summary of the guide's performance (1-2 sentences max). Be brief and specific. Focus on soft skills and problem solving.",
             "sentiment_score": 0, // A score from 0 (Terrible) to 100 (Perfect)
             "strengths": ["Tag 1", "Tag 2", "Tag 3"], // Top 3 specific strengths (e.g., "Historical Knowledge", "Crisis Management")
-            "improvements": "One constructive piece of advice for the guide to get better.",
+            "improvements": "One brief constructive piece of advice for the guide to improve (1 sentence).",
             "red_flags": false // Boolean: set to true ONLY if there are safety concerns or harassment reported.
         }
+        
+        IMPORTANT: Keep the summary and improvements very concise and to the point.
         
         ${reviewsContent.length > 0 ? `Here are the text reviews:\n${combinedReviews}` : ""}
         ${imageContents.length > 0 ? "\nPlease also analyze any text or feedback visible in the attached images." : ""}
@@ -64,7 +66,9 @@ export const analyzeFeedback = async (
         const text = response.text();
         
         // 3. Return the parsed JSON
-        return JSON.parse(text) as FeedbackAnalysis;
+        const analysis = JSON.parse(text) as FeedbackAnalysis;
+        console.log("[AI Feedback] Generated JSON:", JSON.stringify(analysis, null, 2));
+        return analysis;
     } catch (error) {
         console.error("Gemini Analysis Failed:", error);
         throw new Error("Failed to analyze feedback");

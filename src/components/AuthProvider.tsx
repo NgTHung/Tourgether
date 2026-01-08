@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { authClient } from "~/server/better-auth/client";
+import { type authClient } from "~/server/better-auth/client";
 
 type SessionResult = ReturnType<typeof authClient.useSession>;
 

@@ -1,13 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "~/components/Header";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import UnsavedChangesModal from "~/components/UnsavedChangesModal";
-import { toast } from "sonner";
 import { api } from "~/trpc/react";
 import { useSession } from "~/components/AuthProvider";
 
@@ -15,15 +13,12 @@ const Settings = () => {
 	const router = useRouter();
 
 	const {
-		data: session,
-		isPending, //loading state
-		error, //error object
-		refetch, //refetch the session
+		data: session, //refetch the session
 	} = useSession();
 
-	const [fullName, setFullName] = useState(session?.user.name || "Jane Doe");
-	const [email, setEmail] = useState(session?.user.email || "jane@example.com");
-	const [phone, setPhone] = useState(session?.user.phonenumber || "+1 123 456 789");
+	const [fullName, setFullName] = useState(session?.user.name ?? "Jane Doe");
+	const [email, setEmail] = useState(session?.user.email ?? "jane@example.com");
+	const [phone, setPhone] = useState(session?.user.phonenumber ?? "+1 123 456 789");
 	const [originalData, setOriginalData] = useState({
 		fullName: "",
 		email: "",
@@ -31,6 +26,7 @@ const Settings = () => {
 	});
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [showVerificationModal, setShowVerificationModal] = useState(false);
 	const [pendingNavigation, setPendingNavigation] = useState<string | null>(
 		null,
@@ -40,7 +36,7 @@ const Settings = () => {
 		// Store original data on mount
 		const original = { fullName, email, phone };
 		setOriginalData(original);
-	}, []);
+	}, [email, fullName, phone]);
 
 	useEffect(() => {
 		// Check if there are unsaved changes
@@ -73,17 +69,6 @@ const Settings = () => {
 		setShowVerificationModal(true);
 	};
 
-	const handleVerify = (code: string) => {
-		// In a real app, verify the code with the backend
-		console.log("Verification code:", code);
-
-		// Update original data to match current data
-		setOriginalData({ fullName, email, phone });
-		setHasUnsavedChanges(false);
-		setShowVerificationModal(false);
-
-		toast.success("Your changes have been saved successfully!");
-	};
 
 	return (
 		<>

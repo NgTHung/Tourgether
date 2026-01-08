@@ -43,7 +43,9 @@ import { api } from "~/trpc/react";
 import { toast } from "sonner";
 import { getPresignedUrl } from "~/actions/upload";
 import type { FeedbackAnalysis } from "~/lib/gemini";
+import { ratingToSentimentScore, sentimentScoreToRating, toInteger } from "~/lib/rating-utils";
 import ReactMarkdown from "react-markdown";
+import Image from "next/image";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
 	day: "2-digit",
@@ -166,7 +168,7 @@ ${aiGeneratedFeedback.improvements}
 		}
 		
 		// Convert sentiment score (0-100) to rating (1-5)
-		const rating = Math.max(1, Math.min(5, Math.round(aiGeneratedFeedback.sentiment_score / 20)));
+		const rating = sentimentScoreToRating(aiGeneratedFeedback.sentiment_score);
 		
 		pushReviewToGuideMutation.mutate({
 			previousTourId: id,
@@ -174,9 +176,33 @@ ${aiGeneratedFeedback.improvements}
 			summary: aiGeneratedFeedback.summary,
 			strengths: aiGeneratedFeedback.strengths,
 			improvements: aiGeneratedFeedback.improvements,
-			sentimentScore: aiGeneratedFeedback.sentiment_score,
+			sentimentScore: toInteger(aiGeneratedFeedback.sentiment_score),
 			rating,
 			redFlags: aiGeneratedFeedback.red_flags ? 1 : 0,
+			tourName: tourData.name,
+			tourLocation: tourData.location ?? undefined,
+			tourDate: tourData.date ?? undefined,
+		});
+	};
+
+	const handlePushFeedbackToGuide = (feedback: { rating: number; feedback: string }) => {
+		if (!tourData.guideID) {
+			toast.error("No guide assigned to this tour");
+			return;
+		}
+		
+		// Convert rating (1-5) to sentiment score (0-100) as integer
+		const sentimentScore = ratingToSentimentScore(feedback.rating);
+		
+		pushReviewToGuideMutation.mutate({
+			previousTourId: id,
+			guideId: tourData.guideID,
+			summary: feedback.feedback,
+			strengths: [],
+			improvements: undefined,
+			sentimentScore,
+			rating: feedback.rating,
+			redFlags: 0,
 			tourName: tourData.name,
 			tourLocation: tourData.location ?? undefined,
 			tourDate: tourData.date ?? undefined,
@@ -296,12 +322,12 @@ ${aiGeneratedFeedback.improvements}
 		<>
 			{/* Hero Image */}
 			<div className="relative h-72 w-full overflow-hidden">
-				<img
+				<Image
 					src={tourData.thumbnailUrl}
 					alt={tourData.name}
 					className="w-full h-full object-cover"
 				/>
-				<div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+				<div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
 				<Badge className="absolute top-4 left-4 bg-green-600 text-white">
 					Completed
 				</Badge>
@@ -387,7 +413,7 @@ ${aiGeneratedFeedback.improvements}
 													key={index}
 													className="relative aspect-video rounded-lg overflow-hidden"
 												>
-													<img
+													<Image
 														src={image}
 														alt={`Tour photo ${index + 1}`}
 														className="w-full h-full object-cover"
@@ -453,17 +479,32 @@ ${aiGeneratedFeedback.improvements}
 															{formatter.format(feedback.createdAt)}
 														</p>
 													</div>
-													{canDelete && (
-														<Button
-															variant="ghost"
-															size="icon"
-															className="h-8 w-8 text-muted-foreground hover:text-destructive"
-															onClick={() => deleteFeedbackMutation.mutate(feedback.id)}
-															disabled={deleteFeedbackMutation.isPending}
-														>
-															<Trash2 className="w-4 h-4" />
-														</Button>
-													)}
+													<div className="flex flex-col gap-1">
+														{isOwner && tourData.guideID && (
+															<Button
+																variant="ghost"
+																size="icon"
+																className="h-8 w-8 text-muted-foreground hover:text-primary"
+																onClick={() => handlePushFeedbackToGuide(feedback)}
+																disabled={pushReviewToGuideMutation.isPending}
+																title="Push to Guide Profile"
+															>
+																<UserPlus className="w-4 h-4" />
+															</Button>
+														)}
+														{canDelete && (
+															<Button
+																variant="ghost"
+																size="icon"
+																className="h-8 w-8 text-muted-foreground hover:text-destructive"
+																onClick={() => deleteFeedbackMutation.mutate(feedback.id)}
+																disabled={deleteFeedbackMutation.isPending}
+																title="Delete Feedback"
+															>
+																<Trash2 className="w-4 h-4" />
+															</Button>
+														)}
+													</div>
 												</div>
 											);
 										})}
@@ -478,7 +519,7 @@ ${aiGeneratedFeedback.improvements}
 
 						{/* AI-Generated Feedback Summary Section */}
 						{userRole === "ORGANIZATION" && isOwner && (
-							<Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+							<Card className="border-2 border-dashed border-primary/30 bg-linear-to-br from-primary/5 to-transparent">
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2">
 										<Sparkles className="w-5 h-5 text-primary" />
@@ -521,7 +562,7 @@ ${aiGeneratedFeedback.improvements}
 													className="flex items-center gap-1.5 py-1 px-2"
 												>
 													<span>{getFileIcon(file)}</span>
-													<span className="max-w-[120px] truncate text-sm">
+													<span className="max-w-30 truncate text-sm">
 														{file.name}
 													</span>
 													<button
