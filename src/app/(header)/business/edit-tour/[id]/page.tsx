@@ -43,6 +43,7 @@ const EditTour = ({ params }: { params: Promise<{ id: string }> }) => {
   const id = use(params).id;
   const router = useRouter();
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [tourData, tourDataQuery] = api.tour.getTourById.useSuspenseQuery({
     id: id,
     shouldGetTags: true,

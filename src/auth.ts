@@ -1,14 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { createAuthMiddleware, username } from "better-auth/plugins";
+import { username } from "better-auth/plugins";
 
 import { db } from "~/server/db";
 import * as user from "~/server/db/schema/auth-schema";
-import { z } from "zod";
-import { api } from "./trpc/server";
-import { eq } from "drizzle-orm";
-import { organizations, tourGuide } from "./server/db/schema/tour";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {

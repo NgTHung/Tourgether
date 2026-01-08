@@ -12,10 +12,7 @@ import { useSession } from "~/components/AuthProvider";
 const BusinessDashboard = () => {
 	const router = useRouter();
 	const {
-		data: session,
-		isPending, //loading state
-		error, //error object
-		refetch, //refetch the session
+		data: session, //refetch the session
 	} = useSession();
 	const [filters, setFilters] = useState<FilterState>({ city: "" });
 	const [activeTab, setActiveTab] = useState<"active" | "previous">("active");
@@ -49,6 +46,7 @@ const BusinessDashboard = () => {
 	//   },
 	// ];
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [myTours, myToursQuery] =
 		api.tour.getOwnedTours.useSuspenseQuery(filters);
 
@@ -144,7 +142,7 @@ const BusinessDashboard = () => {
 												).toLocaleDateString()}
 												price={tour.price}
 												businessName={
-													session?.user.name ||
+													session?.user.name ??
 													"Your Business"
 												}
 												applicants={tour.applicantsCount}

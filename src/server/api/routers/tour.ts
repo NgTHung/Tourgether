@@ -6,12 +6,11 @@ import {
 	tourReviews,
 	guiderAppliedTours,
 	previousTours,
-	tourGuide,
 } from "~/server/db/schema/tour";
 import { user } from "~/server/db/schema/auth-schema";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod/v4";
-import { and, avg, eq, or, isNull, gte, lte } from "drizzle-orm";
+import { and, avg, eq, or, gte, lte } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 // import { zFilterState } from "~/components/FilterBar";
 

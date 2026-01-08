@@ -1,4 +1,5 @@
 import { MapPin, DollarSign } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
 import {
   Carousel,
@@ -45,7 +46,7 @@ const TourPreview = ({ title, description, images, price, location, tags }: Tour
               {images.map((image, index) => (
                 <CarouselItem key={index}>
                   <div className="relative rounded-lg overflow-hidden h-96">
-                    <img
+                    <Image
                       src={image}
                       alt={`Tour image ${index + 1}`}
                       className="w-full h-full object-cover"

@@ -19,14 +19,11 @@ const Header = () => {
   const router = useRouter();
 
   const handleLogout = () => {
-    authClient.signOut()
+    void authClient.signOut()
   };
 
   const {
-      data: session,
-      isPending, //loading state
-      error, //error object
-      refetch, //refetch the session
+      data: session, //refetch the session
     } = useSession();
 
   const handleLogoClick = () => {
@@ -41,10 +38,10 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-soft">{" "}
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-soft">{" "}
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Left Column - Logo */}
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center shrink-0">
           <button
             onClick={handleLogoClick}
             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
@@ -69,7 +66,7 @@ const Header = () => {
         </div>
 
         {/* Right Column - User Profile */}
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
