@@ -45,6 +45,7 @@ import { getPresignedUrl } from "~/actions/upload";
 import type { FeedbackAnalysis } from "~/lib/gemini";
 import { ratingToSentimentScore, sentimentScoreToRating, toInteger } from "~/lib/rating-utils";
 import ReactMarkdown from "react-markdown";
+import Image from "next/image";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
 	day: "2-digit",
@@ -321,12 +322,12 @@ ${aiGeneratedFeedback.improvements}
 		<>
 			{/* Hero Image */}
 			<div className="relative h-72 w-full overflow-hidden">
-				<img
+				<Image
 					src={tourData.thumbnailUrl}
 					alt={tourData.name}
 					className="w-full h-full object-cover"
 				/>
-				<div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+				<div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
 				<Badge className="absolute top-4 left-4 bg-green-600 text-white">
 					Completed
 				</Badge>
@@ -412,7 +413,7 @@ ${aiGeneratedFeedback.improvements}
 													key={index}
 													className="relative aspect-video rounded-lg overflow-hidden"
 												>
-													<img
+													<Image
 														src={image}
 														alt={`Tour photo ${index + 1}`}
 														className="w-full h-full object-cover"
@@ -518,7 +519,7 @@ ${aiGeneratedFeedback.improvements}
 
 						{/* AI-Generated Feedback Summary Section */}
 						{userRole === "ORGANIZATION" && isOwner && (
-							<Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+							<Card className="border-2 border-dashed border-primary/30 bg-linear-to-br from-primary/5 to-transparent">
 								<CardHeader>
 									<CardTitle className="flex items-center gap-2">
 										<Sparkles className="w-5 h-5 text-primary" />
@@ -561,7 +562,7 @@ ${aiGeneratedFeedback.improvements}
 													className="flex items-center gap-1.5 py-1 px-2"
 												>
 													<span>{getFileIcon(file)}</span>
-													<span className="max-w-[120px] truncate text-sm">
+													<span className="max-w-30 truncate text-sm">
 														{file.name}
 													</span>
 													<button

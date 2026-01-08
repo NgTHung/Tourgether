@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Header from "~/components/Header";
 import TourCard from "~/components/TourCard";
 import FilterBar, { type FilterState } from "~/components/FilterBar";
 import { Button } from "~/components/ui/button";
@@ -25,6 +24,7 @@ const StudentDashboard = () => {
 	};
 
 	// Mock data
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [aTour, aTourQuery] =
 		api.tour.getAccessibleTours.useSuspenseQuery(filters);
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { cn } from "~/lib/utils";
 import { getPresignedUrl } from "~/actions/upload";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface ImageUploadProps {
   images: string[];
@@ -125,7 +126,7 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
               index !== 0 && "border-border"
             )}
           >
-            <img src={image} alt={`Upload ${index + 1}`} className="w-full h-32 object-cover" />
+            <Image src={image} alt={`Upload ${index + 1}`} className="w-full h-32 object-cover" />
             {index === 0 && (
               <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
                 Cover Image

@@ -74,7 +74,7 @@ const BusinessOnboarding = () => {
 				</CardHeader>
 				<CardContent>
 					<form action={formAction} className="space-y-6">
-                        <input type="hidden" name="callbackUrl" value={callbackUrl || ""} />
+                        <input type="hidden" name="callbackUrl" value={callbackUrl ?? ""} />
 						{/* Tax ID */}
 						<div className="space-y-2">
 							<Label
@@ -150,7 +150,7 @@ const BusinessOnboarding = () => {
 								value={slogan}
 								onChange={(e) => setSlogan(e.target.value)}
 								placeholder="Describe what makes your company unique..."
-								className={`min-h-[100px] ${state?.errors?.slogan ? "border-destructive" : ""}`}
+								className={`min-h-25 ${state?.errors?.slogan ? "border-destructive" : ""}`}
 								maxLength={500}
 							/>
 							<p className="text-xs text-muted-foreground">

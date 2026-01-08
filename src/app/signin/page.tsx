@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -11,7 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import { Compass, GraduationCap, Briefcase } from "lucide-react";
+import { Compass } from "lucide-react";
 import { login } from "~/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "~/server/better-auth/client";
@@ -44,6 +44,7 @@ const Auth = () => {
 		}
 	}, [isSessionPending, session, router]);
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [state, action, pending] = useActionState(login, undefined);
 
 	return (

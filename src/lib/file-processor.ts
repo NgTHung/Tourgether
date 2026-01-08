@@ -32,12 +32,11 @@ export const processFileFromUrl = async (url: string): Promise<ProcessedFile> =>
   // 4. Handle PDFs (Extract Text)
   if (contentType.includes("pdf") || url.endsWith(".pdf")) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
-      const data = await pdfParse(buffer);
+      const pdfParse = new PDFParse({data: buffer})
+      const data = await pdfParse.getText();
       return {
         type: "text",
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        content: `[File: PDF Document]\n${data.text as string}`,
+        content: `[File: PDF Document]\n${data.text}`,
         mimeType: "text/plain",
       };
     } catch (e) {
