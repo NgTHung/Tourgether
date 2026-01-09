@@ -78,6 +78,12 @@ export const auth = betterAuth({
 	advanced: {
 		cookiePrefix: "tourgether",
 	},
+	trustedOrigins: [
+		"http://localhost:5173",
+		...(process.env.VERCEL_URL
+			? [`https://${process.env.VERCEL_URL}`]
+			: []),
+	],
 });
 
 export type Session = typeof auth.$Infer.Session;
