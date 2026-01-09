@@ -142,9 +142,10 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 			{/* Hero Image */}
 			<div className="relative h-96 w-full overflow-hidden">
 				<Image
+					fill
 					src={tourData.tour.thumbnailUrl}
 					alt={tourData.tour.name}
-					className="w-full h-full object-cover"
+					className="object-cover"
 				/>
 				<div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
 			</div>
@@ -262,9 +263,10 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 														className="relative aspect-video rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
 													>
 														<Image
+															fill
 															src={image}
 															alt={`Tour photo ${index + 1}`}
-															className="w-full h-full object-cover"
+															className="object-cover"
 														/>
 													</div>
 												),

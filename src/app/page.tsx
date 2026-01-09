@@ -30,6 +30,7 @@ const Index = () => {
 			<section className="relative h-screen flex items-center justify-center overflow-hidden bg-primary">
 				<div className="absolute inset-0">
 					<Image
+						fill={true}
 						src={heroImage}
 						alt="Beautiful beach destination"
 						className="w-full h-full object-cover opacity-20"

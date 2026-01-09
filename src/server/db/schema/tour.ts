@@ -328,7 +328,7 @@ export const previousTourFeedbacks = pgTable("previous_tour_feedbacks", {
 	id: uuid("id").primaryKey().defaultRandom(),
 	previousTourID: uuid("previous_tour_id").references(() => previousTours.id, { onDelete: "cascade" }),
 	userID: text("user_id").references(() => user.id, { onDelete: "cascade" }),
-	rating: integer("rating").notNull(),
+	rating: decimal("rating", { precision: 2, scale: 1 }).notNull(),
 	feedback: text("feedback").notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")

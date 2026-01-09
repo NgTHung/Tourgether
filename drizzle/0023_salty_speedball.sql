@@ -1,0 +1,1 @@
+ALTER TABLE "guide_performance_reviews" ALTER COLUMN "rating" SET DATA TYPE numeric(2, 1);

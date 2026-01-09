@@ -15,9 +15,9 @@ interface ImageUploadProps {
 const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
+  const uploadFiles = async (files: File[]) => {
     if (files.length === 0) return;
 
     setIsUploading(true);
@@ -65,6 +65,40 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    await uploadFiles(files);
+  };
+
+  const handleFileDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(true);
+  };
+
+  const handleFileDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+  };
+
+  const handleFileDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+      file.type.startsWith('image/')
+    );
+    
+    if (files.length === 0) {
+      toast.error("Please drop image files only");
+      return;
+    }
+
+    await uploadFiles(files);
+  };
+
   const removeImage = (index: number) => {
     onImagesChange(images.filter((_, i) => i !== index));
   };
@@ -88,12 +122,19 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
 
   return (
     <div className="space-y-4">
-      <label className={cn(
-        "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
-        isUploading && "opacity-50 cursor-not-allowed"
-      )}>
-        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-          {isUploading ? (
+      <div 
+        className={cn(
+          "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+          isDraggingFile ? "border-primary bg-primary/5" : "border-border hover:bg-secondary/50",
+          isUploading && "opacity-50 cursor-not-allowed"
+        )}
+        onDragOver={handleFileDragOver}
+        onDragLeave={handleFileDragLeave}
+        onDrop={handleFileDrop}
+      >
+        <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            {isUploading ? (
             <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
           ) : (
             <Upload className="w-8 h-8 text-muted-foreground mb-2" />
@@ -101,16 +142,17 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
           <p className="text-sm text-muted-foreground">
             {isUploading ? "Uploading..." : "Click to upload or drag and drop"}
           </p>
-        </div>
-        <input
-          type="file"
-          className="hidden"
-          multiple
-          accept="image/*"
-          onChange={handleFileSelect}
-          disabled={isUploading}
-        />
-      </label>
+          </div>
+          <input
+            type="file"
+            className="hidden"
+            multiple
+            accept="image/*"
+            onChange={handleFileSelect}
+            disabled={isUploading}
+          />
+        </label>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         {images.map((image, index) => (
@@ -121,12 +163,12 @@ const ImageUpload = ({ images, onImagesChange }: ImageUploadProps) => {
             onDragOver={(e) => handleDragOver(e, index)}
             onDragEnd={() => setDraggedIndex(null)}
             className={cn(
-              "relative group cursor-move rounded-lg overflow-hidden border-2",
+              "relative group cursor-move rounded-lg overflow-hidden border-2 h-32",
               index === 0 && "col-span-2 border-primary",
               index !== 0 && "border-border"
             )}
           >
-            <Image src={image} alt={`Upload ${index + 1}`} className="w-full h-32 object-cover" />
+            <Image fill src={image} alt={`Upload ${index + 1}`} className="object-cover" />
             {index === 0 && (
               <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
                 Cover Image
