@@ -35,11 +35,12 @@ const TourCard = ({
   action,
 }: TourCardProps) => {
   return (
-    <Card className="overflow-hidden cursor-pointer group hover:shadow-elevated transition-all duration-300">{" "}
+    <Card className="overflow-hidden cursor-pointer group hover:shadow-elevated transition-all duration-300 flex flex-col h-full">{" "}
       <div className="relative h-48 overflow-hidden">
         <Image
           src={imageUrl}
           alt={title}
+          fill={true}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {rating && (
@@ -49,9 +50,9 @@ const TourCard = ({
           </Badge>
         )}
       </div>
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-4 space-y-3 flex-1">
         <div>
-          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg line-clamp-2 min-h-[3.5rem] group-hover:text-primary transition-colors">
             {title}
           </h3>
           {businessName && (
@@ -81,7 +82,7 @@ const TourCard = ({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-4 pt-0 mt-auto">
         <Button
           onClick={action.onClick}
           variant={action.variant ?? "default"}

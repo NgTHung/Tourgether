@@ -18,6 +18,9 @@ import {
 	Loader2,
 	LogOut,
 	AlertTriangle,
+	Phone,
+	Mail,
+	Building2,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -53,6 +56,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 	const [activeTab, setActiveTab] = useState("details");
 	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 	const [leaveReason, setLeaveReason] = useState("");
+	const [contactDialogOpen, setContactDialogOpen] = useState(false);
 
 	const {
 		data: session, //refetch the session
@@ -140,6 +144,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 				<Image
 					src={tourData.tour.thumbnailUrl}
 					alt={tourData.tour.name}
+					fill={true}
 					className="w-full h-full object-cover"
 				/>
 				<div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
@@ -260,6 +265,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 														<Image
 															src={image}
 															alt={`Tour photo ${index + 1}`}
+															fill={true}
 															className="w-full h-full object-cover"
 														/>
 													</div>
@@ -584,6 +590,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 										<Button
 											variant="outline"
 											className="w-full"
+											onClick={() => setContactDialogOpen(true)}
 										>
 											Contact Business
 										</Button>
@@ -673,6 +680,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 										<Button
 											variant="outline"
 											className="w-full"
+											onClick={() => setContactDialogOpen(true)}
 										>
 											Contact Business
 										</Button>
@@ -709,6 +717,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 									<Button
 										variant="outline"
 										className="w-full"
+										onClick={() => setContactDialogOpen(true)}
 									>
 										Contact Business Owner
 									</Button>
@@ -844,6 +853,67 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 					</div>
 				</div>
 			</main>
+
+			{/* Contact Business Dialog */}
+			<Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2">
+							<Building2 className="w-5 h-5" />
+							Contact Business
+						</DialogTitle>
+						<DialogDescription>
+							Get in touch with the tour organizer
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4 py-4">
+						{tourData.tour.owner && (
+							<>
+								<div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+									<User className="w-5 h-5 text-muted-foreground" />
+									<div>
+										<p className="text-sm text-muted-foreground">Business Name</p>
+										<p className="font-medium">{tourData.tour.owner.name}</p>
+									</div>
+								</div>
+								{tourData.tour.owner.phonenumber && (
+									<div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+										<Phone className="w-5 h-5 text-muted-foreground" />
+										<div>
+											<p className="text-sm text-muted-foreground">Hotline</p>
+											<a 
+												href={`tel:${tourData.tour.owner.phonenumber}`}
+												className="font-medium text-primary hover:underline"
+											>
+												{tourData.tour.owner.phonenumber}
+											</a>
+										</div>
+									</div>
+								)}
+								{tourData.tour.owner.email && (
+									<div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+										<Mail className="w-5 h-5 text-muted-foreground" />
+										<div>
+											<p className="text-sm text-muted-foreground">Email</p>
+											<a 
+												href={`mailto:${tourData.tour.owner.email}`}
+												className="font-medium text-primary hover:underline"
+											>
+												{tourData.tour.owner.email}
+											</a>
+										</div>
+									</div>
+								)}
+							</>
+						)}
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setContactDialogOpen(false)}>
+							Close
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 };

@@ -49,6 +49,7 @@ const TourPreview = ({ title, description, images, price, location, tags }: Tour
                     <Image
                       src={image}
                       alt={`Tour image ${index + 1}`}
+                      fill={true}
                       className="w-full h-full object-cover"
                     />
                   </div>

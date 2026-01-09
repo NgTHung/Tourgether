@@ -27,12 +27,12 @@ export function sentimentScoreToRating(sentimentScore: number): number {
  * Ensure a number is a valid integer for database storage
  */
 export function toInteger(value: number): number {
-	return Math.round(value);
+	return parseInt(value.toString());
 }
 
 /**
  * Convert rating to fixed decimal string for database storage
- */
+ */	
 export function ratingToDecimalString(rating: number): string {
 	return rating.toFixed(1);
 }
