@@ -40,6 +40,7 @@ const TourCard = ({
         <Image
           src={imageUrl}
           alt={title}
+          fill={true}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {rating && (

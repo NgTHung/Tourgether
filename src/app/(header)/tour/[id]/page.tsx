@@ -144,6 +144,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 				<Image
 					src={tourData.tour.thumbnailUrl}
 					alt={tourData.tour.name}
+					fill={true}
 					className="w-full h-full object-cover"
 				/>
 				<div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
@@ -264,6 +265,7 @@ const TourDetail = ({ params }: { params: Promise<{ id: string }> }) => {
 														<Image
 															src={image}
 															alt={`Tour photo ${index + 1}`}
+															fill={true}
 															className="w-full h-full object-cover"
 														/>
 													</div>

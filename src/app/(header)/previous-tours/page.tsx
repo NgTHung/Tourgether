@@ -80,6 +80,7 @@ const PreviousTours = () => {
                 <Image
                   src={tour.thumbnailUrl}
                   alt={tour.name}
+                  fill={true}
                   className="w-32 h-32 rounded-lg object-cover"
                 />
                 <div className="flex-1 space-y-4">
@@ -182,6 +183,7 @@ const PreviousTours = () => {
                 <Image
                   src={tour.thumbnailUrl}
                   alt={tour.name}
+                  fill={true}
                   className="w-32 h-32 rounded-lg object-cover"
                 />
                 <div className="flex-1 space-y-4">

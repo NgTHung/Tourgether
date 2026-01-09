@@ -325,6 +325,7 @@ ${aiGeneratedFeedback.improvements}
 				<Image
 					src={tourData.thumbnailUrl}
 					alt={tourData.name}
+					fill={true}
 					className="w-full h-full object-cover"
 				/>
 				<div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
@@ -416,6 +417,7 @@ ${aiGeneratedFeedback.improvements}
 													<Image
 														src={image}
 														alt={`Tour photo ${index + 1}`}
+														fill={true}
 														className="w-full h-full object-cover"
 													/>
 												</div>
