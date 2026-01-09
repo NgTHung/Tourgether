@@ -44,7 +44,7 @@ export const env = createEnv({
     S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
     S3_ENDPOINT: process.env.S3_ENDPOINT,
     S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
-    NEXT_PUBLIC_BETTER_AUTH_URL: (process.env.VERCEL_URL ?? "https://localhost:3000"),
+    NEXT_PUBLIC_BETTER_AUTH_URL: (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/`: "http://localhost:3000"),
     GEMINI_API_KEY: process.env.GEMINI_API_KEY
   },
   /**
