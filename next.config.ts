@@ -3,7 +3,7 @@
  * for Docker builds.
  */
 import type { NextConfig } from "next";
-import "./src/env.ts";
+import { env } from "~/env";
 
 /** @type {import("next").NextConfig} */
 const config: NextConfig = {
