@@ -1,4 +1,6 @@
 // lib/file-processor.ts
+import 'pdf-parse/worker';
+import { CanvasFactory } from 'pdf-parse/worker';
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
 import mime from "mime-types";
@@ -32,7 +34,7 @@ export const processFileFromUrl = async (url: string): Promise<ProcessedFile> =>
   // 4. Handle PDFs (Extract Text)
   if (contentType.includes("pdf") || url.endsWith(".pdf")) {
     try {
-      const pdfParse = new PDFParse({data: buffer})
+      const pdfParse = new PDFParse({data: buffer, CanvasFactory})
       const data = await pdfParse.getText();
       return {
         type: "text",

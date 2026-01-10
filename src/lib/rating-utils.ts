@@ -32,7 +32,7 @@ export function toInteger(value: number): number {
 
 /**
  * Convert rating to fixed decimal string for database storage
- */
+ */	
 export function ratingToDecimalString(rating: number): string {
 	return rating.toFixed(1);
 }
