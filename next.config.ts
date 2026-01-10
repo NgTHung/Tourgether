@@ -3,20 +3,14 @@
  * for Docker builds.
  */
 import type { NextConfig } from "next";
-import "./src/env.ts";
+import { env } from "~/env";
 
 /** @type {import("next").NextConfig} */
 const config: NextConfig = {
     images:{
-        remotePatterns:[new URL("https://s3.us-west-002.backblazeb2.com/**")]
+        remotePatterns:[new URL("https://" + env.S3_ENDPOINT + "/**")]
     },
     serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"]
 };
-
-module.exports = {
-  images: {
-    remotePatterns: [new URL("https://" + env.S3_ENDPOINT + "/**")],
-  },
-}
 
 export default config;

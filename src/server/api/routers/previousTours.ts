@@ -8,7 +8,6 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod/v4";
 import { eq, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { toInteger } from "~/lib/rating-utils";
 
 export const previousToursRouter = createTRPCRouter({
 	// Get all previous tours for the current user (as owner or guide)

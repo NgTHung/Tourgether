@@ -29,7 +29,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"~/*": ["./src/*"]
-		}
+		},
+		"maxNodeModuleJsDepth": 0
 	},
 	"include": [
 		"next-env.d.ts",
