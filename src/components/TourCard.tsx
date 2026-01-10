@@ -38,10 +38,10 @@ const TourCard = ({
     <Card className="overflow-hidden cursor-pointer group hover:shadow-elevated transition-all duration-300 flex flex-col h-full">{" "}
       <div className="relative h-48 overflow-hidden">
         <Image
+          fill
           src={imageUrl}
           alt={title}
-          fill={true}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {rating && (
           <Badge className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground">

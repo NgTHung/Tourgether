@@ -13,4 +13,10 @@ const config: NextConfig = {
     serverExternalPackages: ["pdf-parse", "@napi-rs/canvas"]
 };
 
+module.exports = {
+  images: {
+    remotePatterns: [new URL("https://" + env.S3_ENDPOINT + "/**")],
+  },
+}
+
 export default config;

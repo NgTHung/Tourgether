@@ -47,10 +47,10 @@ const TourPreview = ({ title, description, images, price, location, tags }: Tour
                 <CarouselItem key={index}>
                   <div className="relative rounded-lg overflow-hidden h-96">
                     <Image
+                      fill
                       src={image}
                       alt={`Tour image ${index + 1}`}
-                      fill={true}
-                      className="w-full h-full object-cover"
+                      className="object-cover"
                     />
                   </div>
                 </CarouselItem>

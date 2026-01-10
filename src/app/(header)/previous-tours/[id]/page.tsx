@@ -43,7 +43,7 @@ import { api } from "~/trpc/react";
 import { toast } from "sonner";
 import { getPresignedUrl } from "~/actions/upload";
 import type { FeedbackAnalysis } from "~/lib/gemini";
-import { ratingToSentimentScore, sentimentScoreToRating, toInteger } from "~/lib/rating-utils";
+import { ratingToSentimentScore, sentimentScoreToRating, toInteger, parseRating } from "~/lib/rating-utils";
 import ReactMarkdown from "react-markdown";
 import Image from "next/image";
 
@@ -63,6 +63,7 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 	const [activeTab, setActiveTab] = useState("details");
 	const [editDialogOpen, setEditDialogOpen] = useState(false);
 	const [editTotalTravelers, setEditTotalTravelers] = useState<number>(0);
+	const [isDraggingFile, setIsDraggingFile] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const {
@@ -185,14 +186,17 @@ ${aiGeneratedFeedback.improvements}
 		});
 	};
 
-	const handlePushFeedbackToGuide = (feedback: { rating: number; feedback: string }) => {
+	const handlePushFeedbackToGuide = (feedback: { rating: string | number; feedback: string }) => {
 		if (!tourData.guideID) {
 			toast.error("No guide assigned to this tour");
 			return;
 		}
 		
+		// Parse rating from string (database decimal) to number
+		const ratingNum = parseRating(feedback.rating);
+		
 		// Convert rating (1-5) to sentiment score (0-100) as integer
-		const sentimentScore = ratingToSentimentScore(feedback.rating);
+		const sentimentScore = ratingToSentimentScore(ratingNum);
 		
 		pushReviewToGuideMutation.mutate({
 			previousTourId: id,
@@ -201,7 +205,7 @@ ${aiGeneratedFeedback.improvements}
 			strengths: [],
 			improvements: undefined,
 			sentimentScore,
-			rating: feedback.rating,
+			rating: ratingNum,
 			redFlags: 0,
 			tourName: tourData.name,
 			tourLocation: tourData.location ?? undefined,
@@ -226,6 +230,44 @@ ${aiGeneratedFeedback.improvements}
 			];
 			return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
 		});
+		setUploadedFiles((prev) => [...prev, ...validFiles]);
+	};
+
+	const handleFileDragOver = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDraggingFile(true);
+	};
+
+	const handleFileDragLeave = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDraggingFile(false);
+	};
+
+	const handleFileDrop = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDraggingFile(false);
+
+		const files = Array.from(e.dataTransfer.files);
+		const validTypes = [
+			"application/pdf",
+			"text/plain",
+			"application/msword",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"image/jpeg",
+			"image/png",
+		];
+		const validFiles = files.filter((file) => {
+			return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024;
+		});
+
+		if (validFiles.length === 0) {
+			toast.error("No valid files. Allowed: PDF, DOC, DOCX, TXT, JPG, PNG (max 10MB)");
+			return;
+		}
+
 		setUploadedFiles((prev) => [...prev, ...validFiles]);
 	};
 
@@ -297,17 +339,18 @@ ${aiGeneratedFeedback.improvements}
 		onRatingChange,
 		interactive = false,
 	}: {
-		rating: number;
+		rating: string | number;
 		onRatingChange?: (rating: number) => void;
 		interactive?: boolean;
 	}) => {
+		const ratingNum = parseRating(rating);
 		return (
 			<div className="flex gap-1">
 				{[1, 2, 3, 4, 5].map((star) => (
 					<Star
 						key={star}
 						className={`w-5 h-5 ${
-							star <= rating
+							star <= ratingNum
 								? "fill-yellow-400 text-yellow-400"
 								: "text-gray-300"
 						} ${interactive ? "cursor-pointer hover:text-yellow-400" : ""}`}
@@ -323,10 +366,10 @@ ${aiGeneratedFeedback.improvements}
 			{/* Hero Image */}
 			<div className="relative h-72 w-full overflow-hidden">
 				<Image
+					fill
 					src={tourData.thumbnailUrl}
 					alt={tourData.name}
-					fill={true}
-					className="w-full h-full object-cover"
+					className="object-cover"
 				/>
 				<div className="absolute inset-0 bg-linear-to-t from-background to-transparent" />
 				<Badge className="absolute top-4 left-4 bg-green-600 text-white">
@@ -415,10 +458,10 @@ ${aiGeneratedFeedback.improvements}
 													className="relative aspect-video rounded-lg overflow-hidden"
 												>
 													<Image
+														fill
 														src={image}
 														alt={`Tour photo ${index + 1}`}
-														fill={true}
-														className="w-full h-full object-cover"
+														className="object-cover"
 													/>
 												</div>
 											))}
@@ -539,9 +582,16 @@ ${aiGeneratedFeedback.improvements}
 									{/* File Upload for AI Analysis */}
 									<div
 										onClick={() => fileInputRef.current?.click()}
-										className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-colors"
+										onDragOver={handleFileDragOver}
+										onDragLeave={handleFileDragLeave}
+										onDrop={handleFileDrop}
+										className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+											isDraggingFile 
+												? "border-primary bg-primary/5" 
+												: "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+										}`}
 									>
-										<Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+										<Upload className={`w-8 h-8 mx-auto mb-2 ${isDraggingFile ? "text-primary" : "text-muted-foreground"}`} />
 										<p className="text-sm font-medium">Drop files or click to upload</p>
 										<p className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT, JPG, PNG</p>
 										<input

@@ -18,6 +18,7 @@ import {
 import { useSession } from "~/components/AuthProvider";
 import { api } from "~/trpc/react";
 import ReactMarkdown from "react-markdown";
+import { parseRating } from "~/lib/rating-utils";
 import Image from "next/image";
 
 const formatter = new Intl.DateTimeFormat("en-US", {
@@ -41,15 +42,16 @@ const PreviousTours = () => {
   const StarRating = ({ 
     rating, 
   }: { 
-    rating: number; 
+    rating: string | number; 
   }) => {
+    const ratingNum = parseRating(rating);
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
             className={`w-4 h-4 ${
-              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+              star <= ratingNum ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
             }`}
           />
         ))}
@@ -77,12 +79,14 @@ const PreviousTours = () => {
           <Card key={tour.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex gap-6">
-                <Image
-                  src={tour.thumbnailUrl}
-                  alt={tour.name}
-                  fill={true}
-                  className="w-32 h-32 rounded-lg object-cover"
-                />
+                <div className="relative w-32 h-32 shrink-0">
+                  <Image
+                    fill
+                    src={tour.thumbnailUrl}
+                    alt={tour.name}
+                    className="rounded-lg object-cover"
+                  />
+                </div>
                 <div className="flex-1 space-y-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
@@ -180,12 +184,14 @@ const PreviousTours = () => {
           <Card key={tour.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex gap-6">
-                <Image
-                  src={tour.thumbnailUrl}
-                  alt={tour.name}
-                  fill={true}
-                  className="w-32 h-32 rounded-lg object-cover"
-                />
+                <div className="relative w-32 h-32 shrink-0">
+                  <Image
+                    fill
+                    src={tour.thumbnailUrl}
+                    alt={tour.name}
+                    className="rounded-lg object-cover"
+                  />
+                </div>
                 <div className="flex-1 space-y-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">

@@ -36,3 +36,12 @@ export function toInteger(value: number): number {
 export function ratingToDecimalString(rating: number): string {
 	return rating.toFixed(1);
 }
+
+/**
+ * Parse rating from database (string) to number
+ * Handles both string and number inputs for flexibility
+ */
+export function parseRating(rating: string | number): number {
+	const parsed = typeof rating === "string" ? parseFloat(rating) : rating;
+	return Math.max(1, Math.min(5, parsed));
+}
