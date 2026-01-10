@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Badge } from "~/components/ui/badge";
 import { useRouter } from "next/navigation";
@@ -132,25 +131,11 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 					</div>
 				</div>
 
-				{/* Main Content */}
-				<Tabs defaultValue="about" className="mb-8">
-					<TabsList className="mb-6">
-						<TabsTrigger value="about">About</TabsTrigger>
-						<TabsTrigger value="experience">Experience</TabsTrigger>
-						<TabsTrigger value="tours">Current Tours</TabsTrigger>
-						<TabsTrigger value="reviews">Reviews</TabsTrigger>
-						<TabsTrigger value="performance">
-							Performance Reviews
-							{totalReviewsCount > 0 && (
-								<Badge variant="secondary" className="ml-2">
-									{totalReviewsCount}
-								</Badge>
-							)}
-						</TabsTrigger>
-					</TabsList>
-
-					{/* About Tab */}
-					<TabsContent value="about" className="space-y-6">
+				{/* Main Content - Scrollable Single Page */}
+				<div className="mb-8 space-y-10">
+					{/* About Section */}
+					<section>
+						<h2 className="mb-6 text-xl font-semibold">About</h2>
 						<div className="grid gap-6 md:grid-cols-2">
 							{/* About Card */}
 							<Card>
@@ -213,6 +198,24 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 									</p>
 								</CardContent>
 							</Card>
+
+							{/* Completed Tours Card */}
+							<Card>
+								<CardHeader>
+									<CardTitle className="flex items-center gap-2">
+										<CheckCircle className="size-5" />
+										Completed Tours
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<p className="text-2xl font-bold text-green-600 dark:text-green-400">
+										{guideData.completedToursCount}
+									</p>
+									<p className="text-sm text-muted-foreground">
+										Tours completed successfully
+									</p>
+								</CardContent>
+							</Card>
 						</div>
 
 						{/* CV Link */}
@@ -239,50 +242,11 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 								</CardContent>
 							</Card>
 						)}
-					</TabsContent>
+					</section>
 
-					{/* Experience Tab */}
-					<TabsContent value="experience" className="space-y-6">
-						<Card>
-							<CardHeader>
-								<CardTitle>Professional Summary</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-6">
-								<div>
-									<h4 className="mb-2 font-medium">Description</h4>
-									<p className="text-muted-foreground">
-										{guideData.guide.description ?? "No description provided."}
-									</p>
-								</div>
-
-								<div>
-									<h4 className="mb-2 font-medium">Work Experience</h4>
-									<p className="text-muted-foreground">
-										{guideData.guide.workExperience ??
-											"No work experience provided."}
-									</p>
-								</div>
-
-								<div>
-									<h4 className="mb-2 font-medium">Certifications</h4>
-									<p className="text-muted-foreground">
-										{guideData.guide.certificates ??
-											"No certificates provided."}
-									</p>
-								</div>
-
-								<div className="flex items-center gap-2 text-sm">
-									<CheckCircle className="size-4 text-green-500" />
-									<span>
-										Completed {guideData.completedToursCount} tours successfully
-									</span>
-								</div>
-							</CardContent>
-						</Card>
-					</TabsContent>
-
-					{/* Current Tours Tab */}
-					<TabsContent value="tours" className="space-y-6">
+					{/* Current Tours Section */}
+					<section>
+						<h2 className="mb-6 text-xl font-semibold">Current Tours</h2>
 						{guideData.currentTours.length > 0 ? (
 							<div className="grid gap-4 md:grid-cols-2">
 								{guideData.currentTours.map((tour) => (
@@ -319,10 +283,11 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 								</CardContent>
 							</Card>
 						)}
-					</TabsContent>
+					</section>
 
-					{/* Reviews Tab */}
-					<TabsContent value="reviews" className="space-y-6">
+					{/* Reviews Section */}
+					<section>
+						<h2 className="mb-6 text-xl font-semibold">Reviews</h2>
 						{guideData.reviews.length > 0 ? (
 							<div className="space-y-4">
 								{guideData.reviews.map((reviewItem) => (
@@ -373,10 +338,18 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 								</CardContent>
 							</Card>
 						)}
-					</TabsContent>
+					</section>
 
-					{/* Performance Reviews Tab */}
-					<TabsContent value="performance" className="space-y-6">
+					{/* Performance Reviews Section */}
+					<section>
+						<h2 className="mb-6 flex items-center gap-2 text-xl font-semibold">
+							Performance Reviews
+							{totalReviewsCount > 0 && (
+								<Badge variant="secondary">
+									{totalReviewsCount}
+								</Badge>
+							)}
+						</h2>
 						{guideData.performanceReviews.length > 0 ? (
 							<div className="space-y-4">
 								{guideData.performanceReviews.map((review) => (
@@ -496,8 +469,8 @@ const GuideProfilePage = ({ params }: { params: Promise<{ id: string }> }) => {
 								</CardContent>
 							</Card>
 						)}
-					</TabsContent>
-				</Tabs>
+					</section>
+				</div>
 			</div>
 		</div>
 	);

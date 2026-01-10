@@ -12,7 +12,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import { Compass, GraduationCap, Briefcase, AlertCircle } from "lucide-react";
+import { GraduationCap, Briefcase, AlertCircle } from "lucide-react";
+import Logo from "~/components/Logo";
 import { studentSignup, businessSignup } from "~/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
@@ -52,14 +53,7 @@ const Signup = () => {
 			<div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-start">
 				{/* Hero Section */}
 				<div className="hidden md:flex flex-col justify-center space-y-6 sticky top-8">
-					<div className="flex items-center gap-3">
-						<div className="p-3 bg-gradient-primary rounded-2xl">
-							<Compass className="w-10 h-10 text-primary-foreground" />
-						</div>
-						<h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-							Tourgether
-						</h1>
-					</div>
+					<Logo size="xl" />
 					<div className="space-y-4">
 						<h2 className="text-3xl font-bold text-foreground">
 							Connect. Explore. Experience.
