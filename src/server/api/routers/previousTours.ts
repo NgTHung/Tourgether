@@ -160,7 +160,7 @@ export const previousToursRouter = createTRPCRouter({
 				.values({
 					previousTourID: input.previousTourId,
 					userID: ctx.session.user.id,
-					rating: input.rating,
+					rating: input.rating.toString(),
 					feedback: input.feedback,
 				})
 				.returning();
@@ -171,7 +171,7 @@ export const previousToursRouter = createTRPCRouter({
 			});
 
 			const newAvgRating = allFeedbacks.length > 0
-				? (allFeedbacks.reduce((acc, f) => acc + f.rating, 0) / allFeedbacks.length).toFixed(2)
+				? (allFeedbacks.reduce((acc, f) => acc + parseInt(f.rating), 0) / allFeedbacks.length).toFixed(2)
 				: null;
 
 			await ctx.db
@@ -226,7 +226,7 @@ export const previousToursRouter = createTRPCRouter({
 				});
 
 				const newAvgRating = allFeedbacks.length > 0
-					? (allFeedbacks.reduce((acc, f) => acc + f.rating, 0) / allFeedbacks.length).toFixed(2)
+					? (allFeedbacks.reduce((acc, f) => acc + parseInt(f.rating), 0) / allFeedbacks.length).toFixed(2)
 					: null;
 
 				await ctx.db
