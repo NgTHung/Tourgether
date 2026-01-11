@@ -780,46 +780,35 @@ ${aiGeneratedFeedback.improvements}
 												<p className="text-sm">{aiGeneratedFeedback.improvements}</p>
 											</div>
 
-											<div className="flex flex-col gap-3">
-												<div className="flex gap-3">
+											<div className="flex gap-3">
+												<Button 
+													variant="gradient" 
+													className="flex-1"
+													onClick={handlePushAIFeedback}
+													disabled={addFeedbackMutation.isPending}
+												>
+													{addFeedbackMutation.isPending ? (
+														<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+													) : (
+														<MessageSquarePlus className="w-4 h-4 mr-2" />
+													)}
+													Push to Feedbacks
+												</Button>
+												{tourData.guideID && (
 													<Button 
-														variant="gradient" 
+														variant="default" 
 														className="flex-1"
-														onClick={handlePushAIFeedback}
-														disabled={addFeedbackMutation.isPending}
+														onClick={handlePushReviewToGuide}
+														disabled={pushReviewToGuideMutation.isPending}
 													>
-														{addFeedbackMutation.isPending ? (
+														{pushReviewToGuideMutation.isPending ? (
 															<Loader2 className="w-4 h-4 mr-2 animate-spin" />
 														) : (
-															<MessageSquarePlus className="w-4 h-4 mr-2" />
+															<UserPlus className="w-4 h-4 mr-2" />
 														)}
-														Push to Feedbacks
+														Push to Guide Profile
 													</Button>
-													{tourData.guideID && (
-														<Button 
-															variant="default" 
-															className="flex-1"
-															onClick={handlePushReviewToGuide}
-															disabled={pushReviewToGuideMutation.isPending}
-														>
-															{pushReviewToGuideMutation.isPending ? (
-																<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-															) : (
-																<UserPlus className="w-4 h-4 mr-2" />
-															)}
-															Push to Guide Profile
-														</Button>
-													)}
-												</div>
-												<div className="flex gap-3">
-													<Button variant="outline" className="flex-1">
-														<FileText className="w-4 h-4 mr-2" />
-														Export PDF
-													</Button>
-													<Button variant="outline" className="flex-1">
-														Save
-													</Button>
-												</div>
+												)}
 											</div>
 										</div>
 									)}

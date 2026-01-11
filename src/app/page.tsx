@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { Compass, Users, Briefcase, ArrowRight } from "lucide-react";
+import { Users, Briefcase, ArrowRight } from "lucide-react";
 import heroImage from "public/assets/hero-beach-jgTo3uaI.jpg";
 // import { router.push } from "next/navigation";
 import Image from "next/image";
@@ -38,14 +38,18 @@ const Index = () => {
 				</div>
 
 				<div className="relative z-10 container px-4 text-center">
-					<div className="flex items-center justify-center gap-3 mb-6">
-						<div className="p-3 bg-gradient-primary rounded-2xl">
-							<Compass className="w-12 h-12 text-primary-foreground" />
-						</div>
+					<div className="flex items-center justify-center gap-4 mb-6">
+						<Image
+							src="/assets/logo-dark.png"
+							alt="Tourgether Logo"
+							width={80}
+							height={80}
+							className="drop-shadow-lg"
+						/>
+						<h1 className="text-5xl md:text-7xl font-bold text-primary-foreground drop-shadow-lg">
+							Tourgether
+						</h1>
 					</div>
-					<h1 className="text-5xl md:text-7xl font-bold mb-6 text-primary-foreground drop-shadow-lg">
-						Tourgether
-					</h1>
 					<p className="text-xl md:text-2xl text-primary-foreground/90 mb-8 max-w-2xl mx-auto drop-shadow-md">
 						{" "}
 						Connecting tourism students with businesses worldwide

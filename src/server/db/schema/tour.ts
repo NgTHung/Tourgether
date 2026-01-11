@@ -124,6 +124,7 @@ export const tourGuide = pgTable("tour_guide", {
 		.default(sql`'{}'::text[]`),
 	description: text("description"),
 	cvUrl: text("cv_url"),
+	backgroundUrl: text("background_url"),
 	averageRating: decimal("average_rating", { precision: 2, scale: 1 }), // Calculated from performance reviews
 	totalReviews: integer("total_reviews").default(0), // Count of performance reviews
 });

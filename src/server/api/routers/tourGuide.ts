@@ -483,4 +483,33 @@ export const tourGuideRouter = createTRPCRouter({
 
 			return deleted[0];
 		}),
+
+	// Update guide background image
+	updateBackground: protectedProcedure
+		.input(z.object({
+			backgroundUrl: z.string().nullable(),
+		}))
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
+
+			// Verify user is a tour guide
+			const guide = await ctx.db.query.tourGuide.findFirst({
+				where: eq(tourGuide.userID, userId),
+			});
+
+			if (!guide) {
+				throw new TRPCError({
+					message: "You are not registered as a tour guide",
+					code: "FORBIDDEN",
+				});
+			}
+
+			const updated = await ctx.db
+				.update(tourGuide)
+				.set({ backgroundUrl: input.backgroundUrl })
+				.where(eq(tourGuide.userID, userId))
+				.returning();
+
+			return updated[0];
+		}),
 });

@@ -50,9 +50,9 @@ const Signup = () => {
 
 	return (
 		<div className="min-h-screen bg-background flex items-center justify-center p-4">
-			<div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-start">
-				{/* Hero Section */}
-				<div className="hidden md:flex flex-col justify-center space-y-6 sticky top-8">
+			<div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
+				{/* Hero Section - Hidden on mobile */}
+				<div className="hidden md:flex flex-col justify-center space-y-6">
 					<Logo size="xl" />
 					<div className="space-y-4">
 						<h2 className="text-3xl font-bold text-foreground">
