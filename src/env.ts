@@ -20,6 +20,7 @@ export const env = createEnv({
     S3_SECRET_ACCESS_KEY: z.string().min(1),
     S3_ENDPOINT: z.string(),
     S3_BUCKET_NAME: z.string().min(1),
+    GEMINI_API_KEY: z.string().nonempty()
   },
 
   /**
@@ -29,6 +30,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_BETTER_AUTH_URL: z.string(),
   },
 
   /**
@@ -42,6 +44,8 @@ export const env = createEnv({
     S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
     S3_ENDPOINT: process.env.S3_ENDPOINT,
     S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
+    NEXT_PUBLIC_BETTER_AUTH_URL: (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/`: "http://localhost:3000"),
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
