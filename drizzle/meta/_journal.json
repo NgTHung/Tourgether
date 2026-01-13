@@ -176,6 +176,13 @@
       "when": 1767925808411,
       "tag": "0024_lumpy_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1768045069374,
+      "tag": "0025_dark_deathbird",
+      "breakpoints": true
     }
   ]
 }

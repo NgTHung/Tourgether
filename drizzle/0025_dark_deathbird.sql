@@ -1,0 +1,1 @@
+ALTER TABLE "tour_guide" ADD COLUMN "background_url" text;

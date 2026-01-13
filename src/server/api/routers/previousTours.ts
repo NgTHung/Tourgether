@@ -159,7 +159,7 @@ export const previousToursRouter = createTRPCRouter({
 				.values({
 					previousTourID: input.previousTourId,
 					userID: ctx.session.user.id,
-					rating: input.rating.toString(),
+					rating: input.rating.toFixed(1),
 					feedback: input.feedback,
 				})
 				.returning();
@@ -170,7 +170,7 @@ export const previousToursRouter = createTRPCRouter({
 			});
 
 			const newAvgRating = allFeedbacks.length > 0
-				? (allFeedbacks.reduce((acc, f) => acc + parseInt(f.rating), 0) / allFeedbacks.length).toFixed(2)
+				? (allFeedbacks.reduce((acc, f) => acc + parseFloat(f.rating), 0) / allFeedbacks.length).toFixed(2)
 				: null;
 
 			await ctx.db
@@ -179,6 +179,37 @@ export const previousToursRouter = createTRPCRouter({
 				.where(eq(previousTours.id, input.previousTourId));
 
 			return newFeedback[0];
+		}),
+
+	// Delete previous tour
+	deletePreviousTour: protectedProcedure
+		.input(z.string())
+		.mutation(async ({ ctx, input }) => {
+			const previousTour = await ctx.db.query.previousTours.findFirst({
+				where: eq(previousTours.id, input),
+			});
+
+			if (!previousTour) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Previous tour not found",
+				});
+			}
+
+			// Only the tour owner can delete
+			if (previousTour.ownerUserID !== ctx.session.user.id) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Only the tour owner can delete this tour",
+				});
+			}
+
+			// Delete the previous tour (feedbacks will cascade delete)
+			await ctx.db
+				.delete(previousTours)
+				.where(eq(previousTours.id, input));
+
+			return { success: true };
 		}),
 
 	// Delete feedback
@@ -225,7 +256,7 @@ export const previousToursRouter = createTRPCRouter({
 				});
 
 				const newAvgRating = allFeedbacks.length > 0
-					? (allFeedbacks.reduce((acc, f) => acc + parseInt(f.rating), 0) / allFeedbacks.length).toFixed(2)
+					? (allFeedbacks.reduce((acc, f) => acc + parseFloat(f.rating), 0) / allFeedbacks.length).toFixed(2)
 					: null;
 
 				await ctx.db

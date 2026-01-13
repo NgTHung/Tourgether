@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, User, Settings, LogOut, Compass } from "lucide-react";
+import { Search, User, Settings, LogOut } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import SettingsModal from "~/components/SettingsModal";
 import { useSession } from "./AuthProvider";
 import { authClient } from "~/server/better-auth/client";
+import Logo from "~/components/Logo";
 
 const Header = () => {
   const router = useRouter();
@@ -44,12 +45,10 @@ const Header = () => {
         <div className="flex items-center shrink-0">
           <button
             onClick={handleLogoClick}
-            className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
+            className="flex items-center hover:opacity-80 transition-opacity"
           >
-            <div className="p-1.5 bg-gradient-primary rounded-lg">
-              <Compass className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="hidden sm:inline">Tourgether</span>
+            <Logo size="sm" showText className="hidden sm:flex" />
+            <Logo size="sm" showText={false} className="flex sm:hidden" />
           </button>
         </div>
 

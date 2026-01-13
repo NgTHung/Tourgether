@@ -64,6 +64,7 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 	const [editDialogOpen, setEditDialogOpen] = useState(false);
 	const [editTotalTravelers, setEditTotalTravelers] = useState<number>(0);
 	const [isDraggingFile, setIsDraggingFile] = useState(false);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const {
@@ -89,6 +90,16 @@ const PreviousTourDetail = ({ params }: { params: Promise<{ id: string }> }) => 
 		},
 		onError: (error) => {
 			toast.error(error.message ?? "Failed to delete feedback");
+		},
+	});
+
+	const deleteTourMutation = api.previousTours.deletePreviousTour.useMutation({
+		onSuccess: () => {
+			toast.success("Previous tour deleted successfully");
+			router.push("/previous-tours");
+		},
+		onError: (error) => {
+			toast.error(error.message ?? "Failed to delete tour");
 		},
 	});
 
@@ -225,8 +236,6 @@ ${aiGeneratedFeedback.improvements}
 				"text/plain",
 				"application/msword",
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-				"image/jpeg",
-				"image/png",
 			];
 			return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024; // 10MB limit
 		});
@@ -256,15 +265,13 @@ ${aiGeneratedFeedback.improvements}
 			"text/plain",
 			"application/msword",
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			"image/jpeg",
-			"image/png",
 		];
 		const validFiles = files.filter((file) => {
 			return validTypes.includes(file.type) && file.size <= 10 * 1024 * 1024;
 		});
 
 		if (validFiles.length === 0) {
-			toast.error("No valid files. Allowed: PDF, DOC, DOCX, TXT, JPG, PNG (max 10MB)");
+			toast.error("No valid files. Allowed: PDF, DOC, DOCX, TXT (max 10MB)");
 			return;
 		}
 
@@ -276,7 +283,6 @@ ${aiGeneratedFeedback.improvements}
 	};
 
 	const getFileIcon = (file: File) => {
-		if (file.type.startsWith("image/")) return "🖼️";
 		if (file.type === "application/pdf") return "📄";
 		if (file.type.includes("word")) return "📝";
 		if (file.type === "text/plain") return "📝";
@@ -363,6 +369,24 @@ ${aiGeneratedFeedback.improvements}
 
 	return (
 		<>
+			{/* AI Generation Loading Overlay */}
+			{(isGeneratingAI || generateAIMutation.isPending) && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+					<div className="flex flex-col items-center gap-4 p-8 rounded-lg bg-card border shadow-lg">
+						<div className="relative">
+							<Sparkles className="w-12 h-12 text-primary animate-pulse" />
+							<Loader2 className="w-16 h-16 text-primary animate-spin absolute -top-2 -left-2" />
+						</div>
+						<div className="text-center space-y-2">
+							<h3 className="text-lg font-semibold">Analyzing Reviews</h3>
+							<p className="text-sm text-muted-foreground max-w-xs">
+								Our AI is generating a comprehensive summary of all feedback...
+							</p>
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* Hero Image */}
 			<div className="relative h-72 w-full overflow-hidden">
 				<Image
@@ -403,10 +427,57 @@ ${aiGeneratedFeedback.improvements}
 											Completed on {formatter.format(tourData.completedAt)}
 										</p>
 									</div>
-									<Badge className="text-base">
-										<Star className="w-4 h-4 mr-1 fill-accent text-accent" />
-										{tourData.averageRating ?? "N/A"}
-									</Badge>
+									<div className="flex items-center gap-2">
+										<Badge className="text-base">
+											<Star className="w-4 h-4 mr-1 fill-accent text-accent" />
+											{tourData.averageRating ?? "N/A"}
+										</Badge>
+										{isOwner && (
+											<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+												<DialogTrigger asChild>
+													<Button variant="destructive" size="icon">
+														<Trash2 className="w-4 h-4" />
+													</Button>
+												</DialogTrigger>
+												<DialogContent>
+													<DialogHeader>
+														<DialogTitle className="flex items-center gap-2">
+															<AlertTriangle className="w-5 h-5 text-destructive" />
+															Delete Previous Tour
+														</DialogTitle>
+														<DialogDescription>
+															Are you sure you want to delete &quot;{tourData.name}&quot;? This action cannot be undone and will permanently remove the tour along with all its feedbacks.
+														</DialogDescription>
+													</DialogHeader>
+													<DialogFooter className="gap-2 sm:gap-0">
+														<Button
+															variant="outline"
+															onClick={() => setDeleteDialogOpen(false)}
+														>
+															Cancel
+														</Button>
+														<Button
+															variant="destructive"
+															onClick={() => deleteTourMutation.mutate(id)}
+															disabled={deleteTourMutation.isPending}
+														>
+															{deleteTourMutation.isPending ? (
+																<>
+																	<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+																	Deleting...
+																</>
+															) : (
+																<>
+																	<Trash2 className="w-4 h-4 mr-2" />
+																	Delete Tour
+																</>
+															)}
+														</Button>
+													</DialogFooter>
+												</DialogContent>
+											</Dialog>
+										)}
+									</div>
 								</div>
 
 								<div className="grid md:grid-cols-3 gap-4">
@@ -593,12 +664,12 @@ ${aiGeneratedFeedback.improvements}
 									>
 										<Upload className={`w-8 h-8 mx-auto mb-2 ${isDraggingFile ? "text-primary" : "text-muted-foreground"}`} />
 										<p className="text-sm font-medium">Drop files or click to upload</p>
-										<p className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT, JPG, PNG</p>
+										<p className="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT</p>
 										<input
 											ref={fileInputRef}
 											type="file"
 											multiple
-											accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+											accept=".pdf,.doc,.docx,.txt"
 											onChange={handleFileSelect}
 											className="hidden"
 										/>
@@ -709,46 +780,35 @@ ${aiGeneratedFeedback.improvements}
 												<p className="text-sm">{aiGeneratedFeedback.improvements}</p>
 											</div>
 
-											<div className="flex flex-col gap-3">
-												<div className="flex gap-3">
+											<div className="flex gap-3">
+												<Button 
+													variant="gradient" 
+													className="flex-1"
+													onClick={handlePushAIFeedback}
+													disabled={addFeedbackMutation.isPending}
+												>
+													{addFeedbackMutation.isPending ? (
+														<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+													) : (
+														<MessageSquarePlus className="w-4 h-4 mr-2" />
+													)}
+													Push to Feedbacks
+												</Button>
+												{tourData.guideID && (
 													<Button 
-														variant="gradient" 
+														variant="default" 
 														className="flex-1"
-														onClick={handlePushAIFeedback}
-														disabled={addFeedbackMutation.isPending}
+														onClick={handlePushReviewToGuide}
+														disabled={pushReviewToGuideMutation.isPending}
 													>
-														{addFeedbackMutation.isPending ? (
+														{pushReviewToGuideMutation.isPending ? (
 															<Loader2 className="w-4 h-4 mr-2 animate-spin" />
 														) : (
-															<MessageSquarePlus className="w-4 h-4 mr-2" />
+															<UserPlus className="w-4 h-4 mr-2" />
 														)}
-														Push to Feedbacks
+														Push to Guide Profile
 													</Button>
-													{tourData.guideID && (
-														<Button 
-															variant="default" 
-															className="flex-1"
-															onClick={handlePushReviewToGuide}
-															disabled={pushReviewToGuideMutation.isPending}
-														>
-															{pushReviewToGuideMutation.isPending ? (
-																<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-															) : (
-																<UserPlus className="w-4 h-4 mr-2" />
-															)}
-															Push to Guide Profile
-														</Button>
-													)}
-												</div>
-												<div className="flex gap-3">
-													<Button variant="outline" className="flex-1">
-														<FileText className="w-4 h-4 mr-2" />
-														Export PDF
-													</Button>
-													<Button variant="outline" className="flex-1">
-														Save
-													</Button>
-												</div>
+												)}
 											</div>
 										</div>
 									)}

@@ -11,7 +11,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-import { Compass } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import Logo from "~/components/Logo";
 import { login } from "~/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "~/server/better-auth/client";
@@ -44,7 +45,6 @@ const Auth = () => {
 		}
 	}, [isSessionPending, session, router]);
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [state, action, pending] = useActionState(login, undefined);
 
 	return (
@@ -52,14 +52,7 @@ const Auth = () => {
 			<div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
 				{/* Hero Section */}
 				<div className="hidden md:flex flex-col justify-center space-y-6">
-					<div className="flex items-center gap-3">
-						<div className="p-3 bg-gradient-primary rounded-2xl">
-							<Compass className="w-10 h-10 text-primary-foreground" />
-						</div>
-						<h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-							Tourgether
-						</h1>
-					</div>
+					<Logo size="xl" />
 					<div className="space-y-4">
 						<h2 className="text-3xl font-bold text-foreground">
 							Connect. Explore. Experience.
@@ -133,7 +126,14 @@ const Auth = () => {
 										type="password"
 										placeholder="••••••••"
 										required
+										className={state?.message ? "border-destructive" : ""}
 									/>
+									{state?.message && (
+										<div className="flex items-center gap-2 text-sm text-destructive mt-1">
+											<AlertCircle className="w-4 h-4" />
+											<span>{state.message}</span>
+										</div>
+									)}
 								</div>
 							</div>
 
@@ -141,8 +141,9 @@ const Auth = () => {
 								type="submit"
 								className="w-full"
 								variant="gradient"
+								disabled={pending}
 							>
-								Sign In
+								{pending ? "Signing in..." : "Sign In"}
 							</Button>
 						</form>
 
