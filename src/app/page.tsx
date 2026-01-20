@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { authClient } from "~/server/better-auth/client";
 import { useEffect } from "react";
+import Logo from "~/components/Logo";
 
 // /
 const Index = () => {
@@ -39,13 +40,7 @@ const Index = () => {
 
 				<div className="relative z-10 container px-4 text-center">
 					<div className="flex items-center justify-center gap-4 mb-6">
-						<Image
-							src="/assets/logo-dark.png"
-							alt="Tourgether Logo"
-							width={80}
-							height={80}
-							className="drop-shadow-lg"
-						/>
+						<Logo size="xl" showText={false} inverted />
 						<h1 className="text-5xl md:text-7xl font-bold text-primary-foreground drop-shadow-lg">
 							Tourgether
 						</h1>
@@ -127,7 +122,9 @@ const Index = () => {
 									</li>
 								</ul>
 								<Button
-									onClick={() => router.push("/signup?role=student")}
+									onClick={() =>
+										router.push("/signup?role=student")
+									}
 									variant="default"
 									className="w-full mt-auto"
 								>
@@ -172,7 +169,9 @@ const Index = () => {
 									</li>
 								</ul>
 								<Button
-									onClick={() => router.push("/signup?role=business")}
+									onClick={() =>
+										router.push("/signup?role=business")
+									}
 									variant="default"
 									className="w-full mt-auto"
 								>

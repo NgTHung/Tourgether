@@ -10,7 +10,10 @@ import { ThemeProvider } from "~/hooks/useTheme";
 export const metadata: Metadata = {
 	title: "Tourgether",
 	description: "Made with love",
-	icons: [{ rel: "icon", url: "/favicon.ico" }],
+	icons: [
+		{ rel: "icon", url: "/assets/logo-light.png", media: "(prefers-color-scheme: light)" },
+		{ rel: "icon", url: "/assets/logo-dark.png", media: "(prefers-color-scheme: dark)" },
+	],
 };
 
 const geist = Geist({
